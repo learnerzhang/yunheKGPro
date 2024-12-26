@@ -18,7 +18,7 @@ class DataModelSerializer(serializers.Serializer):
     user_name = serializers.CharField(max_length=50)
     update_time = serializers.DateTimeField()
     create_time = serializers.DateTimeField()
-
+    kgTag_id = serializers.IntegerField(source='business_tag.id', required=False) # 添加 kgTag_id 字段
 
 class DataModelDetailResponseSerializer(serializers.Serializer):
     total = serializers.IntegerField()

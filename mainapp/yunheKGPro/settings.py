@@ -161,17 +161,28 @@ WSGI_APPLICATION = 'yunheKGPro.wsgi.application'
 #         'NAME': BASE_DIR / 'db.sqlite3',
 #     }
 # }
-
+#
+# DATABASES = {
+#     'default': {
+#         'ENGINE': 'django.db.backends.mysql',
+#         'NAME': 'kgproj',
+#         'USER': 'root',
+#         'PASSWORD': '20221qaz@WSX',
+#         'HOST': '127.0.0.1',
+#         'PORT': '3306',
+#     }
+# }
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.mysql',
-        'NAME': 'kgproj',
+        'NAME': 'test_kgproj',
         'USER': 'root',
-        'PASSWORD': '20221qaz@WSX',
+        'PASSWORD': 'root',
         'HOST': '127.0.0.1',
         'PORT': '3306',
     }
 }
+
 
 ELASTICSEARCH_DSL = {
     'default': {
@@ -211,9 +222,9 @@ elif sys.platform.startswith('win'):
     DATABASES = {
         'default': {
             'ENGINE': 'django.db.backends.mysql',
-            'NAME': 'kgproj',
+            'NAME': 'test_kgproj',
             'USER': 'root',
-            'PASSWORD': '123456',
+            'PASSWORD': 'root',
             'HOST': '127.0.0.1',
             'PORT': '3306',
         }

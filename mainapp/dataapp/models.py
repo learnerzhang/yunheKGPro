@@ -1,5 +1,6 @@
 from django.db import models
 from userapp.models import User
+from kgapp.models import KgTag
 # Create your models here.
 class DataModel(models.Model):
     class Meta:
@@ -12,6 +13,8 @@ class DataModel(models.Model):
     function = models.TextField(verbose_name="接口功能", help_text="接口功能", unique=False, null=True)
     desc = models.TextField(verbose_name="接口描述", help_text="接口描述", unique=False, null=True)
     url = models.CharField(max_length=200, verbose_name="接口地址", help_text="接口地址", unique=False, null=True)
+    # 添加 business_tag 字段，与 KgTag 模型建立映射关系
+    business_tag = models.ForeignKey(KgTag, verbose_name="业务标签", help_text="关联的业务标签",on_delete=models.SET_NULL, null=True, blank=True)
     version = models.CharField(max_length=200, verbose_name="版本号", help_text="版本号", unique=False, null=True)
     req_type = models.IntegerField(max_length=1, verbose_name="请求方式", help_text="请求方式", unique=False, null=True)
     activate = models.IntegerField(max_length=1, verbose_name="激活状态", help_text="激活状态", unique=False, null=True)
@@ -41,7 +44,7 @@ class DataModel(models.Model):
 
     @property
     def params(self):
-        return self.kgmodelparam_set.all()
+        return self.datamodelparam_set.all()
 
 
 class DataModelParam(models.Model):
