@@ -1,0 +1,25 @@
+version: '3.8'
+services:
+  mysql:
+    image: mysql:5.7
+    container_name: mysql
+    environment:
+      MYSQL_ROOT_PASSWORD: 20221qaz@WSX
+      MYSQL_DATABASE: kgproj
+      MYSQL_USER: yh_user
+      MYSQL_PASSWORD: 20221qaz@WSX
+    ports:
+      - "3306:3306"
+    volumes:
+      - ./my.cnf:/etc/my.cnf
+      - ./logs:/var/logs
+      - ./data:/var/lib/mysql
+    restart: unless-stopped
+    privileged: true
+    networks:
+      - mynetwork
+networks:
+  mynetwork:
+    external: true
+volumes:
+  mysql_data:

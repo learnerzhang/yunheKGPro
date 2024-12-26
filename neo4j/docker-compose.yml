@@ -1,0 +1,20 @@
+version: '3.8'
+services:
+  base_neo4j:
+    image: neo4j:latest
+    container_name: base_neo4j
+    ports:
+      - "7474:7474"
+      - "7473:7473"
+      - "7687:7687"
+    volumes:
+      - ./data:/data
+      - ./logs:/logs
+      - ./plugins:/plugins
+    environment:
+      - NEO4J_AUTH=neo4j/12345678
+    networks:
+      - mynetwork
+networks:
+  mynetwork:
+    external: true

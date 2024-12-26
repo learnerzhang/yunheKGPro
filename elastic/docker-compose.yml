@@ -1,0 +1,39 @@
+version: '3.8'
+services:
+  elasticsearch:
+    image: docker.elastic.co/elasticsearch/elasticsearch:7.17.2
+    container_name: base_elastic
+    environment:
+      - "discovery.type=single-node"
+      - "ES_JAVA_OPTS=-Xms512m -Xmx512m"
+      - "xpack.security.enabled=true"
+      - "ELASTIC_PASSWORD=elastic" # 设置 elastic 用户的密码
+      - "KIBANA_SYSTEM_PASSWORD=elastic" # 设置 kibana_system 用户的密码
+    volumes:
+      - esdata:/usr/share/elasticsearch/data
+    ports:
+      - 9200:9200
+      - 9300:9300
+    networks:
+      - mynetwork
+  kibana:
+    image: docker.elastic.co/kibana/kibana:7.17.2
+    container_name: base_kibana
+    depends_on:
+      - elasticsearch
+    ports:
+      - 5601:5601
+    environment:
+      ELASTICSEARCH_HOSTS: http://elasticsearch:9200
+      ELASTICSEARCH_URL: http://elasticsearch:9200
+      ELASTICSEARCH_USERNAME: elastic
+      ELASTICSEARCH_PASSWORD: elastic
+    networks:
+      - mynetwork
+volumes:
+  esdata:
+
+networks:
+  mynetwork:
+    driver: bridge
+    external: true

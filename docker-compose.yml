@@ -1,0 +1,21 @@
+version: '3.8'
+services:
+  base_nginx:
+    image: nginx:latest
+    container_name: base_nginx
+    ports:
+      - "80:80"
+      - "7000:7000"
+      - "5000:5000"
+      - "9999:9999"
+    networks:
+      - mynetwork
+    volumes:
+      - ./nginx.conf:/etc/nginx/nginx.conf
+      # - ./dist/front_ui:/usr/share/nginx/front_html
+      - ./dist/backend_ui:/usr/share/nginx/backend_ui
+      - ./dist/my_ui:/usr/share/nginx/my_ui
+      - ./mainapp/media:/usr/share/nginx/media
+networks:
+  mynetwork:
+    external: true

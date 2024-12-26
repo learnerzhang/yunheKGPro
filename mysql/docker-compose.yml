@@ -1,0 +1,25 @@
+version: '3.8'
+services:
+  mysql9:
+    image: container-registry.oracle.com/mysql/community-server:9.0
+    container_name: mysql9
+    environment:
+      MYSQL_ROOT_PASSWORD: 20221qaz@WSX
+      MYSQL_DATABASE: kgproj
+      MYSQL_USER: root
+      MYSQL_PASSWORD: 20221qaz@WSX
+    ports:
+      - "3306:3306"
+    volumes:
+      - /etc/mysql/my.cnf:/etc/my.cnf
+      - /var/mysql/logs:/var/logs
+      - /var/mysql/data:/var/lib/mysql
+    restart: unless-stopped
+    privileged: true
+    networks:
+      - mynetwork
+networks:
+  mynetwork:
+    external: true
+volumes:
+  mysql_data:

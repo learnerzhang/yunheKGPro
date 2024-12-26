@@ -1,0 +1,14 @@
+version: '3.8'
+services:
+  base_redis:
+    image: redis:6.0.8
+    container_name: base_redis
+    ports:
+      - "6379:6379"
+    volumes:
+      - ./data:/data
+    networks:
+      - mynetwork
+networks:
+  mynetwork:
+    external: true
