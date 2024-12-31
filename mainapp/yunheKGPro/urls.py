@@ -24,6 +24,7 @@ from drf_yasg.views import get_schema_view
 # 导入swagger的两个Render类
 # 利用get_schema_view()方法，传入两个Render类得到一个schema view
 from rest_framework import routers, serializers, viewsets
+import xadmin
 
 schema_view = get_schema_view(
    openapi.Info(
@@ -37,10 +38,17 @@ schema_view = get_schema_view(
    permission_classes=(permissions.AllowAny,),
 )
 
+xadmin.autodiscover()
 # router = routers.DefaultRouter()
+# version模块自动注册需要版本控制的 Model
+# from xadmin.plugins import xversion
+# xversion.register_models()
+
 urlpatterns = [
+    path('', xadmin.site.urls),
     path('admin/', admin.site.urls),
-    # path('', include(router.urls)),
+    path('xadmin/', xadmin.site.urls),
+    path('ueditor/', include('DjangoUeditor.urls')),
     # 配置django-rest-framwork API路由
     # path('api/', include('api.urls')),
     path('logapp/', include('logapp.urls')),

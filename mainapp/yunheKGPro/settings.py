@@ -79,14 +79,26 @@ INSTALLED_APPS = [
     "rest_framework",
     'rest_framework_swagger', 
     'ckeditor',
+    'DjangoUeditor',
+    'xadmin',
+    'crispy_forms',
+    'crispy_bootstrap3',
+    # 'reversion',
     "drf_yasg",
     "django_elasticsearch_dsl",
     'userapp',
     'yaapp',
+    'import_export',
     'apiapp', 'kgapp', 'modelapp', 'logapp','dataapp',
     'django_celery_results',  # celery结果
     'django_celery_beat',     # celery定时任务
 ]
+
+# 修改xadmin的站点标题
+XADMIN_SITE_NAME = '知识库管理平台'
+SITE_NAME = '知识库管理平台'
+
+CRISPY_TEMPLATE_PACK = 'bootstrap3'
 
 SWAGGER_SETTINGS = {
     # 基础样式

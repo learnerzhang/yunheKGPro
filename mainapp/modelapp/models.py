@@ -4,7 +4,7 @@ from userapp.models import User
 class KgModel(models.Model):
     class Meta:
         verbose_name_plural = '知识库模型'
-        db_table = 'kg_data_access'
+        db_table = 'kg_model'
 
     id = models.AutoField(auto_created=True, primary_key=True, serialize=False)
     name = models.CharField(max_length=200, verbose_name="模型名称", help_text="模型名称",  unique=False)
