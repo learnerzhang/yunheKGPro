@@ -187,7 +187,7 @@ WSGI_APPLICATION = 'yunheKGPro.wsgi.application'
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.mysql',
-        'NAME': 'test_kgproj',
+        'NAME': 'kgproj',
         'USER': 'root',
         'PASSWORD': 'root',
         'HOST': '127.0.0.1',
@@ -234,9 +234,9 @@ elif sys.platform.startswith('win'):
     DATABASES = {
         'default': {
             'ENGINE': 'django.db.backends.mysql',
-            'NAME': 'test_kgproj',
+            'NAME': 'kgproj',
             'USER': 'root',
-            'PASSWORD': 'root',
+            'PASSWORD': '123456',
             'HOST': '127.0.0.1',
             'PORT': '3306',
         }
