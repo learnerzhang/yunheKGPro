@@ -607,7 +607,9 @@ class DocAddApiView(generics.GenericAPIView):
                 for chunk in tmpfile.chunks():
                     f.write(chunk)
                 f.close()
+                print(f"File successfully written to {new_path}")
             except:
+                print(f"Error writing file: {e}")
                 data = {"code": 201, "msg": "文件写入错误..."}
                 serializers = KgDocResponseSerializer(data=data, many=False)
                 serializers.is_valid()

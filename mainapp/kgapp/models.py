@@ -141,7 +141,7 @@ class KgDoc(models.Model):
     @property
     def filepath(self):
         # 编写方法 直接将需要的数据格式返回
-        return self.path.url
+        return self.path.url if self.path else None
 
     @property
     def kg_user(self):

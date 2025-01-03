@@ -4,10 +4,10 @@ from rest_framework.response import Response
 from rest_framework.parsers import FormParser, MultiPartParser
 from drf_yasg.utils import swagger_auto_schema
 from drf_yasg import openapi
-from .models import DataModel,DataModelParam # 确保导入您的接口
+from .models import DataModel, DataModelParam  # 确保导入您的接口
 from kgapp.models import KgTag
 from userapp.models import User
-from .serializers import DataModelSerializer,DataModelParamDetailResponseSerializer,DataModelParamSerializer
+from .serializers import DataModelSerializer, DataModelParamDetailResponseSerializer, DataModelParamSerializer
 from django.utils import timezone
 from rest_framework import mixins
 from rest_framework.authentication import BasicAuthentication
@@ -22,17 +22,20 @@ from rest_framework.parsers import (
 from rest_framework.views import APIView
 from django.forms.models import model_to_dict
 import json
-#import datetime
+# import datetime
 import requests
 from datetime import datetime
 from langchain_community.llms import Ollama
 from urllib.parse import urlencode
 from yunheKGPro import CsrfExemptSessionAuthentication
 
+
 def query_question(text):
     llm = Ollama(model="qwen2.5")
     res = llm(text)
     return res
+
+
 class DataModelAPIView(generics.GenericAPIView):
     serializer_class = DataModelSerializer
     queryset = DataModel.objects.all()
@@ -194,6 +197,7 @@ class DataModelAPIView(generics.GenericAPIView):
                 'msg': str(e)
             }, status=status.HTTP_400_BAD_REQUEST)
 
+
 class DataModelListAPIView(generics.GenericAPIView):
     serializer_class = DataModelSerializer
     queryset = DataModel.objects.all()
@@ -274,6 +278,67 @@ class DataModelDeleteAPIView(generics.GenericAPIView):
                 'code': 400,
                 'msg': str(e)
             }, status=status.HTTP_400_BAD_REQUEST)
+
+
+class DataModelBatchDeleteAPIView(generics.GenericAPIView):
+    queryset = DataModel.objects.all()
+    authentication_classes = (CsrfExemptSessionAuthentication, BasicAuthentication)
+    parser_classes = (FormParser, MultiPartParser)
+
+    @swagger_auto_schema(
+        operation_summary='批量删除数据接口',
+        operation_description='POST /dataapp/datamodel/batchdelete',
+        manual_parameters=[
+            openapi.Parameter(
+                name='data',
+                in_=openapi.IN_FORM,
+                description='批量删除的接口ID列表',
+                type=openapi.TYPE_STRING,
+                example='{"data": [{"id": 1}, {"id": 2}]}'
+            ),
+        ],
+        responses={
+            200: openapi.Schema(
+                type=openapi.TYPE_OBJECT,
+                properties={
+                    'code': openapi.Schema(type=openapi.TYPE_INTEGER),
+                    'msg': openapi.Schema(type=openapi.TYPE_STRING),
+                    'details': openapi.Schema(type=openapi.TYPE_ARRAY, items=openapi.Schema(type=openapi.TYPE_STRING))
+                }
+            ),
+            400: "请求失败",
+        },
+        tags=['datamodel']
+    )
+    @csrf_exempt
+    def post(self, request, *args, **kwargs):
+        reqdata = json.loads(request.data.get("data", "{}"))
+        success_count = 0
+        error_count = 0
+        messages = []
+
+        for item in reqdata.get('data', []):
+            id = item.get("id")
+
+            if id is None:
+                error_count += 1
+                messages.append("缺少必需的参数 id")
+                continue
+
+            try:
+                data_model = DataModel.objects.get(id=id)
+                data_model.delete()
+                success_count += 1
+            except DataModel.DoesNotExist:
+                error_count += 1
+                messages.append(f"接口ID {id} 不存在")
+
+        return Response({
+            "code": 200,
+            "msg": f"成功删除 {success_count} 个接口, 失败 {error_count} 个",
+            "details": messages
+        }, status=status.HTTP_200_OK)
+
 
 class DataModelUpdateAPIView(generics.GenericAPIView):
     serializer_class = DataModelSerializer
@@ -450,6 +515,7 @@ class DataModelUpdateAPIView(generics.GenericAPIView):
                 'msg': str(e)
             }, status=status.HTTP_400_BAD_REQUEST)
 
+
 class DataModelRetrieveAPIView(generics.GenericAPIView):
     queryset = DataModel.objects.all()
     authentication_classes = (CsrfExemptSessionAuthentication, BasicAuthentication)
@@ -503,10 +569,9 @@ class DataModelRetrieveAPIView(generics.GenericAPIView):
             }, status=status.HTTP_400_BAD_REQUEST)
 
 
-
 class DataModelSearchAPIView(mixins.ListModelMixin,
-                    mixins.CreateModelMixin,
-                    generics.GenericAPIView):
+                             mixins.CreateModelMixin,
+                             generics.GenericAPIView):
     serializer_class = DataModelSerializer  # 假设您已经定义了 DataModelSerializer
 
     @swagger_auto_schema(
@@ -559,6 +624,7 @@ class DataModelSearchAPIView(mixins.ListModelMixin,
 
         return Response(data, status=status.HTTP_200_OK)
 
+
 class DataModelParamAPIView(generics.GenericAPIView):
     queryset = DataModel.objects.all()
     authentication_classes = (CsrfExemptSessionAuthentication, BasicAuthentication)
@@ -567,7 +633,8 @@ class DataModelParamAPIView(generics.GenericAPIView):
         operation_summary='获取数据模型所包含的参数',
         operation_description='GET /dataapp/datamodel/params/',
         manual_parameters=[
-            openapi.Parameter('id', openapi.IN_QUERY, type=openapi.TYPE_INTEGER, required=True, description='数据模型ID'),
+            openapi.Parameter('id', openapi.IN_QUERY, type=openapi.TYPE_INTEGER, required=True,
+                              description='数据模型ID'),
         ],
         responses={
             200: openapi.Schema(
@@ -645,6 +712,7 @@ class DataModelParamAPIView(generics.GenericAPIView):
                 'msg': str(e)
             }, status=status.HTTP_400_BAD_REQUEST)
 
+
 class DataModelTestAPIView(generics.GenericAPIView):
     queryset = DataModel.objects.all()
     authentication_classes = (CsrfExemptSessionAuthentication, BasicAuthentication)
@@ -714,7 +782,8 @@ class DataModelTestAPIView(generics.GenericAPIView):
     def get(self, request, *args, **kwargs):
         name = request.query_params.get('name')
         req_type = request.query_params.get('req_type')
-        url = request.query_params.get('url')
+        # url = request.query_params.get('url')
+        url = ''.join(char for char in request.query_params.get('url') if ord(char) >= 32 and ord(char) <= 126)
         activate = request.query_params.get('activate')
         params = request.query_params.get('params', '{}')  # 默认空参数
         headers = request.query_params.get('headers', '{}')  # 默认空头
@@ -758,7 +827,7 @@ class DataModelTestAPIView(generics.GenericAPIView):
         # 构造 curl 命令
         if req_type == 1:  # GET 请求
             query_string = urlencode(params)  # 将参数转换为查询字符串
-            print("########query_string############",query_string)
+            print("########query_string############", query_string)
             curl_command = f'curl -X GET "{url}?{query_string}"'
         else:  # POST 请求
             curl_command = f'curl -X POST "{url}"'
@@ -770,10 +839,24 @@ class DataModelTestAPIView(generics.GenericAPIView):
         # 根据请求方式发送请求
         try:
             if req_type == 1:  # GET 请求
-                response = requests.get(url, params=params, headers=headers)
-            else:  # POST 请求
-                response = requests.post(url, json=params, headers=headers)
+                print("这是一个get请求：", params, headers)
+                if params != {}:
+                    print("参数不为空")
+                    response = requests.get(url, params=params, headers=headers if headers else None)
+                else:
+                    print("没有参数的情况：headers:", headers, "url:", url)
+                    print("url类型:", type(url))
+                    response = requests.get(url, headers={'Content-Type': 'application/json'})
 
+                    print("response:", response)
+            else:  # POST 请求
+                # response = requests.post(url, json=params, headers=headers)
+                try:
+                    response = requests.post(url, json=params, headers=headers)
+                    response.raise_for_status()  # 检查请求是否成功
+                except requests.exceptions.RequestException:
+                    # 如果 json 请求失败，尝试使用 data 请求
+                    response = requests.post(url, data=params, headers=headers)
             # 返回实际响应内容
             return Response({
                 'code': response.status_code,
@@ -843,6 +926,7 @@ class DataParamAddApiView(generics.GenericAPIView):
         else:
             return Response({"code": 201, "msg": "该参数已存在~~~"}, status=status.HTTP_400_BAD_REQUEST)
 
+
 class DataParamBatchAddApiView(generics.GenericAPIView):
     authentication_classes = (CsrfExemptSessionAuthentication, BasicAuthentication)
 
@@ -889,7 +973,8 @@ class DataParamBatchAddApiView(generics.GenericAPIView):
                     error_cnt += 1
                     continue
 
-                data_model_param, created = DataModelParam.objects.get_or_create(name=name, type=type, kg_model_id=data_model)
+                data_model_param, created = DataModelParam.objects.get_or_create(name=name, type=type,
+                                                                                 kg_model_id=data_model)
                 if created:
                     data_model_param.desc = desc
                     data_model_param.necessary = necessary
@@ -904,6 +989,7 @@ class DataParamBatchAddApiView(generics.GenericAPIView):
 
         msg = f"成功添加{success_cnt}, 已存在{exist_cnt}, 添加失败{error_cnt}, 模型ID错误 {error_mid_cnt}。"
         return Response({"code": 200, "msg": msg}, status=status.HTTP_200_OK)
+
 
 class DataParamUpdateApiView(generics.GenericAPIView):
     parser_classes = (FormParser, MultiPartParser)
@@ -959,6 +1045,7 @@ class DataParamUpdateApiView(generics.GenericAPIView):
         except DataModelParam.DoesNotExist:
             return Response({"code": 201, "msg": "参数ID不存在！！！"}, status=status.HTTP_400_BAD_REQUEST)
 
+
 class DataParamBatchUpdateApiView(generics.GenericAPIView):
     parser_classes = (FormParser, MultiPartParser)
     authentication_classes = (CsrfExemptSessionAuthentication, BasicAuthentication)
@@ -1010,7 +1097,10 @@ class DataParamBatchUpdateApiView(generics.GenericAPIView):
                 error_count += 1
                 messages.append(f"参数ID {pid} 不存在")
 
-        return Response({"code": 200, "msg": f"成功更新 {success_count} 个参数, 失败 {error_count} 个", "details": messages}, status=status.HTTP_200_OK)
+        return Response(
+            {"code": 200, "msg": f"成功更新 {success_count} 个参数, 失败 {error_count} 个", "details": messages},
+            status=status.HTTP_200_OK)
+
 
 class DataParamDeleteApiView(APIView):
     authentication_classes = (CsrfExemptSessionAuthentication, BasicAuthentication)
@@ -1046,6 +1136,7 @@ class DataParamDeleteApiView(APIView):
         except Exception as e:
             return Response({"code": 202, "msg": "系统错误"}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
+
 class DataParamDetailApiView(generics.GenericAPIView):
     serializer_class = DataModelParamDetailResponseSerializer
 
@@ -1079,6 +1170,7 @@ class DataParamDetailApiView(generics.GenericAPIView):
                 return Response({"code": 202, "msg": "系统错误"}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
         return Response({"code": 201, "msg": "参数错误"}, status=status.HTTP_400_BAD_REQUEST)
+
 
 # class OpenapiFormatAPI(generics.GenericAPIView):
 #     serializer_class = DataModelSerializer
@@ -1221,6 +1313,157 @@ class DataParamDetailApiView(generics.GenericAPIView):
 #         # 将整数请求方式转换为字符串
 #         return 'post' if req_type == 0 else 'get' if req_type == 1 else None
 
+# class OpenapiFormatAPI(generics.GenericAPIView):
+#     serializer_class = DataModelSerializer
+
+#     @swagger_auto_schema(
+#         operation_description='GET /dataapp/format/',
+#         operation_summary="生成 OpenAPI 格式文档",
+#         manual_parameters=[
+#             openapi.Parameter('data_model_id', openapi.IN_QUERY, type=openapi.TYPE_INTEGER, required=True, description='数据模型ID'),
+#         ],
+#         responses={
+#             200: openapi.Schema(
+#                 type=openapi.TYPE_OBJECT,
+#                 properties={
+#                     'swagger': openapi.Schema(type=openapi.TYPE_STRING),
+#                 }
+#             ),
+#             400: "请求失败",
+#             404: "数据模型未找到",
+#         },
+#         tags=['datamodel']
+#     )
+#     def get(self, request, *args, **kwargs):
+#         data_model_id = request.query_params.get('data_model_id')
+
+#         if not data_model_id:
+#             return Response({"error": "缺少数据模型ID"}, status=status.HTTP_400_BAD_REQUEST)
+
+#         try:
+#             data_model = DataModel.objects.get(id=data_model_id)
+#             # if not data_model.params.exists():
+#             #     return Response({"error": "模型参数未关联"}, status=status.HTTP_400_BAD_REQUEST)
+#             # 调用 generate_swagger 函数生成 OpenAPI 文档
+#             swagger_json = self.generate_swagger(data_model)
+#             return Response(json.loads(swagger_json), status=status.HTTP_200_OK)
+
+#         except DataModel.DoesNotExist:
+#             return Response({"error": "数据模型未找到"}, status=status.HTTP_404_NOT_FOUND)
+#         except Exception as e:
+#             return Response({"error": str(e)}, status=status.HTTP_400_BAD_REQUEST)
+
+#     def generate_swagger(self, data_model):
+#         # 从完整 URL 中分割出服务器地址和路径
+#         full_url = data_model.url
+#         url_parts = full_url.split('/', 3)
+#         server_url = f"{url_parts[0]}//{url_parts[2]}"
+#         path = f"/{url_parts[3]}" if len(url_parts) > 3 else "/"
+
+#         # 填充 OpenAPI 文档
+#         openapi_doc = {
+#             "openapi": "3.0.1",
+#             "info": {
+#                 "title": "Swagger",
+#                 "description": "外部数据接口API",
+#                 "version": "1.0.0"
+#             },
+#             "tags": [
+#                 {
+#                     "name": data_model.name,
+#                     "description": data_model.desc or None
+#                 }
+#             ],
+#             "servers": [
+#                 {
+#                     "url": server_url,
+#                     "description": "本地开发服务器"
+#                 }
+#             ],
+#             "paths": {
+#                 path: {
+#                     self.get_request_method(data_model.req_type): {
+#                         "summary": data_model.name,
+#                         "deprecated": False,
+#                         "description": data_model.function or "",
+#                         "tags": [data_model.name],
+#                         "requestBody": {
+#                             "required": True,
+#                             "content": {
+#                                 "application/json": {
+#                                     "schema": {
+#                                         "type": "object",
+#                                         "properties": {},
+#                                         "required": []
+#                                     }
+#                                 }
+#                             }
+#                         },
+#                         "responses": {
+#                             "200": {
+#                                 "description": "成功响应",
+#                                 "content": {
+#                                     "application/json": {
+#                                         "schema": {
+#                                             "type": "object",
+#                                             "properties": {
+#                                                 "code": {
+#                                                     "type": "integer",
+#                                                     "description": "响应状态码"
+#                                                 },
+#                                                 "message": {
+#                                                     "type": "string",
+#                                                     "description": "响应信息"
+#                                                 },
+#                                                 "data": {
+#                                                     "type": "object",
+#                                                     "description": "返回的数据",
+#                                                     "additionalProperties": True
+#                                                 }
+#                                             },
+#                                             "required": ["code", "data"]
+#                                         },
+#                                         "examples": {
+#                                             "example1": {
+#                                                 "summary": "成功示例",
+#                                                 "value": {
+#                                                     "code": 200,
+#                                                     "message": "请求成功",
+#                                                     "data": {
+#                                                         "exampleField1": "exampleValue1",
+#                                                         "exampleField2": 123
+#                                                     }
+#                                                 }
+#                                             }
+#                                         }
+#                                     }
+#                                 },
+#                                 "security": []
+#                             }
+#                         }
+#                     }
+#                 }
+#             }
+#         }
+
+#         # 获取相关参数
+#         params = data_model.params.all()
+#         if params:
+#             for param in params:
+#                 # 添加到请求体的 properties
+#                 openapi_doc["paths"][path][self.get_request_method(data_model.req_type)]["requestBody"]["content"]["application/json"]["schema"]["properties"][param.name] = {
+#                     "type": param.type if param.type else "string"
+#                 }
+
+#                 # 如果该参数是必要的，则添加到 required 列表
+#                 if param.necessary == 1:
+#                     openapi_doc["paths"][path][self.get_request_method(data_model.req_type)]["requestBody"]["content"]["application/json"]["schema"]["required"].append(param.name)
+
+#         return json.dumps(openapi_doc, ensure_ascii=False, indent=4)
+
+#     def get_request_method(self, req_type):
+#         return 'post' if req_type == 0 else 'get' if req_type == 1 else None
+
 class OpenapiFormatAPI(generics.GenericAPIView):
     serializer_class = DataModelSerializer
 
@@ -1228,7 +1471,8 @@ class OpenapiFormatAPI(generics.GenericAPIView):
         operation_description='GET /dataapp/format/',
         operation_summary="生成 OpenAPI 格式文档",
         manual_parameters=[
-            openapi.Parameter('data_model_id', openapi.IN_QUERY, type=openapi.TYPE_INTEGER, required=True, description='数据模型ID'),
+            openapi.Parameter('data_model_id', openapi.IN_QUERY, type=openapi.TYPE_INTEGER, required=True,
+                              description='数据模型ID'),
         ],
         responses={
             200: openapi.Schema(
@@ -1250,7 +1494,22 @@ class OpenapiFormatAPI(generics.GenericAPIView):
 
         try:
             data_model = DataModel.objects.get(id=data_model_id)
-
+            # 打印模型信息
+            # print("模型信息:")
+            # print(f"ID: {data_model.id}")
+            # print(f"名称: {data_model.name}")
+            # print(f"编号: {data_model.no}")
+            # print(f"功能: {data_model.function}")
+            # print(f"描述: {data_model.desc}")
+            # print(f"URL: {data_model.url}")
+            # print(f"业务标签: {data_model.business_tag}")
+            # print(f"版本号: {data_model.version}")
+            # print(f"请求方式: {data_model.req_type}")
+            # print(f"激活状态: {data_model.activate}")
+            # print(f"创建作者ID: {data_model.user_id}")
+            # print(f"创建作者名称: {data_model.user_name}")
+            # print(f"更新时间: {data_model.update_time}")
+            # print(f"创建时间: {data_model.create_time}")
             # 调用 generate_swagger 函数生成 OpenAPI 文档
             swagger_json = self.generate_swagger(data_model)
             return Response(json.loads(swagger_json), status=status.HTTP_200_OK)
@@ -1264,6 +1523,9 @@ class OpenapiFormatAPI(generics.GenericAPIView):
         # 从完整 URL 中分割出服务器地址和路径
         full_url = data_model.url
         url_parts = full_url.split('/', 3)
+        # 确保 URL 部分有足够的元素
+        if len(url_parts) < 3:
+            raise ValueError("URL 格式不正确，无法解析服务器地址和路径")
         server_url = f"{url_parts[0]}//{url_parts[2]}"
         path = f"/{url_parts[3]}" if len(url_parts) > 3 else "/"
 
@@ -1294,18 +1556,6 @@ class OpenapiFormatAPI(generics.GenericAPIView):
                         "deprecated": False,
                         "description": data_model.function or "",
                         "tags": [data_model.name],
-                        "requestBody": {
-                            "required": True,
-                            "content": {
-                                "application/json": {
-                                    "schema": {
-                                        "type": "object",
-                                        "properties": {},
-                                        "required": []
-                                    }
-                                }
-                            }
-                        },
                         "responses": {
                             "200": {
                                 "description": "成功响应",
@@ -1323,9 +1573,30 @@ class OpenapiFormatAPI(generics.GenericAPIView):
                                                     "description": "响应信息"
                                                 },
                                                 "data": {
-                                                    "type": "object",
+                                                    "type": "array" if self.get_request_method(
+                                                        data_model.req_type) == 'get' else "object",
                                                     "description": "返回的数据",
-                                                    "additionalProperties": True
+                                                    "items": {
+                                                        "type": "object",
+                                                        "properties": {
+                                                            "id": {
+                                                                "type": "integer",
+                                                                "description": "数据模型ID"
+                                                            },
+                                                            "name": {
+                                                                "type": "string",
+                                                                "description": "数据模型名称"
+                                                            },
+                                                            "desc": {
+                                                                "type": "string",
+                                                                "description": "数据模型描述"
+                                                            }
+                                                        },
+                                                        "required": [
+                                                            "id",
+                                                            "name"
+                                                        ]
+                                                    } if self.get_request_method(data_model.req_type) == 'get' else {}
                                                 }
                                             },
                                             "required": ["code", "data"]
@@ -1336,10 +1607,18 @@ class OpenapiFormatAPI(generics.GenericAPIView):
                                                 "value": {
                                                     "code": 200,
                                                     "message": "请求成功",
-                                                    "data": {
-                                                        "exampleField1": "exampleValue1",
-                                                        "exampleField2": 123
-                                                    }
+                                                    "data": [
+                                                        {
+                                                            "id": 1,
+                                                            "name": "模型1",
+                                                            "desc": "这是第一个数据模型"
+                                                        },
+                                                        {
+                                                            "id": 2,
+                                                            "name": "模型2",
+                                                            "desc": "这是第二个数据模型"
+                                                        }
+                                                    ]
                                                 }
                                             }
                                         }
@@ -1347,7 +1626,8 @@ class OpenapiFormatAPI(generics.GenericAPIView):
                                 },
                                 "security": []
                             }
-                        }
+                        },
+                        "parameters": []  # 初始化参数列表
                     }
                 }
             }
@@ -1356,14 +1636,27 @@ class OpenapiFormatAPI(generics.GenericAPIView):
         # 获取相关参数
         params = data_model.params.all()
         for param in params:
-            # 添加到请求体的 properties
-            openapi_doc["paths"][path][self.get_request_method(data_model.req_type)]["requestBody"]["content"]["application/json"]["schema"]["properties"][param.name] = {
-                "type": param.type if param.type else "string"
-            }
+            if self.get_request_method(data_model.req_type) == 'get':
+                # 添加到 GET 请求的参数列表
+                openapi_doc["paths"][path][self.get_request_method(data_model.req_type)]["parameters"].append({
+                    "name": param.name,
+                    "in": "query",
+                    "required": param.necessary == 1,
+                    "schema": {
+                        "type": param.type if param.type else "string"
+                    }
+                })
+            elif self.get_request_method(data_model.req_type) == 'post':
+                # 添加到 POST 请求体的 properties
+                openapi_doc["paths"][path][self.get_request_method(data_model.req_type)]["requestBody"]["content"][
+                    "application/json"]["schema"]["properties"][param.name] = {
+                    "type": param.type if param.type else "string"
+                }
 
-            # 如果该参数是必要的，则添加到 required 列表
-            if param.necessary == 1:
-                openapi_doc["paths"][path][self.get_request_method(data_model.req_type)]["requestBody"]["content"]["application/json"]["schema"]["required"].append(param.name)
+                # 如果该参数是必要的，则添加到 required 列表
+                if param.necessary == 1:
+                    openapi_doc["paths"][path][self.get_request_method(data_model.req_type)]["requestBody"]["content"][
+                        "application/json"]["schema"]["required"].append(param.name)
 
         return json.dumps(openapi_doc, ensure_ascii=False, indent=4)
 

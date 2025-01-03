@@ -1,7 +1,7 @@
 from django.test import TestCase
 
 # Create your tests here.
-from yunheKGPro.neo import Neo4j
+from mainapp.yunheKGPro.neo import Neo4j
 import pandas as pd
 import os
 

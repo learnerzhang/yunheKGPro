@@ -5,6 +5,7 @@ from . import views
 urlpatterns = [
     path('datamodellist/', views.DataModelListAPIView.as_view(), name='data-model-list'),
     path('datamodeldelete/', views.DataModelDeleteAPIView.as_view(), name='data-model-delete'),
+    path('datamodelbatchdelete/', views.DataModelBatchDeleteAPIView.as_view(), name='data-model-batch-delete'),
     path('datamodelsearchoradd/', views.DataModelAPIView.as_view(), name='datamodel-searchoradd'),  # 用于获取和创建数据模型
     path('datamodelupdate/', views.DataModelUpdateAPIView.as_view(), name='datamodel-update'),  # 用于获取和创建数据模型
     path('datamodelretrive/', views.DataModelRetrieveAPIView.as_view(), name='datamodel-retrive'),  #
