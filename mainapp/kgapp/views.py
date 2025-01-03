@@ -284,14 +284,20 @@ class KgDocSearch(mixins.ListModelMixin,
             taglist = str(tagstr).split(",")
 
         if query and taglist:
-            search_query = MultiMatch(query=query, fields=['title', 'desc'])
             tag_queries = [Q('term', **{'tags.name': tag_key }) for tag_key in taglist]
             tag_query = Q('bool', should=tag_queries, minimum_should_match=1)
+            search_query = Q('bool', should=[
+                            Q('match', title=query),
+                            Q('match', desc=query)
+                        ], minimum_should_match=1)
+            print("tag_queries:", tag_queries)
+            print("search_query:", search_query)
             main_query = Q('bool', must=[tag_query, search_query])
         elif query:
             main_query = MultiMatch(query=query, fields=['title', 'desc'])
         elif taglist:
             tag_queries = [Q('term', **{'tags.name': tag_key }) for tag_key in taglist]
+            print("tag_queries:", tag_queries)
             main_query = Q('bool', should=tag_queries, minimum_should_match=1)
         else:
             main_query = Q('match_all')
