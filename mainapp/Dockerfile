@@ -10,6 +10,9 @@ COPY . .
 # 安装依赖
 RUN pip install -r requirements.txt -i https://mirrors.aliyun.com/pypi/simple
 
+# ModuleNotFoundError: No module named 'django.utils.six'
+COPY ./libs/six.py  /usr/local/lib/python3.10/site-packages/django/utils/
+
 # 暴露端口
 EXPOSE 8000
 

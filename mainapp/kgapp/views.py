@@ -285,19 +285,14 @@ class KgDocSearch(mixins.ListModelMixin,
 
         if query and taglist:
             search_query = MultiMatch(query=query, fields=['title', 'desc'])
-            tag_queries = [
-				Q('nested', path='tags', query=Q('match', **{'tags.name': tag}))
-				for tag in taglist
-			]
-            main_query = Q('bool', must=[search_query], filter=tag_queries)
+            tag_queries = [Q('term', **{'tags.name': tag_key }) for tag_key in taglist]
+            tag_query = Q('bool', should=tag_queries, minimum_should_match=1)
+            main_query = Q('bool', must=[tag_query, search_query])
         elif query:
-            main_query = MultiMatch(query=query, fields=['title'])
+            main_query = MultiMatch(query=query, fields=['title', 'desc'])
         elif taglist:
-            tag_queries = [
-				Q('nested', path='tags', query=Q('match', **{'tags.name': tag}))
-				for tag in taglist
-			]
-            main_query = Q('bool', filter=tag_queries)
+            tag_queries = [Q('term', **{'tags.name': tag_key }) for tag_key in taglist]
+            main_query = Q('bool', should=tag_queries, minimum_should_match=1)
         else:
             main_query = Q('match_all')
         # 执行搜索

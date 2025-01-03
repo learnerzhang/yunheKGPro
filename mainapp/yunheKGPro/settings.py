@@ -79,14 +79,26 @@ INSTALLED_APPS = [
     "rest_framework",
     'rest_framework_swagger', 
     'ckeditor',
+    'DjangoUeditor',
+    'xadmin',
+    'crispy_forms',
+    'crispy_bootstrap3',
+    # 'reversion',
     "drf_yasg",
     "django_elasticsearch_dsl",
     'userapp',
     'yaapp',
+    'import_export',
     'apiapp', 'kgapp', 'modelapp', 'logapp','dataapp',
     'django_celery_results',  # celery结果
     'django_celery_beat',     # celery定时任务
 ]
+
+# 修改xadmin的站点标题
+XADMIN_SITE_NAME = '知识库管理平台'
+SITE_NAME = '知识库管理平台'
+
+CRISPY_TEMPLATE_PACK = 'bootstrap3'
 
 SWAGGER_SETTINGS = {
     # 基础样式
@@ -175,7 +187,7 @@ WSGI_APPLICATION = 'yunheKGPro.wsgi.application'
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.mysql',
-        'NAME': 'test_kgproj',
+        'NAME': 'kgproj',
         'USER': 'root',
         'PASSWORD': 'root',
         'HOST': '127.0.0.1',
@@ -222,9 +234,9 @@ elif sys.platform.startswith('win'):
     DATABASES = {
         'default': {
             'ENGINE': 'django.db.backends.mysql',
-            'NAME': 'test_kgproj',
+            'NAME': 'kgproj',
             'USER': 'root',
-            'PASSWORD': 'root',
+            'PASSWORD': '123456',
             'HOST': '127.0.0.1',
             'PORT': '3306',
         }

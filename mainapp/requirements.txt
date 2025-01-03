@@ -24,6 +24,7 @@ click-repl==0.3.0
 coreapi==2.3.3
 coreschema==0.0.4
 cryptography==44.0.0
+crispy_bootstrap3
 dataclasses-json==0.6.7
 decorator==5.1.1
 Django==3.2.18
@@ -34,8 +35,14 @@ django-ckeditor==6.3.2
 django-elasticsearch-dsl==8.0
 django-js-asset==2.2.0
 django-rest-swagger==2.2.0
+django-crispy-forms==2.0
+django-formtools==2.0
+django-import-export==2.0
 django-timezone-field==4.2.3
 djangorestframework==3.12.4
+django-reversion==4.0.0
+crispy-bootstrap3
+httplib2
 docx2txt==0.8
 drf-yasg==1.20.0
 elastic-transport==8.15.1
@@ -156,3 +163,4 @@ watchdog==5.0.3
 wcwidth==0.2.13
 whitenoise==6.8.2
 yarl==1.16.0
+future==1.0.0
