@@ -556,6 +556,8 @@ class DataModelRetrieveAPIView(generics.GenericAPIView):
 
             # 序列化数据
             serializer = DataModelSerializer(model)
+            response_data = serializer.data
+            response_data['kgTag_id'] = response_data.get('kgTag_id', None)  # 确保返回字段中包含 kgTag_id
             return Response({
                 'code': 200,
                 'msg': '查询成功',
