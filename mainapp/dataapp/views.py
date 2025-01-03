@@ -443,6 +443,13 @@ class DataModelUpdateAPIView(generics.GenericAPIView):
                 type=openapi.TYPE_INTEGER,
                 required=False
             ),
+            openapi.Parameter(
+                'kgTag_id',
+                openapi.IN_FORM,
+                description='业务标签ID',
+                type=openapi.TYPE_INTEGER,
+                required=False
+            ),
         ],
         responses={
             200: DataModelSerializer,
@@ -498,7 +505,16 @@ class DataModelUpdateAPIView(generics.GenericAPIView):
             model.version = request.data.get('version', model.version)  # 保持原值如未提供
             model.no = request.data.get('no', model.no)  # 保持原值如未提供
             model.update_time = datetime.now()  # 更新当前时间
-
+            # 更新业务标签
+            kgTag_id = request.data.get('kgTag_id')
+            if kgTag_id is not None:
+                try:
+                    model.business_tag = KgTag.objects.get(id=kgTag_id)
+                except KgTag.DoesNotExist:
+                    return Response({
+                        'code': 400,
+                        'msg': '指定的业务标签ID不存在'
+                    }, status=status.HTTP_400_BAD_REQUEST)
             # 保存更新
             model.save()
 
