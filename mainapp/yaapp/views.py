@@ -683,8 +683,11 @@ class MakePlanWord(generics.GenericAPIView):
             writeParagraphs2Word(i, node, doc)
         # 保存文档 
         doc.save(f'media/plans/{tmpTemplate.name}.docx')
-        PlanByUserDocument.objects.create(document=f'plans/{tmpTemplate.name}.docx', name=tmpTemplate.name)
-        data = {"code": 200, "data": {}, "msg": "生成Word成功！"}
+        tmpdoc = PlanByUserDocument.objects.create(document=f'plans/{tmpTemplate.name}.docx', name=tmpTemplate.name)
+        tmpdict = model_to_dict(tmpdoc, exclude=["plan", "document"])
+        tmpdict['created_at'] = tmpdoc.created_at.strftime("%Y-%m-%d %H:%M:%S")
+        tmpdict['file_path'] = tmpdoc.document.url
+        data = {"code": 200, "data": tmpdict, "msg": "生成Word成功！"}
         serializers = BaseApiResponseSerializer(data=data, many=False)
         serializers.is_valid()
         return Response(serializers.data, status=status.HTTP_200_OK)
@@ -892,7 +895,7 @@ class YuAnRecomApiPost(generics.GenericAPIView):
             针对用户输入,动态推荐预案摸板
         """
         text = request.data.get("text", None)
-        mydate = request.data.get("mydate", str(datetime.now().strftime("%Y-%m-%d")))
+        mydate = request.data.get("date", str(datetime.now().strftime("%Y-%m-%d")))
 
         # TODO
         pts = PlanTemplate.objects.all()
