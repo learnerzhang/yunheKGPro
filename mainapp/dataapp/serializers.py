@@ -1,10 +1,10 @@
 from rest_framework import serializers
-from .models import DataModel,DataModelParam
+from .models import DataModel, DataModelParam
 
 from rest_framework import routers, serializers, viewsets
 
-class DataModelSerializer(serializers.Serializer):
 
+class DataModelSerializer(serializers.Serializer):
     id = serializers.IntegerField()
     name = serializers.CharField(max_length=200)
     no = serializers.IntegerField()
@@ -18,7 +18,17 @@ class DataModelSerializer(serializers.Serializer):
     user_name = serializers.CharField(max_length=50)
     update_time = serializers.DateTimeField()
     create_time = serializers.DateTimeField()
-    kgTag_id = serializers.IntegerField(source='business_tag.id', required=False) # 添加 kgTag_id 字段
+    kgTag_id = serializers.IntegerField(source='business_tag.id', required=False)  # 添加 kgTag_id 字段
+
+    def to_representation(self, instance):
+        # 调用父类的方法以获取默认的序列化数据
+        representation = super().to_representation(instance)
+
+        # 添加 kgTag_id 字段，即使它为 None
+        representation['kgTag_id'] = representation.get('kgTag_id', None)
+
+        return representation
+
 
 class DataModelDetailResponseSerializer(serializers.Serializer):
     total = serializers.IntegerField()
@@ -28,10 +38,12 @@ class DataModelDetailResponseSerializer(serializers.Serializer):
     code = serializers.IntegerField()
     msg = serializers.CharField(max_length=200)
 
+
 class DataModelTypeResponseSerializer(serializers.Serializer):
     data = serializers.ListField()
     code = serializers.IntegerField()
     msg = serializers.CharField(max_length=200)
+
 
 class DataModelResponseSerializer(serializers.Serializer):
     total = serializers.IntegerField()
@@ -42,9 +54,7 @@ class DataModelResponseSerializer(serializers.Serializer):
     msg = serializers.CharField(max_length=200)
 
 
-
 class DataModelParamSerializer(serializers.Serializer):
-
     id = serializers.IntegerField()
     name = serializers.CharField(max_length=200)
     type = serializers.CharField(max_length=50)
@@ -54,6 +64,7 @@ class DataModelParamSerializer(serializers.Serializer):
     necessary = serializers.IntegerField()
     update_time = serializers.DateTimeField()
     create_time = serializers.DateTimeField()
+
 
 class DataModelParamResponseSerializer(serializers.Serializer):
     total = serializers.IntegerField()
