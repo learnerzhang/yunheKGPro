@@ -22,4 +22,5 @@ urlpatterns = [
     path('api/abstract', views.OlineAbstractApiView.as_view()),
     path('api/text2sql', views.OlineText2SQLApiView.as_view()),
     path('api/text_extends', views.TextExtentApiView.as_view()),
+    path('api/graphquery', views.GraphQueryApiView.as_view()),
 ]

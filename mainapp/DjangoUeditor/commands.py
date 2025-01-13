@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 from . import settings as USettings
-from django.utils.six.moves.urllib.parse import urljoin
-
+#from django.utils.six.moves.urllib.parse import urljoin
+from six.moves.urllib.parse import urljoin
 
 class UEditorEventHandler(object):
     """用来处理UEditor的事件侦听"""
