@@ -1,6 +1,6 @@
 import json
-from yaapp import divHtml, gx_sk, hkc_sk, img2base64, lhbs_sk, paraHtml, smx_sjt_sk, xld_sk
-from yaapp.api_yuan import huanghe_diaodu_plan_ctx, huanghe_diaodu_plan_dfjson, huanghe_hedaoshuiqing_generate_dfjson, huanghe_shuikushuiqing_generate_dfjson, huanghe_yuqing_generate,huanghe_hedaoshuiqing_generate,huanghe_shuikushuiqing_generate,huanghe_gongqing_generate,huanghe_jiangyu13_forecast,huanghe_fenqu_jiangyu_forecast,huanghe_jiangyu47_forecast,huanghe_flood_forecast,huanghe_diaodu_plan,huanghe_shuiku_diaodu_result,huanghe_tanqu_yanmo,huanghe_keneng_danger,huanghe_xiangying_level,xld_yushui_context,engineer_safety_shuikuyj,engineer_safety_shuiwenyj,engineer_safety_gongchengjcyj,shuniuFangAn,xldJZStatus,xldholeStatus,JZHoleRecommend,YingjiResponse,OrganizeBaoZhang_leader,OrganizeBaoZhang_zhihuibu,company_duty,team_baozhang,fangxun_table,xld_diaodu_table,huanghe_fenqu_jiangyu_forecast_json,huanghe_flood_forecast_json,engineer_safety_shuikuyj_json,engineer_safety_shuiwenyj_json,engineer_safety_gongchengjcyj_json,xldJZStatus_json,JZHoleRecommend_json,xldholeStatus_json,OrganizeBaoZhang_leader_json,OrganizeBaoZhang_zhihuibu_json,company_duty_json,team_baozhang_json,fangxun_table_json,xld_diaodu_table_json,huanghe_fenqu_jiangyu_forecast_dfjson,generate_description_for_label,map_input_to_label
+from yaapp import divHtml, gx_sk, hkc_sk, img2base64, lhbs_sk, paraHtml, smx_sjt_sk, xld_sk, generate_ddjy
+from yaapp.api_yuan import huanghe_diaodu_plan_ctx, huanghe_diaodu_plan_dfjson, huanghe_hedaoshuiqing_generate_dfjson, huanghe_shuikushuiqing_generate_dfjson, huanghe_yuqing_generate,huanghe_hedaoshuiqing_generate,huanghe_shuikushuiqing_generate,huanghe_gongqing_generate,huanghe_jiangyu13_forecast,huanghe_fenqu_jiangyu_forecast,huanghe_jiangyu47_forecast,huanghe_flood_forecast,huanghe_diaodu_plan,huanghe_shuiku_diaodu_result,huanghe_tanqu_yanmo,huanghe_keneng_danger,huanghe_xiangying_level,xld_yushui_context,engineer_safety_shuikuyj,engineer_safety_shuiwenyj,engineer_safety_gongchengjcyj,shuniuFangAn,xldJZStatus,xldholeStatus,JZHoleRecommend,YingjiResponse,OrganizeBaoZhang_leader,OrganizeBaoZhang_zhihuibu,company_duty,team_baozhang,fangxun_table,xld_diaodu_table,huanghe_fenqu_jiangyu_forecast_json,huanghe_flood_forecast_json,engineer_safety_shuikuyj_json,engineer_safety_shuiwenyj_json,engineer_safety_gongchengjcyj_json,xldJZStatus_json,JZHoleRecommend_json,xldholeStatus_json,OrganizeBaoZhang_leader_json,OrganizeBaoZhang_zhihuibu_json,company_duty_json,team_baozhang_json,fangxun_table_json,xld_diaodu_table_json,huanghe_fenqu_jiangyu_forecast_dfjson,generate_description_for_label,map_input_to_label, huanghe_gongqing_generate_html,huanghe_diaodu_plan_yuanze_ctx,huanghe_diaodu_plan_yuanze_html,huanghe_diaodu_plan_jianyi_ctx,huanghe_diaodu_plan_jianyi_html
 from yaapp.models import TemplateNode, WordParagraph
 from datetime import datetime
 import os
@@ -97,10 +97,12 @@ class PlanFactory:
             # 新增描述部分  
             # wp = WordParagraph.objects.create(title="工情险情", content="这是关于工情险情的描述内容", ctype=1)
             # self.node.wordParagraphs.add(wp)
-            tmp = huanghe_gongqing_generate(self.params)
-            wp = WordParagraph.objects.create(title="水库水情", content=tmp, ctype=1)
+            tmpjson = huanghe_gongqing_generate(self.params)
+            #wp = WordParagraph.objects.create(title="水库水情", content=tmp, ctype=1)
+            wp = WordParagraph.objects.create(title="工情险情", content=json.dumps(tmpjson), ctype=3)
             self.node.wordParagraphs.add(wp)
-            return tmp
+            tmp = huanghe_gongqing_generate_html(self.params)#返回网页表格数据
+            return tmp #tmpjson
 
         elif self.context['type'] == 1:
             # 小浪底
@@ -135,7 +137,7 @@ class PlanFactory:
             # 黄河中下游
             for n in self.node.wordParagraphs.all():
                 n.delete()
-            jiangyu13= huanghe_jiangyu13_forecast(self.params)
+            jiangyu13 = huanghe_jiangyu13_forecast(self.params)
             # wp = WordParagraph.objects.create(title="降雨预报", content="1） 降雨预报   \n", ctype=0)
             # self.node.wordParagraphs.add(wp)
             # wp = WordParagraph.objects.create(title="降雨预报", content=jiangyu13, ctype=1)
@@ -201,12 +203,30 @@ class PlanFactory:
         if self.context['type'] == 0:
             # 黄河中下游
             #TODO
+            import pandas as pd
+            import time
+            yadate = self.context['plan']['yadate']
+            ddfa_excel = os.path.join("media", "ddfa", f"{yadate}.xlsx")
+            if not os.path.exists(ddfa_excel):
+                raise Exception("调度方案单不存在")
+            ddjy=generate_ddjy(ddfa_excel)
             for n in self.node.wordParagraphs.all():
                 n.delete()
             # 新增描述部分
-            tmp = huanghe_diaodu_plan_ctx(self.params)
-            wp = WordParagraph.objects.create(title="调度方案", content=tmp, ctype=1)
+            wp = WordParagraph.objects.create(title="调度方案", content="调度原则", ctype=1)
             self.node.wordParagraphs.add(wp)
+            tmpjson = huanghe_diaodu_plan_yuanze_ctx(self.params)
+            wp = WordParagraph.objects.create(title="调度方案单", content=json.dumps(tmpjson), ctype=3)
+            self.node.wordParagraphs.add(wp)
+            wp = WordParagraph.objects.create(title="调度方案", content="调度建议", ctype=1)
+            self.node.wordParagraphs.add(wp)
+            #tmpjson = huanghe_diaodu_plan_jianyi_ctx(self.params)
+            tmpjson = huanghe_diaodu_plan_jianyi_ctx(ddjy)
+            wp = WordParagraph.objects.create(title="调度方案单", content=json.dumps(tmpjson), ctype=3)
+            self.node.wordParagraphs.add(wp)
+            # tmp = huanghe_diaodu_plan_ctx(self.params)
+            # wp = WordParagraph.objects.create(title="调度方案", content=tmp, ctype=1)
+            # self.node.wordParagraphs.add(wp)
             # wp = WordParagraph.objects.create(title="调度方案单", content="黄河中下游调度方案单", ctype=1)
             # self.node.wordParagraphs.add(wp)
             # 新增调度方案附近即可

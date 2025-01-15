@@ -10,9 +10,6 @@ import os
 import django
 from django.utils import timezone
 
-# 设置环境变量
-os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'your_project.settings')  # 替换为您的项目名称
-django.setup()
 
 # 导入模型
 from userapp.models import User, Role, Menu

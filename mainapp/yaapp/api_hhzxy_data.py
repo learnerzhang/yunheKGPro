@@ -16,6 +16,7 @@ import json
 import codecs
 
 from yaapp.base_data import BaseDataFactory
+#from mainapp.yaapp.base_data import BaseDataFactory
 
 class HHZXYDataFactory(BaseDataFactory):
 

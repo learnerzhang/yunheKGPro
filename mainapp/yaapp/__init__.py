@@ -1,4 +1,4 @@
-
+import pandas as pd
 import datetime
 
 
@@ -640,3 +640,243 @@ def lhbs_sk(sw=380, a=0.5):
         else:
             return "低于死水位{}m".format(round(498.84 - sw, 2))
     return ""
+
+
+import re
+def text_table(text):
+    """
+    从输入文本中提取黄河下游工程数据，并转换为结构化数据。
+
+    参数:
+        text (str): 输入文本。
+
+    返回:
+        list: 包含各河段及总计数据的字典列表。
+    """
+    # 定义正则表达式提取数据
+    pattern = re.compile(
+        r"(\w+段)累计有(\d+)处工程(\d+)道坝出险(\d+)次，抢险用石([\d.]+)万方，耗资([\d.]+)万元"
+    )
+    # 提取数据
+    matches = pattern.findall(text)
+
+    # 转换为目标格式
+    data = []
+    total = {
+        "河段": "总计",
+        "工程数量": 0,
+        "出险坝数": 0,
+        "出险次数": 0,
+        "抢险用石（万方）": 0.0,
+        "耗资（万元）": 0.0
+    }
+
+    for match in matches:
+        segment_data = {
+            "河段": match[0],
+            "工程数量": int(match[1]),
+            "出险坝数": int(match[2]),
+            "出险次数": int(match[3]),
+            "抢险用石（万方）": float(match[4]),
+            "耗资（万元）": float(match[5])
+        }
+        data.append(segment_data)
+
+        # 计算总计
+        total["工程数量"] += segment_data["工程数量"]
+        total["出险坝数"] += segment_data["出险坝数"]
+        total["出险次数"] += segment_data["出险次数"]
+        total["抢险用石（万方）"] += segment_data["抢险用石（万方）"]
+        total["耗资（万元）"] += segment_data["耗资（万元）"]
+
+    # 添加总计行
+    data.append(total)
+
+    return data
+
+def extract_shuiku_data(text):
+    """
+    从输入文本中提取水库名称和运用方式，并转换为结构化数据。
+
+    参数:
+        text (str): 输入文本。
+
+    返回:
+        list: 包含水库名称和运用方式的字典列表。
+    """
+    # 定义正则表达式提取数据
+    # pattern = re.compile(
+    #     r"([\u4e00-\u9fa5]+水库)：(.+?)\n"
+    # )
+    pattern = re.compile(
+        r"([\u4e00-\u9fa5]+水库)：(.+?)(\n|$)"
+    )
+    # 提取数据
+    matches = pattern.findall(text)
+
+    # 转换为目标格式
+    data = []
+    for match in matches:
+        reservoir_data = {
+            "水库": match[0],
+            "调度原则": match[1].strip()
+        }
+        data.append(reservoir_data)
+
+    return data
+
+
+def extract_shuiku_data_jianyi(text):
+    """
+    从输入文本中提取水库名称和运用方式，并转换为结构化数据。
+
+    参数:
+        text (str): 输入文本。
+
+    返回:
+        list: 包含水库名称和运用方式的字典列表。
+    """
+    # 定义正则表达式提取数据
+    # pattern = re.compile(
+    #     r"([\u4e00-\u9fa5]+水库)：(.+?)\n"
+    # )
+    pattern = re.compile(
+        r"([\u4e00-\u9fa5]+水库)：(.+?)(\n|$)"
+    )
+    # 提取数据
+    matches = pattern.findall(text)
+
+    # 转换为目标格式
+    data = []
+    for match in matches:
+        reservoir_data = {
+            "水库": match[0],
+            "调度建议": match[1].strip()
+        }
+        data.append(reservoir_data)
+
+    return data
+
+def process_outflow(data, timestamps):
+    # 记录每次第一个不同的数的索引
+    unique_indices = []
+    unique_values = []
+
+    # 找到每个不同出库流量的索引
+    for index in range(len(data)):
+        if index == 0 or data[index] != data[index - 1]:
+            unique_indices.append(index)
+            unique_values.append(data[index])
+
+    # 组织输出信息
+    output = []
+    for i in range(len(unique_indices)):
+        if i < len(unique_indices) - 1:  # 如果不是最后一个索引
+            duration = unique_indices[i + 1] - unique_indices[i]  # 当前值到下一个值的差
+        else:  # 如果是最后一个索引
+            duration = len(data) - unique_indices[i]  # 最后一个值到结束
+        # if i == 0:
+        #     duration = unique_indices[i + 1] - unique_indices[i]  # 第一个值到第二个值的差
+        # elif i < len(unique_indices) - 1:
+        #     duration = unique_indices[i + 1] - unique_indices[i]  # 当前值到下一个值的差
+        # else:
+        #     duration = len(data) - unique_indices[i]  # 最后一个值到结束
+
+        # 计算具体的小时数
+        hours = duration * 2
+        start_time = timestamps[unique_indices[i]]
+        output.append(f"{start_time}起按{unique_values[i]}m³/s泄放 {hours}个小时")
+    res = "，".join(output) + "。"
+    return res
+
+def generate_ddjy(file_path):
+    """
+    解析 Excel 表格数据。
+
+    参数:
+        file_path (str): Excel 文件路径。
+
+    返回:
+        list: 包含解析后的数据的字典列表。
+    """
+    # 读取 Excel 文件
+    df = pd.read_excel(file_path, header=None)
+    # 处理表头
+    # 获取前两行作为表头信息
+    first_row = df.iloc[0, :].fillna('')  # 第一行
+    second_row = df.iloc[1, :].fillna('')  # 第二行
+    # 合并表头信息
+    header = []
+    for i in range(len(first_row)):
+        prefix = str(first_row[i]).strip()
+        suffix = str(second_row[i]).strip()
+        if prefix and suffix:
+            header.append(f"{prefix} {suffix}")
+        elif prefix:
+            header.append(prefix)
+        else:
+            header.append(suffix)
+    # 设置列名
+    df.columns = header
+    df = df.drop([0, 1, 2])  # 删除前3行
+    # 动态匹配列名
+    time_column = None
+    for col in header:
+        if "月.日" in col:
+            time_column = col
+            break
+    if time_column is None:
+        raise ValueError("未找到时间列")
+    tongguan_column = None
+    for col in header:
+        if "潼关" in col and "预报流量" in col:
+            tongguan_column = col
+            break
+    if tongguan_column is None:
+        raise ValueError("未找到潼关预报流量列")
+    sanmenxia_inflow = None
+    for col in header:
+        if "三门峡" in col and "入库流量" in col:
+            sanmenxia_inflow = col
+            break
+    if sanmenxia_inflow is None:
+        raise ValueError("未找到三门峡入库流量列")
+    #print(df.iloc[:,1])
+    # 解析数据
+    time_stamps,smx_ckll, xld_ckll, lh_ckll,gx_ckll, hkc_ckll=[],[],[],[],[],[]
+    for _, row in df.iterrows():
+        time_value = row[time_column]
+        formatted_time = ""
+        if isinstance(time_value, pd.Timestamp):
+            formatted_time = time_value.strftime('%Y-%m-%d %H')  # 格式化为 "YYYY-MM-DD HH:MM:SS"
+        elif isinstance(time_value, str):
+            try:
+                time_obj = pd.to_datetime(time_value)
+                formatted_time = time_obj.strftime('%Y-%m-%d %H')  # 格式化为 "YYYY-MM-DD HH:MM:SS"
+            except ValueError:
+                formatted_time = time_value  # 如果解析失败，保持原样
+        else:
+            formatted_time = str(time_value)  # 如果不是时间格式，转为字符串
+            if '.' in formatted_time:  # 检查是否包含毫秒
+                formatted_time = formatted_time.split('.')[0]  # 去除毫秒部分
+            else:
+                formatted_time = formatted_time  # 如果没有毫秒，保持
+        time_stamps.append(formatted_time)
+        smx_ckll.append(row.iloc[3])
+        xld_ckll.append(row.iloc[7])
+        lh_ckll.append(row.iloc[11])
+        gx_ckll.append(row.iloc[15])
+        hkc_ckll.append(row.iloc[19])
+    # print(time_stamps, "长度：",len(time_stamps))
+    # print(smx_ckll, "长度：",len(smx_ckll))
+    # print(xld_ckll, "长度：",len(xld_ckll))
+    # print(lh_ckll, "长度：",len(lh_ckll))
+    # print(gx_ckll, "长度：",len(gx_ckll))
+    # print(hkc_ckll, "长度：",len(hkc_ckll))
+    smx_ddjy = process_outflow(smx_ckll,time_stamps)
+    xld_ddjy = process_outflow(xld_ckll,time_stamps)
+    lh_ddjy = process_outflow(lh_ckll,time_stamps)
+    gx_ddjy = process_outflow(gx_ckll,time_stamps)
+    hkc_ddjy = process_outflow(hkc_ckll,time_stamps)
+    data = "三门峡水库："+smx_ddjy+"\n小浪底水库："+xld_ddjy+"\n陆浑水库："+lh_ddjy+"\n故县水库："+gx_ddjy+"\n河口村水库："+hkc_ddjy
+    return data
