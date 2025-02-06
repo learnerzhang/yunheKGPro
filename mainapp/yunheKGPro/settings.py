@@ -40,10 +40,11 @@ NEOMODEL_PASSWORD = os.environ.get('NEO4J_PASSWORD', "12345678")
 REDIS_URL = os.environ.get('REDIS_URL', "redis://127.0.0.1:6379/0")
 
 DB_HOST = os.environ.get('DB_HOST', "127.0.0.1")
-DB_NAME = os.environ.get('DB_NAME', "kgproj")
+DB_NAME = os.environ.get('DB_NAME', "test_kgproj")
 DB_PORT = os.environ.get('DB_PORT', "3306")
 DB_USER = os.environ.get('DB_USER', "root")
-DB_PASSWORD = os.environ.get('DB_PASSWORD', "20221qaz@WSX")
+#DB_PASSWORD = os.environ.get('DB_PASSWORD', "20221qaz@WSX")
+DB_PASSWORD = os.environ.get('DB_PASSWORD', "root")
 
 ES_HOST = os.environ.get('ES_HOST', "127.0.0.1")
 ES_PORT = os.environ.get('ES_PORT', "9200")
@@ -80,6 +81,7 @@ INSTALLED_APPS = [
     'rest_framework_swagger', 
     'ckeditor',
     'DjangoUeditor',
+    'formtools',
     'xadmin',
     'crispy_forms',
     'crispy_bootstrap3',
@@ -187,7 +189,7 @@ WSGI_APPLICATION = 'yunheKGPro.wsgi.application'
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.mysql',
-        'NAME': 'kgproj',
+        'NAME': 'test_kgproj',
         'USER': 'root',
         'PASSWORD': 'root',
         'HOST': '127.0.0.1',
@@ -234,9 +236,9 @@ elif sys.platform.startswith('win'):
     DATABASES = {
         'default': {
             'ENGINE': 'django.db.backends.mysql',
-            'NAME': 'kgproj',
+            'NAME': 'test_kgproj',
             'USER': 'root',
-            'PASSWORD': '123456',
+            'PASSWORD': 'root',#'123456',
             'HOST': '127.0.0.1',
             'PORT': '3306',
         }

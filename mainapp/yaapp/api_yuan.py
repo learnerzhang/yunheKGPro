@@ -22,8 +22,9 @@ import json
 import difflib
 
 from userapp.models import User
-from yaapp import divHtml, pd2HtmlCSS
+from yaapp import divHtml, pd2HtmlCSS, text_table, extract_shuiku_data,extract_shuiku_data_jianyi
 from yaapp.models import PlanTemplate
+
 def get_access_token():
     """
     使用 API Key，Secret Key 获取access_token，替换下列示例中的应用API Key、应用Secret Key
@@ -300,17 +301,49 @@ def huanghe_gongqing_generate(context):
         shangdong_heduan = context["shangdong_heduan"]
 
         information = (
-            f"黄河下游险情：{huanghexiayou_xianqing}，"
-            f"河南段险情：{henan_heduan}，"
-            f"山东段险情：{ shangdong_heduan}"
+            f"黄河下游累计{huanghexiayou_xianqing}，"
+            f"河南段累计{henan_heduan}；"
+            f"山东段累计{shangdong_heduan}。"
         )
+        print("information:",information)
+        data  = text_table(information)
+        df = pd.DataFrame(data)
+        res = df.to_json(orient="records")
+        # prompt = (
+        #     f"参考描述：{default_context}\n"
+        #     f"请模仿上述描述，根据以下已知信息生成工程险情实况，不要生成总结或无关信息，"
+        #     f"\n已知信息：{information}"
+        # )
+        # res = query_question(prompt)
+    else:
+        res = default_context
+    return res
 
-        prompt = (
-            f"参考描述：{default_context}\n"
-            f"请模仿上述描述，根据以下已知信息生成工程险情实况，不要生成总结或无关信息，"
-            f"\n已知信息：{information}"
+def huanghe_gongqing_generate_html(context):
+    default_context = (
+        "调水调沙以来，黄河下游累计有39处工程123道坝出险214次，抢险用石5.08万方，耗资1723.27万元。"
+        "其中：河南河段累计有30处工程107道坝出险197次，抢险用石4.09万方，耗资1354.85万元；山东段累计有9处工程17道坝出险18次，抢险用石0.99立方米，耗资377.81万元。"
+    )
+
+    if isinstance(context, dict):
+        huanghexiayou_xianqing = context["huanghexiayou_xianqing"]  # 后续接口获取
+        henan_heduan = context["henan_heduan"]  # 后续接口获取
+        shangdong_heduan = context["shangdong_heduan"]
+
+        information = (
+            f"黄河下游累计有{huanghexiayou_xianqing}，"
+            f"河南段累计有{henan_heduan}，"
+            f"山东段累计有{ shangdong_heduan}"
         )
-        res = query_question(prompt)
+        data  = text_table(information)
+        df = pd.DataFrame(data)
+        res = pd2HtmlCSS() + divHtml(df.to_html(index=False))
+        # prompt = (
+        #     f"参考描述：{default_context}\n"
+        #     f"请模仿上述描述，根据以下已知信息生成工程险情实况，不要生成总结或无关信息，"
+        #     f"\n已知信息：{information}"
+        # )
+        # res = query_question(prompt)
     else:
         res = default_context
     return res
@@ -600,6 +633,55 @@ def huanghe_diaodu_plan_ctx(context):
         res = query_question(context)
     return res
 
+def huanghe_diaodu_plan_yuanze_ctx(context):
+    if isinstance(context, dict):
+        diaoduyuanze= context["hhddyz"]
+        data = extract_shuiku_data(diaoduyuanze)
+        df = pd.DataFrame(data)
+        res = df.to_json(orient="records")
+        #res = query_question(prompt)
+    else:
+        res = query_question(context)
+    return res
+
+def huanghe_diaodu_plan_yuanze_html(context):
+    if isinstance(context, dict):
+        diaoduyuanze= context["hhddyz"]
+        data = extract_shuiku_data(diaoduyuanze)
+        df = pd.DataFrame(data)
+        res = pd2HtmlCSS() + df.to_html(index=False, justify="center")
+        #res = query_question(prompt)
+    else:
+        res = query_question(context)
+    return res
+
+def huanghe_diaodu_plan_jianyi_ctx(context):
+    if isinstance(context, dict):
+        diaodujianyi = context["hhddjy"]
+        data = extract_shuiku_data_jianyi(diaodujianyi)
+        df = pd.DataFrame(data)
+        res = df.to_json(orient="records")
+        #res = query_question(prompt)
+    else:
+        data = extract_shuiku_data_jianyi(context)
+        df = pd.DataFrame(data)
+        res = df.to_json(orient="records")
+        #res = query_question(context)
+    return res
+
+def huanghe_diaodu_plan_jianyi_html(context):
+    if isinstance(context, dict):
+        diaodujianyi= context["hhddjy"]
+        data = extract_shuiku_data_jianyi(diaodujianyi)
+        df = pd.DataFrame(data)
+        res = pd2HtmlCSS() + df.to_html(index=False, justify="center")
+        #res = query_question(prompt)
+    else:
+        data = extract_shuiku_data_jianyi(context)
+        df = pd.DataFrame(data)
+        res = pd2HtmlCSS() + df.to_html(index=False, justify="center")
+        #res = query_question(context)
+    return res
 
 def generate_markdown_table(data):
     # 获取表头
