@@ -20,3 +20,11 @@ celery flower -A yunheKGPro --address=127.0.0.1 --port=5555
 
 ## 异步任务
 celery -A yunheKGPro worker -l info --pool=solo
+
+
+
+# 值班报告
+http://10.4.9.95/pub/html/oasource/fyj/fxdt_fyj/shzhfydt/index.html
+
+http://10.4.9.95/pub/html/oasource/fyj/index.html
+

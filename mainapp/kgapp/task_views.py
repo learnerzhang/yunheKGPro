@@ -32,7 +32,6 @@ from yunheKGPro import CsrfExemptSessionAuthentication
 # Create your views here.
 from yunheKGPro.neo import Neo4j
 
-
 class KgTmpQAList(mixins.ListModelMixin,
                   mixins.CreateModelMixin,
                   generics.GenericAPIView):

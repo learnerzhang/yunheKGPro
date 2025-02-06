@@ -34,6 +34,50 @@ from yunheKGPro import CsrfExemptSessionAuthentication
 
 # Create your views here.
 
+class RecomQAList(mixins.ListModelMixin,
+                  mixins.CreateModelMixin,
+                  generics.GenericAPIView):
+    
+    serializer_class = KgBaseResponseSerializer
+    @swagger_auto_schema(
+            operation_description='GET /recomqalist',
+            operation_summary="业务问题推荐",
+            # 接口参数 GET请求参数
+            manual_parameters=[
+                openapi.Parameter('code', openapi.IN_QUERY, type=openapi.TYPE_STRING, description='业务编号'),
+            ],
+            responses={
+                200: KgBaseResponseSerializer(many=False),
+                400: "请求失败",
+            },
+            tags = ['task'])
+    def get(self, request, *args, **kwargs):
+
+        data = {"code": 200}
+        business_code = request.GET.get("code", None)
+        if business_code is None:
+            data['code'] = 201
+            data['msg'] = '请求参数错误, 缺少参数！！！'
+            serializers = KgBaseResponseSerializer(data=data, many=False)
+            serializers.is_valid()
+            return Response(serializers.data,  status=status.HTTP_200_OK)
+        try:
+            tmpBusiness = Business.objects.filter(code=business_code).first()
+        except:
+            data = {"code": 201, "msg": "业务不存在！！！" }
+            serializers = KgBaseResponseSerializer(data=data, many=False)
+            serializers.is_valid()
+            return Response(serializers.data, status=status.HTTP_200_OK)
+        
+        disQuestions = DisplayQuestion.objects.filter(business=tmpBusiness).all()
+        result = collections.defaultdict(list)
+        for disQuestion in disQuestions:
+            cate = disQuestion.category.name
+            result[cate].append(model_to_dict(disQuestion, exclude=['business', 'category']))
+        data['data'] = result
+        serializers = KgBaseResponseSerializer(data=data, many=False)
+        serializers.is_valid()
+        return Response(serializers.data,  status=status.HTTP_200_OK)
 
 class KgDataIndexApiView(mixins.ListModelMixin,
                          mixins.CreateModelMixin,
@@ -609,7 +653,7 @@ class DocAddApiView(generics.GenericAPIView):
                     f.write(chunk)
                 f.close()
                 print(f"File successfully written to {new_path}")
-            except:
+            except Exception as e:
                 print(f"Error writing file: {e}")
                 data = {"code": 201, "msg": "文件写入错误..."}
                 serializers = KgDocResponseSerializer(data=data, many=False)

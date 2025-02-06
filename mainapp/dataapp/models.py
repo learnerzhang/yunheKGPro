@@ -1,4 +1,5 @@
 from django.db import models
+from django.forms import model_to_dict
 from userapp.models import User
 from kgapp.models import KgTag
 # Create your models here.
@@ -75,3 +76,32 @@ class DataModelParam(models.Model):
             return self.kg_model_id.pk
         else:
             return None
+
+class AppAPIModel(models.Model):
+    class Meta:
+        verbose_name_plural = '应用接口模型'
+        db_table = 'kg_appapimodel'
+
+    id = models.AutoField(auto_created=True, primary_key=True, serialize=False)
+    appname = models.CharField(max_length=200, verbose_name="业务应用名称", help_text="业务应用名称", unique=False)
+    appdesc = models.TextField(verbose_name="接口描述", help_text="接口描述", unique=False, null=True)
+    appurl = models.CharField(max_length=200, verbose_name="接口地址", help_text="接口地址", unique=False, null=True)
+    appkey = models.CharField(max_length=200, verbose_name="接口KEY", help_text="接口KEY", unique=False, null=True)
+
+    tip_type = models.IntegerField(choices=((1, '数据分析'), (2, '其他')), default=1, verbose_name='提示词类型')
+    tip_ctt = models.CharField(max_length=200, verbose_name="提示词内容", help_text="提示词内容", unique=False, null=True)
+
+    toolapis = models.ManyToManyField(DataModel, verbose_name="工具集接口", help_text="工具集接口", blank=True)
+    update_time = models.DateTimeField(verbose_name="更新时间", null=True)
+    create_time = models.DateTimeField(verbose_name="创建时间", null=True)
+
+    def __str__(self):
+        return str(self.id) + " #@ " + str(self.appname)
+
+    @property
+    def toollist(self):
+
+        retTools = []
+        for tool in self.toolapis.all():
+            retTools.append(model_to_dict(tool))
+        return retTools

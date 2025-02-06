@@ -1,3 +1,4 @@
+import sys
 from typing import List
 from django.shortcuts import render
 import json
@@ -1245,7 +1246,11 @@ class DDFAUploadApiPost(generics.GenericAPIView):
         print("调度方案单写入:", df_path, flush=True)
 
         # 调度方案单处理
-        path_wkimg = r'D:\\Program Files\\wkhtmltopdf\\bin\\wkhtmltoimage.exe'  # 工具路径
+        if sys.platform.startswith('win'):
+            path_wkimg = r'D:\\Program Files\\wkhtmltopdf\\bin\\wkhtmltoimage.exe'  # 工具路径
+        else:
+            path_wkimg = r'/usr/bin/wkhtmltoimage'
+
         cfg = imgkit.config(wkhtmltoimage=path_wkimg)
         options = {
             'load-error-handling': 'ignore',

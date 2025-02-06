@@ -4,7 +4,9 @@ from rest_framework.response import Response
 from rest_framework.parsers import FormParser, MultiPartParser
 from drf_yasg.utils import swagger_auto_schema
 from drf_yasg import openapi
-from .models import DataModel, DataModelParam  # 确保导入您的接口
+
+from kgapp.serializers import KgBaseResponseSerializer
+from .models import AppAPIModel, DataModel, DataModelParam  # 确保导入您的接口
 from kgapp.models import KgTag
 from userapp.models import User
 from .serializers import DataModelSerializer, DataModelParamDetailResponseSerializer, DataModelParamSerializer
@@ -1680,3 +1682,203 @@ class OpenapiFormatAPI(generics.GenericAPIView):
 
     def get_request_method(self, req_type):
         return 'post' if req_type == 0 else 'get' if req_type == 1 else None
+    
+
+
+
+
+
+
+class AppAPIList(mixins.ListModelMixin,
+                     mixins.CreateModelMixin,
+                     generics.GenericAPIView):
+    serializer_class = KgBaseResponseSerializer
+
+    @swagger_auto_schema(
+        operation_description='GET /dataapp/appapilist',
+        operation_summary="获取应用功能列表",
+        # 接口参数 GET请求参数
+        manual_parameters=[
+            # 声明参数
+            openapi.Parameter(
+                # 参数名称
+                "keyword",
+                # 参数类型为query
+                openapi.IN_QUERY,
+                # 参数描述
+                description="关键词模糊搜索",
+                # 参数字符类型
+                type=openapi.TYPE_STRING
+            ),
+            openapi.Parameter('start_time', openapi.IN_QUERY, type=openapi.FORMAT_DATE, description='开始时间', ),
+            openapi.Parameter('end_time', openapi.IN_QUERY, type=openapi.FORMAT_DATE, description='结束时间', ),
+            openapi.Parameter('page', openapi.IN_QUERY, type=openapi.TYPE_NUMBER),
+            openapi.Parameter('pageSize', openapi.IN_QUERY, type=openapi.TYPE_NUMBER),
+        ],
+        responses={
+            200: KgBaseResponseSerializer(many=False),
+            400: "请求失败",
+        },
+        tags=['datamodel'])
+    def get(self, request, *args, **kwargs):
+
+        data = {"code": 200}
+        keyword = request.GET.get("keyword", None)
+        page = request.GET.get("page", 1)
+        pageSize = request.GET.get("pageSize", 10)
+        start_time = request.GET.get("start_time", None)
+        end_time = request.GET.get("end_time", None)
+        
+        querySet = AppAPIModel.objects
+        if keyword is not None and len(keyword) > 0:
+            querySet = querySet.filter(appname__contains="{}".format(keyword))
+        if start_time:
+            querySet = querySet.filter(create_time__gt="{}".format(start_time))
+        if end_time:
+            querySet = querySet.filter(create_time__lt="{}".format(end_time))
+        querySet = querySet.all().order_by('-update_time')
+        # querySet = KgDoc.objects.all()
+        data['total'] = len(querySet)
+        data['page'] = page
+        data['pageSize'] = pageSize
+        paginator = Paginator(querySet, pageSize)
+        try:
+            objs = paginator.page(page)
+        except PageNotAnInteger:
+            objs = paginator.page(1)
+        except:
+            objs = paginator.page(paginator.num_pages)
+        
+        retData = []
+        for obj in objs:
+            retObj = model_to_dict(obj, exclude=['toolapis'])
+            retObj['toollist'] = obj.toollist
+            retData.append(retObj)
+        data['data'] = retData
+        data['code'] = 200
+        data['total'] = len(querySet)
+        serializers = KgBaseResponseSerializer(data=data, many=False)
+        serializers.is_valid()
+        return Response(serializers.data, status=status.HTTP_200_OK)
+
+
+
+class AppAPIAddView(generics.GenericAPIView):
+    parser_classes = (FormParser, MultiPartParser)
+
+    # serializer_class = KgFileResponseSerializer
+    # def get_serializer_class(self):
+    #     if self.action == 'post':
+    #         return KgFileResponseSerializer
+    #     return self.serializer_class
+    authentication_classes = (CsrfExemptSessionAuthentication, BasicAuthentication)
+
+    @swagger_auto_schema(
+        operation_summary='[可用] 新增应用接口功能',
+        operation_description='GET /dataapp/appapiadd',
+        manual_parameters=[
+            openapi.Parameter(
+                name='appname',
+                in_=openapi.IN_FORM,
+                description='应用名称',
+                type=openapi.TYPE_STRING
+            ),
+            openapi.Parameter(
+                name='appdesc',
+                in_=openapi.IN_FORM,
+                description='应用描述',
+                type=openapi.TYPE_STRING
+            ),
+            openapi.Parameter(
+                name='appurl',
+                in_=openapi.IN_FORM,
+                description='应用URL',
+                type=openapi.TYPE_STRING
+            ),
+            openapi.Parameter(
+                name='appkey',
+                in_=openapi.IN_FORM,
+                description='应用APPKEY',
+                type=openapi.TYPE_STRING
+            ),
+            openapi.Parameter(
+                name='tip_type',
+                in_=openapi.IN_FORM,
+                description='0(查询分析)|1（其他）',
+                type=openapi.TYPE_INTEGER
+            ),
+            openapi.Parameter(
+                name='tip_ctt',
+                in_=openapi.IN_FORM,
+                description='提示词描述',
+                type=openapi.TYPE_STRING
+            ),
+            openapi.Parameter(
+                name='toolids',
+                in_=openapi.IN_FORM,
+                items=openapi.Items(openapi.TYPE_INTEGER),
+                description='工具接口IDs',
+                type=openapi.TYPE_ARRAY
+            ),
+            openapi.Parameter(
+                name='user_id',
+                in_=openapi.IN_FORM,
+                description='创建作者',
+                type=openapi.TYPE_INTEGER
+            ),
+        ],
+        responses={
+            200: KgBaseResponseSerializer(many=False),
+            400: "请求失败",
+        },
+        tags=['datamodel']
+    )
+    @csrf_exempt
+    def post(self, request, *args, **krgs):
+        data = {"code": 200}
+        appname = request.data.get("appname", None)
+        appdesc = request.data.get("appdesc", None)
+        appurl = request.data.get("appurl", None)
+        appkey = request.data.get("appkey", None)
+        tip_type = request.data.get("tip_type", None)
+        tip_ctt = request.data.get("tip_ctt", None)
+        toolids = request.data.get("toolids", None)
+        user_id = request.data.get("user_id", None)
+
+        if appname is None or appkey is None or appdesc is None or appurl is None or tip_type is None or tip_ctt is None or toolids is None or user_id is None or not isinstance(toolids, list):
+            data["code"] = 201
+            data["msg"] = "参数错误"
+            serializers = KgBaseResponseSerializer(data=data, many=False)
+            serializers.is_valid()
+            return Response(serializers.data, status=status.HTTP_200_OK)
+
+        try:
+            tmpuser = User.objects.get(id=user_id)
+        except:
+            data["code"] = 201
+        try:
+            tmpuser = User.objects.get(id=user_id)
+        except:
+            data = {"code": 201, "msg": "用户ID不存在！！！"}
+            serializers = KgBaseResponseSerializer(data=data, many=False)
+            serializers.is_valid()
+            return Response(serializers.data, status=status.HTTP_200_OK)
+
+        tmpapp = AppAPIModel.objects.create(
+            appname=appname,
+            appdesc=appdesc,
+            appurl=appurl,
+            appkey=appkey,
+            tip_type=tip_type,
+            tip_ctt=tip_ctt,
+            kg_user_id=tmpuser
+        )
+        for t in toolids:
+            tmptool = DataModel.objects.get(id=t)
+            if tmptool:
+                tmpapp.toolapis.add(tmptool)
+        tmpapp.save()
+        data = {"code": 200, "msg": "应用工具创建成功"}
+        serializers = KgBaseResponseSerializer(data=data, many=False)
+        serializers.is_valid()
+        return Response(serializers.data, status=status.HTTP_200_OK)
