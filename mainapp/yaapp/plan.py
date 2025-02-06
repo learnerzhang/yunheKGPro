@@ -438,6 +438,13 @@ class PlanFactory:
                              f"5) 预警及响应等级\n"
                              f"{xiangying_level}"
                              )
+            tb_ddjg = [
+                {"名称": "滩区淹没", "调度结果": tqym},
+                {"名称": "可能出险情况", "调度结果": keneng_danger},
+                {"名称": "预警及响应等级", "调度结果": xiangying_level},
+            ]
+            df = pd.DataFrame(tb_ddjg)
+            tb_ddjg_json = df.to_json(orient="records")
             for n in self.node.wordParagraphs.all():
                 n.delete()
             wp = WordParagraph.objects.create(title="调度结果", content="水库", ctype=1)
@@ -454,18 +461,20 @@ class PlanFactory:
             self.node.wordParagraphs.add(wp)
             wp = WordParagraph.objects.create(title="花园口过程曲线", content=hd_ddgc_img, ctype=2)
             self.node.wordParagraphs.add(wp)
-            wp = WordParagraph.objects.create(title="调度结果", content="滩区淹没", ctype=1)
+            wp = WordParagraph.objects.create(title="调度方案单", content=json.dumps(tb_ddjg_json), ctype=3)
             self.node.wordParagraphs.add(wp)
-            wp = WordParagraph.objects.create(title="滩区淹没结果", content=tqym, ctype=1)
-            self.node.wordParagraphs.add(wp)
-            wp = WordParagraph.objects.create(title="调度结果", content="可能出险", ctype=1)
-            self.node.wordParagraphs.add(wp)
-            wp = WordParagraph.objects.create(title="可能出险情况", content=keneng_danger, ctype=1)
-            self.node.wordParagraphs.add(wp)
-            wp = WordParagraph.objects.create(title="调度结果", content="预警响应", ctype=1)
-            self.node.wordParagraphs.add(wp)
-            wp = WordParagraph.objects.create(title="预警响应及等级", content=xiangying_level, ctype=1)
-            self.node.wordParagraphs.add(wp)
+            # wp = WordParagraph.objects.create(title="调度结果", content="滩区淹没", ctype=1)
+            # self.node.wordParagraphs.add(wp)
+            # wp = WordParagraph.objects.create(title="滩区淹没结果", content=tqym, ctype=1)
+            # self.node.wordParagraphs.add(wp)
+            # wp = WordParagraph.objects.create(title="调度结果", content="可能出险", ctype=1)
+            # self.node.wordParagraphs.add(wp)
+            # wp = WordParagraph.objects.create(title="可能出险情况", content=keneng_danger, ctype=1)
+            # self.node.wordParagraphs.add(wp)
+            # wp = WordParagraph.objects.create(title="调度结果", content="预警响应", ctype=1)
+            # self.node.wordParagraphs.add(wp)
+            # wp = WordParagraph.objects.create(title="预警响应及等级", content=xiangying_level, ctype=1)
+            # self.node.wordParagraphs.add(wp)
             #TODO
             return diaodu_result
         elif self.context['type'] == 1:

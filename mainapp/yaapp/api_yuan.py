@@ -22,7 +22,7 @@ import json
 import difflib
 
 from userapp.models import User
-from yaapp import divHtml, pd2HtmlCSS, text_table, extract_shuiku_data,extract_shuiku_data_jianyi
+from yaapp import divHtml, pd2HtmlCSS, text_table, extract_shuiku_data,extract_shuiku_data_jianyi,yujingdengji
 from yaapp.models import PlanTemplate
 
 def get_access_token():
@@ -925,6 +925,7 @@ def huanghe_xiangying_level(context):
                   f"已知预警等级为：{yujing_level}。\n"
                   f"请根据一直预警等级生成对应的响应措施，不要生成总结或无关信息。")
         res = query_question(prompt)
+        #res = yujingdengji(shuiku_shuiwei: dict, shuiwenzhan_liuliang: dict)
     else:
         res = query_question(context)
     return res
@@ -934,6 +935,7 @@ def huanghe_diaodu_result(context):
     tanqu_yanmo_result=huanghe_tanqu_yanmo(context)
     keneng_danger=huanghe_keneng_danger(context)
     xiangying_level=huanghe_xiangying_level(context)
+    #xiangying_level =
     diaodu_result=(f"\n"
                    f"1) 水库 \n"
                    f"{shuiku_diaodu_result}\n"

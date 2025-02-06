@@ -105,7 +105,7 @@ urlpatterns = [
     path('graphRelationScheme/update', graph_views.KgRelationSchemeUpdateApiView.as_view()),
     path('graphRelationScheme/delete', graph_views.KgRelationSchemeDeleteApiView.as_view()),
     path('graphRelationScheme/detail', graph_views.KgRelationSchemeDetailApiView.as_view()),
-    path('graphEntityByTypeList/', graph_views.KgEntityByTypeList.as_view()),
+    path('graphEntityByTypeList', graph_views.KgEntityByTypeList.as_view()),
     path('graphEntity/detail', graph_views.KgEntityDetailApiView.as_view()),
     path('graphEntity/delete', graph_views.KgEntityDeleteApiView.as_view()),
     path('graphEntity/update', graph_views.KgEntityUpdateAttrApiView.as_view()),

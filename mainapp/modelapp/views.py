@@ -18,7 +18,8 @@ from django.forms.models import model_to_dict
 from django.core.paginator import Paginator, EmptyPage, PageNotAnInteger
 from django.views.decorators.csrf import csrf_exempt
 from datetime import datetime
-from rest_framework.authentication import BasicAuthentication 
+from rest_framework.authentication import BasicAuthentication
+from rest_framework.permissions import IsAuthenticated
 import os
 
 from rest_framework.parsers import (
@@ -33,7 +34,8 @@ from yunheKGPro import CsrfExemptSessionAuthentication
 class KgModelList(mixins.ListModelMixin,
                   mixins.CreateModelMixin,
                   generics.GenericAPIView):
-    
+    # authentication_classes = (CsrfExemptSessionAuthentication, BasicAuthentication)
+    # permission_classes = [IsAuthenticated]  # 确保用户已认证
     serializer_class = KgModelResponseSerializer
     @swagger_auto_schema(
             operation_description='GET /modelapp/kgmodel/',

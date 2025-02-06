@@ -280,6 +280,13 @@ prompt = (f"参考描述：{default_context}"
           f"数据为：{data}")      #百度API不支持数据接入，超出其最长输序列
 res = query_question(prompt)
 print(res)
+import webbrowser
+
+def open_baidu():
+    url = 'https://www.baidu.com'
+    webbrowser.open(url)
+
+open_baidu()
 #
 #
 # # 给定的出库流量数据

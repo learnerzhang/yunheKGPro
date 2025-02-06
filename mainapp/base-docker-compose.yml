@@ -1,0 +1,62 @@
+version: '3.8'
+services:
+  neo4j:
+    image: neo4j:latest
+    ports:
+      - "7474:7474"
+      - "7473:7473"
+      - "7687:7687"
+    volumes:
+      - ./neo4j/data:/data
+      - ./neo4j/logs:/logs
+      - ./neo4j/plugins:/plugins
+    networks:
+      - mynetwork
+    environment:
+      - NEO4J_AUTH=neo4j/12345678
+  mysql9:
+    image: container-registry.oracle.com/mysql/community-server:9.0
+    container_name: mysql9
+    environment:
+      MYSQL_ROOT_PASSWORD: 20221qaz@WSX
+      MYSQL_DATABASE: kgproj
+      MYSQL_USER: root
+      MYSQL_PASSWORD: 20221qaz@WSX
+    ports:
+      - "3306:3306"
+    networks:
+      - mynetwork
+    volumes:
+      - /etc/mysql/my.cnf:/etc/my.cnf
+      - /var/mysql/logs:/var/logs
+      - /var/mysql/data:/var/lib/mysql
+    restart: unless-stopped
+    privileged: true
+  redis:
+    image: redis:6.0.8
+    networks:
+      - mynetwork
+    ports:
+      - "6379:6379"
+    volumes:
+      - ./redis/data:/data
+  nginx:
+    image: nginx:latest
+    ports:
+      - "80:80"
+      - "5000:5000"
+      - "7777:7777"
+      - "9999:9999"
+    networks:
+      - mynetwork
+    volumes:
+      - ./nginx/nginx.conf:/etc/nginx/nginx.conf
+      - ./dist/front_ui:/usr/share/nginx/front_html
+      - ./dist/backend_ui:/usr/share/nginx/back_html
+      - ./dist/my_ui:/usr/share/nginx/my_html
+      - ./mainapp/media:/usr/share/nginx/media
+    depends_on:
+      - web
+networks:
+  mynetwork:
+  default:
