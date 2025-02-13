@@ -1,6 +1,6 @@
 from django.contrib import admin
 
-from yaapp.models import PlanByUser, PlanByUserDocument, PlanTemplate, TemplateNode, WordParagraph
+from yaapp.models import PlanByUser, PlanByUserDocument, PlanTemplate, PtBusiness, TemplateNode, WordParagraph
 
 # Register your models here.
 class TemplateNodeAdmin(admin.ModelAdmin):
@@ -25,3 +25,4 @@ admin.site.register(WordParagraph, WordParagraphAdmin)
 admin.site.register(TemplateNode, TemplateNodeAdmin)
 admin.site.register(PlanByUser)
 admin.site.register(PlanByUserDocument)
+admin.site.register(PtBusiness)

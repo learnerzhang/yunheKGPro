@@ -18,6 +18,7 @@ from . import views
 
 urlpatterns = [
     path('templateList', views.TemplateList.as_view()),
+    path('businesslist', views.PTBusinessList.as_view()),
     path('blockList', views.BlockList.as_view()),
     path('blockOptList', views.BlockOptionList.as_view()),
     path('sysTemplateDetail', views.TemplateDetail.as_view()),
