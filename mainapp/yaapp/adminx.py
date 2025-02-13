@@ -69,8 +69,16 @@ class PlanByUserDocumentAdmin(object):
     operation.short_description = '操作'
 
 
+class PTPtBusinessAdmin(object):
+    list_display = ("name", "code")
+    search_fields = ("name", )
+    list_filter = ("name", )
+    model_icon = 'fa fa-paper-plane'
+    
+
 xadmin.site.register(PlanTemplate, PlanTemplateAdmin)
 xadmin.site.register(WordParagraph, WordParagraphAdmin)
 xadmin.site.register(TemplateNode, TemplateNodeAdmin)
 xadmin.site.register(PlanByUser, PlanByUserAdmin)
 xadmin.site.register(PlanByUserDocument, PlanByUserDocumentAdmin)
+xadmin.site.register(PtBusiness, PTPtBusinessAdmin)

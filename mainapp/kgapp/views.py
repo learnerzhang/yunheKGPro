@@ -33,7 +33,30 @@ from yunheKGPro import CsrfExemptSessionAuthentication
 
 
 # Create your views here.
-
+class BusinessList(mixins.ListModelMixin,
+                  mixins.CreateModelMixin,
+                  generics.GenericAPIView):
+    
+    serializer_class = KgBaseResponseSerializer
+    @swagger_auto_schema(
+            operation_description='GET /businesslist',
+            operation_summary="",
+            # 接口参数 GET请求参数
+            manual_parameters=[
+            ],
+            responses={
+                200: KgBaseResponseSerializer(many=False),
+                400: "请求失败",
+            },
+            tags = ['task'])
+    def get(self, request, *args, **kwargs):
+        data = {"code": 200}
+        bus_list = Business.objects.all()
+        data['data'] = [model_to_dict(b) for b in bus_list]
+        serializers = KgBaseResponseSerializer(data=data, many=False)
+        serializers.is_valid()
+        return Response(serializers.data,  status=status.HTTP_200_OK)
+    
 class RecomQAList(mixins.ListModelMixin,
                   mixins.CreateModelMixin,
                   generics.GenericAPIView):

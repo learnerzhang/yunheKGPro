@@ -43,13 +43,39 @@ from rest_framework.parsers import (
     MultiPartParser
 )
 
+from kgapp.models import KgBusiness
 from yaapp import getYuAnName, getYuAnParamPath
 from yaapp.api_yuan import map_input_to_template, recommend_plan
-from yaapp.models import PlanByUser, PlanByUserDocument, PlanTemplate, TemplateNode
+from yaapp.models import PlanByUser, PlanByUserDocument, PlanTemplate, PtBusiness, TemplateNode
 from yaapp.plan import PlanFactory
 from yaapp.serializer import BaseApiResponseSerializer
 from yaapp.wordutils import set_landscape, writeParagraphs2Word, writeTitle2Word
 from yunheKGPro import CsrfExemptSessionAuthentication
+
+
+class PTBusinessList(mixins.ListModelMixin,
+                  mixins.CreateModelMixin,
+                  generics.GenericAPIView):
+    
+    serializer_class = BaseApiResponseSerializer
+    @swagger_auto_schema(
+            operation_description='GET /ptbusinesslist',
+            operation_summary="预案的业务类型",
+            # 接口参数 GET请求参数
+            manual_parameters=[
+            ],
+            responses={
+                200: BaseApiResponseSerializer(many=False),
+                400: "请求失败",
+            },
+            tags = ['ya_api'])
+    def get(self, request, *args, **kwargs):
+        data = {"code": 200}
+        bus_list = PtBusiness.objects.all()
+        data['data'] = [model_to_dict(b) for b in bus_list]
+        serializers = BaseApiResponseSerializer(data=data, many=False)
+        serializers.is_valid()
+        return Response(serializers.data,  status=status.HTTP_200_OK)
 
 
 class BlockList(mixins.ListModelMixin,
@@ -249,7 +275,9 @@ class AddOrUpdateTemplate(generics.GenericAPIView):
             # create
             # order = parent.node_cnt if parent is not None else 0
             tmpPT = PlanTemplate.objects.create(name=name, description=description)
-            data = {"code": 200, "data": model_to_dict(tmpPT, exclude=["nodes"]), "msg": "新预案模板创建成功！"}
+            tmpResult = model_to_dict(tmpPT, exclude=["nodes"])
+            tmpResult['node_list'] = tmpPT.nodelist
+            data = {"code": 200, "data": tmpResult, "msg": "新预案模板创建成功！"}
         else:
             try:
                 tmpPT = PlanTemplate.objects.get(id=ptid)
@@ -258,7 +286,9 @@ class AddOrUpdateTemplate(generics.GenericAPIView):
                 if description:
                     tmpPT.description = description
                 tmpPT.save()
-                data = {"code": 200, "data": model_to_dict(tmpPT, exclude=["nodes"]), "msg": "预案更新成功！"}
+                tmpResult = model_to_dict(tmpPT, exclude=["nodes"])
+                tmpResult['node_list'] = tmpPT.nodelist
+                data = {"code": 200, "data": tmpResult, "msg": "预案更新成功！"}
             except:
                 data = {"code": 201, "data": {}, "msg": "参数错误"}
         serializers = BaseApiResponseSerializer(data=data, many=False)
@@ -348,7 +378,8 @@ class AddOrUpdateTemplateByNode(generics.GenericAPIView):
                 tmpPT = PlanTemplate.objects.get(id=ptid)
                 tmpPT.nodes.add(tmpnode)
                 tmpPT.save()
-                data = {"code": 200, "data": {}, "msg": "节点创建成功！"}
+                tmpResult = model_to_dict(tmpPT, exclude=["wordParagraphs", "result"])
+                data = {"code": 200, "data": tmpResult, "msg": "节点创建成功！"}
             else:
                 # 更新节点
                 try:
@@ -362,7 +393,8 @@ class AddOrUpdateTemplateByNode(generics.GenericAPIView):
                     if order:
                         nt.order = order
                     nt.save()
-                    data = {"code": 200, "data": model_to_dict(nt, exclude=["nodes"]), "msg": "节点更新成功！"}
+                    tmpResult = model_to_dict(nt, exclude=["wordParagraphs", "result"])
+                    data = {"code": 200, "data": tmpResult, "msg": "节点更新成功！"}
                 except:
                     data = {"code": 201, "data": {}, "msg": "参数错误"}
         serializers = BaseApiResponseSerializer(data=data, many=False)
