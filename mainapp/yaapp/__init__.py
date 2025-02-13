@@ -51,6 +51,7 @@ def divHtml(text):
 
 
 def pd2HtmlCSS():
+    return """"""
     css = """
         <style>
             .table-container {

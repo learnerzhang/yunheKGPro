@@ -3,6 +3,12 @@ from kgapp.models import KgTableContent, KgDoc, KgTag, KgBusiness, KgTemplates
 from rest_framework import routers, serializers, viewsets
 
 
+class KgBaseResponseSerializer(serializers.Serializer):
+    total = serializers.IntegerField()
+    data = serializers.DictField()
+    code = serializers.IntegerField()
+    msg = serializers.CharField(max_length=200)
+
 # Serializers define the API representation.
 
 class KgDataIndexResponseSerializer(serializers.Serializer):

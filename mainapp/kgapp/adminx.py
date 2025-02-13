@@ -157,6 +157,27 @@ class TsqkAdmin(object):
     list_filter = ("id", "query", "sql_ctt", "activate")
     model_icon = 'fa fa-bars'
 
+class BusinessAdmin(object):
+    list_display = ("id", "name", "code")
+    list_display_links = ("id", "name", "code")
+    search_fields = ("id", "name", "code")
+    list_filter = ("id", "name", "code")
+    model_icon = 'fa fa-bars'
+
+class QuestionCategoryAdmin(object):
+    list_display = ("id", "name", "desc")
+    list_display_links = ("id", "name", "desc")
+    search_fields = ("id", "name", "desc")
+    list_filter = ("id", "name", "desc")
+    model_icon = 'fa fa-bars'
+
+class DisplayQuestionAdmin(object):
+    list_display = ("id", "question", "category", "business")
+    list_display_links = ("id", "question", "category", "business")
+    search_fields = ("id", "question", "category", "business")
+    list_filter = ("id", "question", "category", "business")
+    model_icon = 'fa fa-bars'
+
 
 xadmin.site.register(KgDoc, ModelDoc)
 xadmin.site.register(KgTableContent, ModelTableContent)
@@ -182,3 +203,8 @@ xadmin.site.register(KgDDRuleAttribute, KgDDAttrSchemeTemplate)
 xadmin.site.register(KgDDRule, KgDDRuleSchemeTemplate)
 xadmin.site.register(KgDataIndex, KgDataIndexTemplate)
 xadmin.site.register(KgText2SQL, TsqkAdmin)
+
+
+xadmin.site.register(Business, BusinessAdmin)
+xadmin.site.register(QuestionCategory, QuestionCategoryAdmin)
+xadmin.site.register(DisplayQuestion, DisplayQuestionAdmin)

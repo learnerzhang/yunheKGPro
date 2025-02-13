@@ -21,5 +21,14 @@ class DataModelParamAdmin(object):
     list_filter = ("name", "type", "desc")
     model_icon = 'fa fa-bars'
 
+
+class AppAPIModelParamAdmin(object):
+    list_display = ("appname", "tip_type", "appdesc")
+    search_fields = ("appname", "tip_type", "appdesc")
+    list_filter = ("appname", "tip_type", "appdesc")
+    model_icon = 'fa fa-bars'
+
+
 xadmin.site.register(DataModel, DataModelAdmin)
 xadmin.site.register(DataModelParam, DataModelParamAdmin)
+xadmin.site.register(AppAPIModel, AppAPIModelParamAdmin)

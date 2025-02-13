@@ -26,6 +26,7 @@ from . import graph_views
 
 urlpatterns = [
     path('text2sqllist', views.KgText2SqlList.as_view()),
+    path('recomqalist', views.RecomQAList.as_view()),
     path('kgdoc/list', views.KgDocList.as_view()),
     path('kgdoc/search', views.KgDocSearch.as_view()),
     path('dataIndex', views.KgDataIndexApiView.as_view()),

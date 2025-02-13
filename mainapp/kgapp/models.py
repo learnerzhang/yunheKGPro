@@ -707,3 +707,51 @@ class KgText2SQL(models.Model):
     def __str__(self):
         return str(self.id) + " @# " + str(self.query) + " @# " + str(self.sql_ctt)
 
+
+
+class Business(models.Model):
+    class Meta:
+        managed = True
+        verbose_name_plural = '业务'
+        db_table = 'business'
+    
+    id = models.AutoField(auto_created=True, primary_key=True, serialize=False)
+    name = models.CharField(max_length=200, verbose_name="业务名称", help_text="业务名称", unique=False)
+    code = models.CharField(max_length=10, verbose_name="业务代号", help_text="业务代号", unique=False)
+    desc = models.CharField(max_length=512, verbose_name="业务描述", help_text="业务描述", unique=False, null=True, blank=True)
+    update_time = models.DateTimeField(verbose_name="更新时间", null=True)
+    create_time = models.DateTimeField(verbose_name="创建时间", null=True)
+
+    def __str__(self):
+        return str(self.name)
+
+class QuestionCategory(models.Model):
+    class Meta:
+        managed = True
+        verbose_name_plural = '问题分类'
+        db_table = 'question_category'
+    
+    id = models.AutoField(auto_created=True, primary_key=True, serialize=False)
+    name = models.CharField(max_length=200, verbose_name="分类名称", help_text="分类名称", unique=False)
+    desc = models.CharField(max_length=512, verbose_name="分类描述", help_text="分类描述", unique=False, null=True, blank=True)
+    update_time = models.DateTimeField(verbose_name="更新时间", null=True)
+    create_time = models.DateTimeField(verbose_name="创建时间", null=True)
+
+    def __str__(self):
+        return str(self.name)
+
+class DisplayQuestion(models.Model):
+    class Meta:
+        managed = True
+        verbose_name_plural = '展示问题'
+        db_table = 'display_question'
+    
+    id = models.AutoField(auto_created=True, primary_key=True, serialize=False)
+    question = models.CharField(max_length=512, verbose_name="问题", help_text="问题", unique=False)
+    business = models.ForeignKey(Business, on_delete=models.CASCADE, verbose_name="业务", help_text="业务", null=True, blank=True)
+    category = models.ForeignKey(QuestionCategory, on_delete=models.CASCADE, verbose_name="分类", help_text="分类", null=True)
+    update_time = models.DateTimeField(verbose_name="更新时间", null=True)
+    create_time = models.DateTimeField(verbose_name="创建时间", null=True)
+
+    def __str__(self):
+        return str(self.question)

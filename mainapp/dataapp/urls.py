@@ -19,4 +19,12 @@ urlpatterns = [
     path('datamoparamdelete', views.DataParamDeleteApiView.as_view(), name='datamodelparam-delete'),
     path('datamoparamdetail', views.DataParamDetailApiView.as_view(), name='datamodelparam-detail'),
     path('formatswagger', views.OpenapiFormatAPI.as_view(), name='datamodel-format'),  #
+
+    path('appapilist', views.AppAPIList.as_view()),
+    path('appapiadd', views.AppAPIAddView.as_view()),
+    # path('kgdoc/batchadd', views.DocBatchAddApiView.as_view()),
+    # path('kgdoc/addtag', views.DocAddTagApiView.as_view()),
+    # path('kgdoc/update', views.DocUpdateApiView.as_view()),
+    # path('kgdoc/batchdelprodflag', views.DocBatchUpdateApiView.as_view()),
+    # path('kgdoc/delete', views.DocDelApiView.as_view()),
 ]
