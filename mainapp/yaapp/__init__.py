@@ -12,6 +12,8 @@ def getYuAnParamPath(ctype, mydate):
         return f"data/plans/XLDQX_api_data_{mydate}.json"
     elif ctype == 2:
         return f"data/plans/XLDTSTS_api_data_{mydate}.json"
+    elif ctype == 3:
+        return f"data/plans/SHJ_api_data_{mydate}.json"
     return "data/plans/default.json"
 
 

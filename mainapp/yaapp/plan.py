@@ -1,6 +1,9 @@
 import json
 from yaapp import divHtml, gx_sk, hkc_sk, img2base64, lhbs_sk, paraHtml, smx_sjt_sk, xld_sk, generate_ddjy
-from yaapp.api_yuan import huanghe_diaodu_plan_ctx, huanghe_diaodu_plan_dfjson, huanghe_hedaoshuiqing_generate_dfjson, huanghe_shuikushuiqing_generate_dfjson, huanghe_yuqing_generate,huanghe_hedaoshuiqing_generate,huanghe_shuikushuiqing_generate,huanghe_gongqing_generate,huanghe_jiangyu13_forecast,huanghe_fenqu_jiangyu_forecast,huanghe_jiangyu47_forecast,huanghe_flood_forecast,huanghe_diaodu_plan,huanghe_shuiku_diaodu_result,huanghe_tanqu_yanmo,huanghe_keneng_danger,huanghe_xiangying_level,xld_yushui_context,engineer_safety_shuikuyj,engineer_safety_shuiwenyj,engineer_safety_gongchengjcyj,shuniuFangAn,xldJZStatus,xldholeStatus,JZHoleRecommend,YingjiResponse,OrganizeBaoZhang_leader,OrganizeBaoZhang_zhihuibu,company_duty,team_baozhang,fangxun_table,xld_diaodu_table,huanghe_fenqu_jiangyu_forecast_json,huanghe_flood_forecast_json,engineer_safety_shuikuyj_json,engineer_safety_shuiwenyj_json,engineer_safety_gongchengjcyj_json,xldJZStatus_json,JZHoleRecommend_json,xldholeStatus_json,OrganizeBaoZhang_leader_json,OrganizeBaoZhang_zhihuibu_json,company_duty_json,team_baozhang_json,fangxun_table_json,xld_diaodu_table_json,huanghe_fenqu_jiangyu_forecast_dfjson,generate_description_for_label,map_input_to_label, huanghe_gongqing_generate_html,huanghe_diaodu_plan_yuanze_ctx,huanghe_diaodu_plan_yuanze_html,huanghe_diaodu_plan_jianyi_ctx,huanghe_diaodu_plan_jianyi_html
+from yaapp.api_yuan import (huanghe_diaodu_plan_ctx, huanghe_diaodu_plan_dfjson, huanghe_hedaoshuiqing_generate_dfjson, huanghe_shuikushuiqing_generate_dfjson, huanghe_yuqing_generate,huanghe_hedaoshuiqing_generate,huanghe_shuikushuiqing_generate,huanghe_gongqing_generate,huanghe_jiangyu13_forecast,huanghe_fenqu_jiangyu_forecast,huanghe_jiangyu47_forecast,huanghe_flood_forecast,huanghe_diaodu_plan,huanghe_shuiku_diaodu_result,huanghe_tanqu_yanmo,huanghe_keneng_danger,huanghe_xiangying_level,xld_yushui_context,
+                            engineer_safety_shuikuyj,engineer_safety_shuiwenyj,engineer_safety_gongchengjcyj,shuniuFangAn,xldJZStatus,xldholeStatus,JZHoleRecommend,YingjiResponse,OrganizeBaoZhang_leader,OrganizeBaoZhang_zhihuibu,company_duty,team_baozhang,fangxun_table,xld_diaodu_table,huanghe_fenqu_jiangyu_forecast_json,huanghe_flood_forecast_json,engineer_safety_shuikuyj_json,engineer_safety_shuiwenyj_json,engineer_safety_gongchengjcyj_json,xldJZStatus_json,JZHoleRecommend_json,xldholeStatus_json,
+                            OrganizeBaoZhang_leader_json,OrganizeBaoZhang_zhihuibu_json,company_duty_json,team_baozhang_json,fangxun_table_json,xld_diaodu_table_json,huanghe_fenqu_jiangyu_forecast_dfjson,generate_description_for_label,map_input_to_label, huanghe_gongqing_generate_html,huanghe_diaodu_plan_yuanze_ctx,huanghe_diaodu_plan_yuanze_html,huanghe_diaodu_plan_jianyi_ctx,huanghe_diaodu_plan_jianyi_html,shj_yushui_context,shj_shuikuxushui_generate_dfjson,shj_shuikuxushui_generate,
+                            shj_hedaoshuiqing_generate_dfjson,shj_hedaoshuiqing_generate,shj_laishuiyugu_context,shj_laishuiyugu_generate_dfjson,shj_laishuiyugu_generate,shj_hedaobijian_context)
 from yaapp.models import TemplateNode, WordParagraph
 from datetime import datetime
 import os
@@ -42,6 +45,34 @@ class PlanFactory:
             wp = WordParagraph.objects.create(title="雨情实况", content=tmp, ctype=1)
             self.node.wordParagraphs.add(wp)
             return xld_yushui_context(self.params)
+        elif self.context['type'] == 3:
+            # 三花间河道水情
+            #TODO
+            #tmp = huanghe_yuqing_generate(self.params)
+            yuqing= shj_yushui_context(self.params)
+            for n in self.node.wordParagraphs.all():
+                n.delete()
+            wp = WordParagraph.objects.create(title="实时雨水情", content=yuqing, ctype=1)
+            self.node.wordParagraphs.add(wp)
+            current_date = datetime.now().strftime("%Y年%m月%d日")
+            current_hour = datetime.now().strftime("%H时")
+            skxs = f"水库蓄水：{current_date}，黄河主要水库蓄水情况见下表。"
+            wp = WordParagraph.objects.create(title="实时雨水情", content=skxs, ctype=1)
+            self.node.wordParagraphs.add(wp)
+            # wp = WordParagraph.objects.create(title="河道水情", content=f"河干流重要水库蓄水情况表", ctype=1)
+            # self.node.wordParagraphs.add(wp)
+            tmpjson = shj_shuikuxushui_generate_dfjson(self.params)  # 新增表格部分
+            wp = WordParagraph.objects.create(title="河道水情", content=json.dumps(tmpjson), ctype=3)
+            self.node.wordParagraphs.add(wp)
+            tmp = shj_shuikuxushui_generate(self.params)
+            hdsq = f"河道水情：黄河主要控制站{current_hour}蓄水情况见下表。"
+            wp = WordParagraph.objects.create(title="实时雨水情", content=hdsq, ctype=1)
+            self.node.wordParagraphs.add(wp)
+            tmpjson = shj_hedaoshuiqing_generate_dfjson(self.params)  # 新增表格部分
+            wp = WordParagraph.objects.create(title="河道水情", content=json.dumps(tmpjson), ctype=3)
+            self.node.wordParagraphs.add(wp)
+            tmp_hdsq = shj_hedaoshuiqing_generate(self.params)
+            return yuqing+"\n"+skxs+ "\n"+ divHtml(f"黄河干流重要水库{current_hour}蓄水情况表\n") + tmp + "\n" +hdsq+ "\n" + divHtml(f"黄河主要控制站{current_hour}蓄水情况表\n") + tmp_hdsq
 
     def get_hdsq(self):
         """
@@ -239,7 +270,26 @@ class PlanFactory:
             # 小浪底
             #TODO
             return ""
-
+        elif self.context['type'] == 2:
+            # 小浪底
+            #TODO
+            return ""
+        elif self.context['type'] == 3:
+            # 三花间
+            import pandas as pd
+            import time
+            yadate = self.context['plan']['yadate']
+            ddfa_excel = os.path.join("media", "ddfa", f"{yadate}.xlsx")
+            if not os.path.exists(ddfa_excel):
+                raise Exception("调度方案单不存在")
+            ddjy = generate_ddjy(ddfa_excel)
+            for n in self.node.wordParagraphs.all():
+                n.delete()
+            tmpjson = huanghe_diaodu_plan_jianyi_ctx(ddjy)
+            wp = WordParagraph.objects.create(title="调度方案单", content=json.dumps(tmpjson), ctype=3)
+            self.node.wordParagraphs.add(wp)
+            #TODO
+            return huanghe_diaodu_plan_jianyi_html(ddjy)
     def get_ddjg(self):
         """
         获取调度方案
@@ -645,12 +695,61 @@ class PlanFactory:
             wp = WordParagraph.objects.create(title="安全举措", content=json.dumps(tmpjson), ctype=3)
             self.node.wordParagraphs.add(wp)
             return safety_result
+    def get_lsyg(self):
+        if self.context['type'] == 0:
+            return ""
+        elif self.context['type'] == 1:
+            return ""
+        elif self.context['type'] == 2:
+            return ""
+        elif self.context['type'] == 3:
+            for n in self.node.wordParagraphs.all():
+                n.delete()
+                # 新增描述部分
+            tmp = shj_laishuiyugu_context(self.params)
+            wp = WordParagraph.objects.create(title="来水预估", content=tmp, ctype=1)
+            self.node.wordParagraphs.add(wp)
+            wp = WordParagraph.objects.create(title="来水预估", content=f"黄河主要控制站及区间来水预估情况表",ctype=1)
+            self.node.wordParagraphs.add(wp)
+            tmpjson = shj_laishuiyugu_generate_dfjson(self.params)  # 新增表格部分
+            wp = WordParagraph.objects.create(title="来水预估", content=json.dumps(tmpjson), ctype=3)
+            self.node.wordParagraphs.add(wp)
+            return divHtml("黄河主要控制站及区间来水预估情况表\n") +shj_laishuiyugu_generate(self.params)
 
+    def get_hdbjtj(self):
+        if self.context['type'] == 0:
+            return ""
+        elif self.context['type'] == 1:
+            return ""
+        elif self.context['type'] == 2:
+            return ""
+        elif self.context['type'] == 3:
+            hdbjtj = shj_hedaobijian_context(self.params)
+            for n in self.node.wordParagraphs.all():
+                n.delete()
+            wp = WordParagraph.objects.create(title="安全举措", content=hdbjtj, ctype=1)
+            self.node.wordParagraphs.add(wp)
+            return hdbjtj
+    def get_ddyz_ddmb(self):
+        if self.context['type'] == 0:
+            return ""
+        elif self.context['type'] == 1:
+            return ""
+        elif self.context['type'] == 2:
+            return ""
+        elif self.context['type'] == 3:
+            ddyz_ddmb = "以《中华人民共和国黄河保护法》《黄河流域生态保护和高质量发展规划纲要》为指导，遵循安全可控、统筹兼顾的原则，结合下游抗旱供水和中游水库腾库迎汛要求，科学调度三门峡、小浪底水库，实现保障抗旱用水安全、腾库迎汛、维持下游河道中水河槽过流能力和持续改善河口生态等目标，发挥水资源综合效益。"
+            for n in self.node.wordParagraphs.all():
+                n.delete()
+            wp = WordParagraph.objects.create(title="调度原则和调度目标", content=ddyz_ddmb, ctype=1)
+            self.node.wordParagraphs.add(wp)
+            return ddyz_ddmb
     def make_context(self,):
         # print("make_context:", self.context, self.params)
         label = self.node.label
-        label = map_input_to_label(user_input=label)
-        if label == "雨情实况":
+        print("label:", label)
+        #label = map_input_to_label(user_input=label)
+        if label == "雨情实况" or label =="实时雨水情":
             print("雨情实况 get_ysq")
             result = self.get_ysq()
         elif label == "河道水情":
@@ -668,7 +767,7 @@ class PlanFactory:
         elif label == "洪水预报":
             print("洪水预报 get_hsyb")
             result = self.get_hsyb()
-        elif label == "调度方案":
+        elif label == "调度方案" or label == "水库调度方案":
             print("调度方案 get_ddfa")
             result = self.get_ddfa()
         elif label == "调度结果":
@@ -683,6 +782,15 @@ class PlanFactory:
         elif label == "安全举措":
             print("安全举措 get_aqjc")
             result = self.get_aqjc()
+        elif label == "来水预估":
+            print("安全举措 get_lsyg")
+            result = self.get_lsyg()
+        elif label =="河道边界条件":
+            print("河道边界条件 get_hdbjtj")
+            result = self.get_hdbjtj()
+        elif label == "调度原则和调度目标":
+            print("调度原则和调度目标 get_ddyz_ddmb")
+            result = self.get_ddyz_ddmb()
         else: 
             result = generate_description_for_label(label)
             for n in self.node.wordParagraphs.all():

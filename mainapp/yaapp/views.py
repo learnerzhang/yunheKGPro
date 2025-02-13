@@ -988,6 +988,7 @@ class YuAnUserPtSaveApiPost(generics.GenericAPIView):
                 'id': openapi.Schema(type=openapi.TYPE_NUMBER, description="id"),
                 'name': openapi.Schema(type=openapi.TYPE_STRING, description="name"),
                 'yadate': openapi.Schema(type=openapi.TYPE_STRING, description="yadate"),
+                'ctype': openapi.Schema(type=openapi.TYPE_NUMBER, description="ctype"),
                 'nodeList': openapi.Schema(type=openapi.TYPE_ARRAY, 
                                            description="节点列表", 
                                            items=openapi.Schema(type=openapi.TYPE_OBJECT, properties={})),
@@ -1010,11 +1011,12 @@ class YuAnUserPtSaveApiPost(generics.GenericAPIView):
         pid = params.get("id", None)
         name = params.get("name", None)
         yadate = params.get("yadate", str(datetime.now().strftime("%Y-%m-%d")))
+        ctype = params.get("ctype", None)
         nodeList = params.get("nodeList", [])
         print("uid:", uid, name, nodeList)
         # TODO
         if pid is None:
-            tmpP = PlanByUser.objects.create(name=name, yadate=yadate)
+            tmpP = PlanByUser.objects.create(name=name, yadate=yadate,ctype=ctype)
         else:
             tmpP = PlanByUser.objects.get(id=pid)
 
