@@ -69,7 +69,7 @@ DATA_UPLOAD_MAX_NUMBER_FIELDS = 10240
 # Application definition
 
 INSTALLED_APPS = [
-    "simpleui",
+    # "simpleui",
     "django_apscheduler",
     'django.contrib.admin',
     'django.contrib.auth',

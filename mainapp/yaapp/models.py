@@ -41,7 +41,7 @@ class TemplateNode(models.Model):
         return [model_to_dict(wp) for wp in self.wordParagraphs.all()]
     
     def __str__(self):
-        return str(model_to_dict(self, exclude=['parent', 'wordParagraphs']))
+        return str(model_to_dict(self, exclude=['parent', 'wordParagraphs', "result"]))
     
     class Meta:
         verbose_name = "节点列表"
@@ -74,7 +74,7 @@ class PlanTemplate(models.Model):
     # 预案结构
     nodes = models.ManyToManyField(TemplateNode, verbose_name="内容节点", blank=True)
     business = models.ForeignKey(PtBusiness, on_delete=models.CASCADE, verbose_name="预案业务", help_text="预案业务", null=True, blank=True)
-    ctype = models.IntegerField(choices=((0, '黄河中下游'), (1, '小浪底秋汛'), (2, '小浪底调水调沙'), (3, '其他')), default=0, verbose_name='预案模板类型')
+    ctype = models.IntegerField(choices=((0, '黄河中下游'), (1, '小浪底秋汛'), (2, '小浪底调水调沙'), (3, '小花间'), (4, '其他')), default=0, verbose_name='预案模板类型')
     published = models.BooleanField(default=False, verbose_name="发布状态",)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)

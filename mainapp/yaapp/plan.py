@@ -1,4 +1,5 @@
 import json
+from yaapp import yautils
 from yaapp import divHtml, gx_sk, hkc_sk, img2base64, lhbs_sk, paraHtml, smx_sjt_sk, xld_sk, generate_ddjy
 from yaapp.api_yuan import huanghe_diaodu_plan_ctx, huanghe_diaodu_plan_dfjson, huanghe_hedaoshuiqing_generate_dfjson, huanghe_shuikushuiqing_generate_dfjson, huanghe_yuqing_generate,huanghe_hedaoshuiqing_generate,huanghe_shuikushuiqing_generate,huanghe_gongqing_generate,huanghe_jiangyu13_forecast,huanghe_fenqu_jiangyu_forecast,huanghe_jiangyu47_forecast,huanghe_flood_forecast,huanghe_diaodu_plan,huanghe_shuiku_diaodu_result,huanghe_tanqu_yanmo,huanghe_keneng_danger,huanghe_xiangying_level,xld_yushui_context,engineer_safety_shuikuyj,engineer_safety_shuiwenyj,engineer_safety_gongchengjcyj,shuniuFangAn,xldJZStatus,xldholeStatus,JZHoleRecommend,YingjiResponse,OrganizeBaoZhang_leader,OrganizeBaoZhang_zhihuibu,company_duty,team_baozhang,fangxun_table,xld_diaodu_table,huanghe_fenqu_jiangyu_forecast_json,huanghe_flood_forecast_json,engineer_safety_shuikuyj_json,engineer_safety_shuiwenyj_json,engineer_safety_gongchengjcyj_json,xldJZStatus_json,JZHoleRecommend_json,xldholeStatus_json,OrganizeBaoZhang_leader_json,OrganizeBaoZhang_zhihuibu_json,company_duty_json,team_baozhang_json,fangxun_table_json,xld_diaodu_table_json,huanghe_fenqu_jiangyu_forecast_dfjson,generate_description_for_label,map_input_to_label, huanghe_gongqing_generate_html,huanghe_diaodu_plan_yuanze_ctx,huanghe_diaodu_plan_yuanze_html,huanghe_diaodu_plan_jianyi_ctx,huanghe_diaodu_plan_jianyi_html
 from yaapp.models import TemplateNode, WordParagraph
@@ -209,7 +210,7 @@ class PlanFactory:
             ddfa_excel = os.path.join("media", "ddfa", f"{yadate}.xlsx")
             if not os.path.exists(ddfa_excel):
                 raise Exception("调度方案单不存在")
-            ddjy=generate_ddjy(ddfa_excel)
+            ddjy = generate_ddjy(ddfa_excel)
             for n in self.node.wordParagraphs.all():
                 n.delete()
             # 新增描述部分
@@ -250,7 +251,7 @@ class PlanFactory:
             import pandas as pd
             import time
             yadate = self.context['plan']['yadate']
-            ddfa_excel = os.path.join("media", "ddfa", f"{yadate}.xlsx")
+            ddfa_excel = os.path.join("media", "ddfa", str(self.context['plan']['ctype']), f"{yadate}.xlsx")
             if not os.path.exists(ddfa_excel):
                 raise Exception("调度方案单不存在")
             pd.set_option('display.notebook_repr_html', False)
@@ -258,170 +259,67 @@ class PlanFactory:
             df = pd.read_excel(io=ddfa_excel, header=None)
             if len(df) < 4:
                 return """暂无数据"""
-            xld_max_sw, xld_max_d = None, None
-            smx_max_sw, smx_max_d = None, None
-            hkc_max_sw, hkc_max_d = None, None
-            lh_max_sw, lh_max_d = None, None
-            gx_max_sw, gx_max_d = None, None
-            hyk_max_ll, tg_max_ll, hyk_max_d, tg_max_d = None, None, None, None
-            x_days = []
-            y_xld_sw, y_smx_sw, y_hkc_sw, y_lh_sw, y_gx_sw = [], [], [], [], []
-            y_xld_ifs, y_smx_ifs, y_hkc_ifs, y_lh_ifs, y_gx_ifs = [], [], [], [], []
-            y_xld_ofs, y_smx_ofs, y_hkc_ofs, y_lh_ofs, y_gx_ofs = [], [], [], [], []
-            for i, r in df.iterrows():
-                if i < 3:
-                    continue
-                try:
-                    d = r[0]
-                    if isinstance(d, datetime.datetime):
-                        d = d.strftime('%Y{}%m{}%d{}%H{}').format("年", "月", "日", "时")
-                    elif isinstance(d, str):
-                        timeArray = time.strptime(d, "%Y-%m-%d %H:%M:%S")
-                        d = time.strftime('%Y{}%m{}%d{}%H{}', timeArray).format("年", "月", "日", "时")
-                except:
-                    d = r[0]
-                    pass
-                tg_ll = r[1]
-                smx_sw = round(r[4], 2)
-                smx_inflow = r[2]
-                smx_outflow = r[3]
-                xld_sw = round(r[8], 2)
-                xld_inflow = r[6]
-                xld_outflow = r[7]
-                lh_sw = round(r[12], 2)
-                lh_inflow = r[10]
-                lh_outflow = r[11]
-                gx_sw = round(r[16], 2)
-                gx_inflow = r[14]
-                gx_outflow = r[15]
-                hkc_sw = round(r[20], 2)
-                hkc_inflow = r[18]
-                hkc_outflow = r[19]
 
-                hyk_ll = r[22]
-                x_days.append(str(d))
-                y_xld_sw.append(xld_sw)
-                y_xld_ifs.append(xld_inflow)
-                y_xld_ofs.append(xld_outflow)
-
-                y_smx_sw.append(smx_sw)
-                y_smx_ifs.append(smx_inflow)
-                y_smx_ofs.append(smx_outflow)
-
-                y_gx_sw.append(gx_sw)
-                y_gx_ifs.append(gx_inflow)
-                y_gx_ofs.append(gx_outflow)
-
-                y_hkc_sw.append(hkc_sw)
-                y_hkc_ifs.append(hkc_inflow)
-                y_hkc_ofs.append(hkc_outflow)
-
-                y_lh_sw.append(lh_sw)
-                y_lh_ifs.append(lh_inflow)
-                y_lh_ofs.append(lh_outflow)
-
-                ## 河道
-                if hyk_max_ll is None:
-                    hyk_max_ll = hyk_ll
-                    hyk_max_d = d
-                if hyk_max_ll < hyk_ll:
-                    hyk_max_ll = hyk_ll
-                    hyk_max_d = d
-                if tg_max_ll is None:
-                    tg_max_ll = tg_ll
-                    tg_max_d = d
-                if tg_max_ll < tg_ll:
-                    tg_max_ll = tg_ll
-                    tg_max_d = d
-                ## 水库
-                if xld_max_sw is None:
-                    xld_max_sw = xld_sw
-                    xld_max_d = d
-                if xld_max_sw < xld_sw:
-                    xld_max_sw = xld_sw
-                    xld_max_d = d
-                if smx_max_sw is None:
-                    smx_max_sw = smx_sw
-                    smx_max_d = d
-                if smx_max_sw < smx_sw:
-                    smx_max_sw = smx_sw
-                    smx_max_d = d
-
-                if hkc_max_sw is None:
-                    hkc_max_sw = hkc_sw
-                    hkc_max_d = d
-                if hkc_max_sw < hkc_sw:
-                    hkc_max_d = d
-                if lh_max_sw is None:
-                    lh_max_sw = lh_sw
-                    lh_max_d = d
-                if lh_max_sw < lh_sw:
-                    lh_max_sw = lh_sw
-                    lh_max_d = d
-                if gx_max_sw is None:
-                    gx_max_sw = gx_sw
-                    gx_max_d = d
-                if gx_max_sw < gx_sw:
-                    gx_max_sw = gx_sw
-                    gx_max_d = d
-
-            xld_max_d = str(xld_max_d).split(' ')[0]
-            xld_max_sw = round(xld_max_sw, 2)
-            smx_max_d = str(smx_max_d).split(' ')[0]
-            smx_max_sw = round(smx_max_sw, 2)
-
-            hkc_max_d = str(hkc_max_d).split(' ')[0]
-            hkc_max_sw = round(hkc_max_sw, 2)
-
-            gx_max_d = str(gx_max_d).split(' ')[0]
-            gx_max_sw = round(gx_max_sw, 2)
-
-            lh_max_d = str(lh_max_d).split(' ')[0]
-            lh_max_sw = round(lh_max_sw, 2)
-
-
+            ret = yautils.excel_to_dict(ddfa_excel)
+            if ret is None:
+                return """暂无数据"""
+            
+            skMapData, swMapData, date_list = ret
             skddresult = ""
-            xld_ddgc_img_path = f"data/{self.context['plan']['yadate']}/imgs/xld.png"
-            xld_ddgc_img = img2base64(xld_ddgc_img_path)
-            xld_ddgc_img_desc = f"小浪底水库调度过程({x_days[0]}~{x_days[-1]})"
-            xld_ddjg_result = f"预计小浪底水库将于{xld_max_d}达到最高水位{xld_max_sw}m，{xld_sk(sw=xld_max_sw)}；\n"
-            
-            skddresult += paraHtml(xld_ddjg_result) + divHtml("<image src='data:image/png;base64," + xld_ddgc_img + "'>") + "\n" + divHtml(xld_ddgc_img_desc) + "\n"
+            # funMap = {
+            #     "小浪底": xld_sk,
+            #     "三门峡": smx_sk,
+            #     "陆浑": lh_sk,
+            #     "故县": gx_sk,
+            #     "河口村": hkc_sk,
+            #     "花园口": hyk_sk
+            # }
 
-            smx_ddgc_img_path = f"data/{self.context['plan']['yadate']}/imgs/smx.png"
-            smx_ddjg_img = img2base64(smx_ddgc_img_path)
-            smx_ddgc_img_desc = f"三门峡水库调度过程({x_days[0]}~{x_days[-1]})"
-            smx_ddjg_result = f"预计三门峡水库将于{smx_max_d}达到最高水位{smx_max_sw}m，{smx_sjt_sk(sw=smx_max_sw)}；\n"
-            skddresult += paraHtml(smx_ddjg_result) + divHtml("<image src='data:image/png;base64," + smx_ddjg_img + "'>") + "\n" + divHtml(smx_ddgc_img_desc) + "\n"
+            sk2image = {}
+            for skname in skMapData:
+                record = skMapData[skname]
+                keys = list(record.keys())
+                
+                if "水位" not in keys:
+                    continue
+                swdata = list(record["水位"])
+                max_sw = max(swdata)
+                max_idx = swdata.index(max_sw)
+                max_date = date_list[max_idx]
+
+                tmpimgpath = f"data/{self.context['plan']['ctype']}/{self.context['plan']['yadate']}/imgs/{skname}.png"
+                if not os.path.exists(tmpimgpath):
+                    print(f"调度过程曲线不存在：{tmpimgpath}")
+                    continue
+                tmp_ddgc_img = img2base64(tmpimgpath)
+                sk2image[skname] = tmp_ddgc_img
+                tmp_ddgc_img_desc = f"{skname}调度过程({date_list[0]}~{date_list[-1]})"
+                # TODO: 需要根据调度方案单的类型来确定调度方案单的函数
+                tmp_ddjg_result = f"预计{skname}将于{max_date}达到最高水位{max_sw}m，{xld_sk(sw=max_sw)}；\n"
+                skddresult += paraHtml(tmp_ddjg_result) + divHtml("<image src='data:image/png;base64," + tmp_ddgc_img + "'>") + "\n" + divHtml(tmp_ddgc_img_desc) + "\n"
 
 
-            lh_ddgc_img_path = f"data/{self.context['plan']['yadate']}/imgs/lh.png"
-            lh_ddgc_img = img2base64(lh_ddgc_img_path)
-            lh_ddgc_img_desc = f"陆浑水库调度过程（{x_days[0]}~{x_days[-1]}）"
-            lh_ddjg_result = f"预计陆浑水库将于{lh_max_d}达到最高水位{lh_max_sw}m，{lhbs_sk(sw=lh_max_sw)}；\n"
-            skddresult += paraHtml(lh_ddjg_result) + divHtml("<image src='data:image/png;base64," + lh_ddgc_img + "'>") + "\n" + divHtml(lh_ddgc_img_desc) + "\n"
+            hd_result = ""
+            sw2image = {}
+            for swname in swMapData:
+                record = swMapData[swname]
+                keys = list(record.keys())
+                if "流量" not in keys:
+                    continue
+                lldata = list(record["流量"])
+                max_ll = max(lldata)
+                max_idx = lldata.index(max_ll)
+                max_date = date_list[max_idx]
 
-            
-            gx_ddgc_img_path = f"data/{self.context['plan']['yadate']}/imgs/gx.png"
-            gx_ddgc_img = img2base64(gx_ddgc_img_path)
-            gx_ddgc_img_desc = "故县水库调度过程（{x_days[0]}~{x_days[-1]}）\n"
-            gx_ddjg_result = f"预计故县水库将于{gx_max_d}达到最高水位{gx_max_sw}m，{gx_sk(sw=gx_max_sw)}；"
-            skddresult += paraHtml(gx_ddjg_result) + divHtml("<image src='data:image/png;base64," + gx_ddgc_img + "'>") + "\n" + divHtml(gx_ddgc_img_desc) + "\n"
-
-            hkc_ddgc_img_path = f"data/{self.context['plan']['yadate']}/imgs/hkc.png"
-            hkc_ddgc_img = img2base64(hkc_ddgc_img_path)
-            hkc_ddgc_img_desc = f"河口村水库调度过程({x_days[0]}~{x_days[-1]})\n"
-            hkc_ddjg_result = f"预计河口村水库将于{hkc_max_d}达到最高水位{hkc_max_sw}m，{hkc_sk(sw=hkc_max_sw)}；"
-            skddresult += paraHtml(hkc_ddjg_result) + divHtml("<image src='data:image/png;base64," + hkc_ddgc_img + "'>") + "\n" + divHtml(hkc_ddgc_img_desc) + "\n"
-
-            # skddresult = xld_ddjg_result + smx_ddjg_result + lh_ddjg_result + gx_ddjg_result + hkc_ddjg_result
-
-            # 河道
-            hd_ddgc_img_path = f"data/{self.context['plan']['yadate']}/imgs/hyk.png"
-            hd_ddgc_img = img2base64(hd_ddgc_img_path)
-            hd_ddgc_img_desc = f"花园口调度过程（{x_days[0]}~{x_days[-1]}）"
-            hd_hyk_result = f"预计{hyk_max_d}，花园口出现{hyk_max_ll}立方米每秒的洪峰流量\n"
-            hd_result = paraHtml(hd_hyk_result) + divHtml("<image src='data:image/png;base64," + hd_ddgc_img + "'>" ) + "\n" + paraHtml(hd_ddgc_img_desc) + "\n"
+                tmpimgpath = f"data/{self.context['plan']['ctype']}/{self.context['plan']['yadate']}/imgs/{swname}.png"
+                if not os.path.exists(tmpimgpath):
+                    print(f"调度过程曲线不存在：{tmpimgpath}")
+                    continue
+                sw2image[swname] = tmpimgpath
+                tmp_ddgc_img = img2base64(tmpimgpath)
+                tmp_ddgc_img_desc = f"{swname}调度过程({date_list[0]}~{date_list[-1]})"
+                tmp_result = f"预计{max_date}，{swname}出现{max_ll}立方米每秒的洪峰流量\n"
+                hd_result = paraHtml(tmp_result) + divHtml("<image src='data:image/png;base64," + tmp_ddgc_img + "'>" ) + "\n" + paraHtml(tmp_ddgc_img_desc) + "\n"
             
             tqym = huanghe_tanqu_yanmo(self.params)
             keneng_danger = huanghe_keneng_danger(self.params)
@@ -442,18 +340,17 @@ class PlanFactory:
                 n.delete()
             wp = WordParagraph.objects.create(title="调度结果", content="水库", ctype=1)
             self.node.wordParagraphs.add(wp)
-            wp = WordParagraph.objects.create(title="小浪底水库过程曲线", content=xld_ddgc_img, ctype=2)
+
+            for skname, ddcimg in sk2image.items():
+                wp = WordParagraph.objects.create(title=f"{skname}过程曲线", content=ddcimg, ctype=2)
+                self.node.wordParagraphs.add(wp)
+
+            wp = WordParagraph.objects.create(title="调度结果", content="河道", ctype=1)
             self.node.wordParagraphs.add(wp)
-            wp = WordParagraph.objects.create(title="三门峡水库过程曲线", content=smx_ddjg_img, ctype=2)
-            self.node.wordParagraphs.add(wp)
-            wp = WordParagraph.objects.create(title="陆浑水库过程曲线", content=lh_ddgc_img, ctype=2)
-            self.node.wordParagraphs.add(wp)
-            wp = WordParagraph.objects.create(title="故县水库过程曲线", content=gx_ddgc_img, ctype=2)
-            self.node.wordParagraphs.add(wp)
-            wp = WordParagraph.objects.create(title="河口村水库过程曲线", content=hkc_ddgc_img, ctype=2)
-            self.node.wordParagraphs.add(wp)
-            wp = WordParagraph.objects.create(title="花园口过程曲线", content=hd_ddgc_img, ctype=2)
-            self.node.wordParagraphs.add(wp)
+            for swname, imgpath in sw2image.items():
+                wp = WordParagraph.objects.create(title=f"{swname}过程曲线", content=imgpath, ctype=2)
+                self.node.wordParagraphs.add(wp)
+
             wp = WordParagraph.objects.create(title="调度结果", content="滩区淹没", ctype=1)
             self.node.wordParagraphs.add(wp)
             wp = WordParagraph.objects.create(title="滩区淹没结果", content=tqym, ctype=1)
@@ -472,6 +369,12 @@ class PlanFactory:
             # 小浪底
             #TODO
             return ""
+        elif self.context['type'] == 3:
+            # 三花间
+            #TODO
+            return ""
+        
+
     def get_gcyp(self):
         if self.context['type'] == 0:
             # 黄河中下游

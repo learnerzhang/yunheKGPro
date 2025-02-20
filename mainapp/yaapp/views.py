@@ -44,6 +44,7 @@ from rest_framework.parsers import (
 )
 
 from kgapp.models import KgBusiness
+from yaapp import yautils
 from yaapp import getYuAnName, getYuAnParamPath
 from yaapp.api_yuan import map_input_to_template, recommend_plan
 from yaapp.models import PlanByUser, PlanByUserDocument, PlanTemplate, PtBusiness, TemplateNode
@@ -1252,6 +1253,7 @@ class DDFAUploadApiPost(generics.GenericAPIView):
                 type=openapi.TYPE_FILE
             ),
             openapi.Parameter('mydate', openapi.IN_QUERY, type=openapi.TYPE_STRING, description='方案日期',),
+            openapi.Parameter('mytype', openapi.IN_QUERY, type=openapi.TYPE_STRING, description='方案类型',),
         ],
         responses={
             200: BaseApiResponseSerializer(many=False),
@@ -1263,255 +1265,21 @@ class DDFAUploadApiPost(generics.GenericAPIView):
     def post(self, request, *args, **krgs):
         print(request.FILES, flush=True)
         myFile = request.FILES.get("myfile", None)
+        myType = request.FILES.get("mytype", 0)
         myDate = request.GET.get("mydate", str(datetime.now().strftime("%Y-%m-%d")))
         if not myFile:
             krrs = BaseApiResponseSerializer(data={"code": 200, "msg": "No document provided.!"}, many=False)
             krrs.is_valid()
             return Response(krrs.data, status=status.HTTP_400_BAD_REQUEST)
         
-        df_path = os.path.join("media", "ddfa", f"{myDate}.xlsx")
+        df_path = os.path.join("media", "ddfa", str(myType), f"{myDate}.xlsx")
         f = open(df_path, "wb+")
         # 分块写入文件
         for chunk in myFile.chunks():
             f.write(chunk)
         f.close()
         print("调度方案单写入:", df_path, flush=True)
-
-        # 调度方案单处理
-        if sys.platform.startswith('win'):
-            path_wkimg = r'D:\\Program Files\\wkhtmltopdf\\bin\\wkhtmltoimage.exe'  # 工具路径
-        else:
-            path_wkimg = r'/usr/bin/wkhtmltoimage'
-
-        cfg = imgkit.config(wkhtmltoimage=path_wkimg)
-        options = {
-            'load-error-handling': 'ignore',
-            'javascript-delay': 1100,  # 延迟 1000 毫秒，根据需要调整
-        }
-        # 读取xls（绝对路径）
-        pd.set_option('display.notebook_repr_html', False)
-        drawDataPool = collections.defaultdict(dict)
-        sk_list = ['smx', 'xld', 'lh', 'gx', 'hkc', ]
-        key_list = ['xsl', 'sw', 'inflow', 'outflow']
-        sk2name = {
-            'smx': '三门峡水库',
-            'xld': '小浪底水库',
-            'lh': '陆浑水库',
-            'gx': '故县水库',
-            'hkc': '河口村水库',
-            'hyk': '花园口',
-        }
-
-        swz_list = ['hyk']
-        hyk_lldatas = []
-        x_data = []
-        df = pd.read_excel(io=df_path, header=None)
-        for i, r in df.iterrows():
-            if i < 3:
-                continue
-            d = r[0].replace(microsecond=0)
-            try:
-                d = r[0]
-                if isinstance(d, datetime.datetime):
-                    format_d = d.strftime('%Y{}%m{}%d{}%H{}').format("年", "月", "日", "时")
-                elif isinstance(d, str):
-                    timeArray = time.strptime(d, "%Y-%m-%d %H:%M:%S")
-                    format_d = time.strftime('%Y{}%m{}%d{}%H{}', timeArray).format("年", "月", "日", "时")
-            except:
-                format_d = r[0].replace(microsecond=0)
-
-            x_data.append(str(format_d))
-            for key in key_list:
-                for sk in sk_list:
-                    if key not in drawDataPool[sk]:
-                        drawDataPool[sk][key] = []
-            smx_xsl = round(r[5], 2)
-            smx_sw = round(r[4], 2)
-            smx_inflow = r[2]
-            smx_outflow = r[3]
-
-            xld_xsl = round(r[9], 2)
-            xld_sw = round(r[8], 2)
-            xld_inflow = r[6]
-            xld_outflow = r[7]
-
-            lh_xsl = round(r[13], 2)
-            lh_sw = round(r[12], 2)
-            lh_inflow = r[10]
-            lh_outflow = r[11]
-
-            gx_xsl = round(r[17], 2)
-            gx_sw = round(r[16], 2)
-            gx_inflow = r[14]
-            gx_outflow = r[15]
-            
-            hkc_xsl = round(r[21], 2)
-            hkc_sw = round(r[20], 2)
-            hkc_inflow = r[18]
-            hkc_outflow = r[19]
-
-            hyk_ll = r[22]
-
-            drawDataPool['smx']['xsl'].append(smx_xsl)
-            drawDataPool['smx']['sw'].append(smx_sw)
-            drawDataPool['smx']['inflow'].append(smx_inflow)
-            drawDataPool['smx']['outflow'].append(smx_outflow)
-
-            drawDataPool['xld']['xsl'].append(xld_xsl)
-            drawDataPool['xld']['sw'].append(xld_sw)
-            drawDataPool['xld']['inflow'].append(xld_inflow)
-            drawDataPool['xld']['outflow'].append(xld_outflow)
-
-            drawDataPool['lh']['xsl'].append(lh_xsl)
-            drawDataPool['lh']['sw'].append(lh_sw)
-            drawDataPool['lh']['inflow'].append(lh_inflow)
-            drawDataPool['lh']['outflow'].append(lh_outflow)
-
-            drawDataPool['gx']['xsl'].append(gx_xsl)
-            drawDataPool['gx']['sw'].append(gx_sw)
-            drawDataPool['gx']['inflow'].append(gx_inflow)
-            drawDataPool['gx']['outflow'].append(gx_outflow)
-
-            drawDataPool['hkc']['xsl'].append(hkc_xsl)
-            drawDataPool['hkc']['sw'].append(hkc_sw)
-            drawDataPool['hkc']['inflow'].append(hkc_inflow)
-            drawDataPool['hkc']['outflow'].append(hkc_outflow)
-
-            hyk_lldatas.append(hyk_ll)
-        
-        print("数据解析完成！")
-        # print(drawDataPool)
-        # print(x_data)
-        print("开始绘图")
-
-        htmls_dir = os.path.join("data", myDate, "html")
-        imgs_dir = os.path.join("data", myDate, "imgs")
-        if not os.path.exists(htmls_dir):
-            os.makedirs(htmls_dir)
-        if not os.path.exists(imgs_dir):
-            os.makedirs(imgs_dir)
-        # 准备数据
-
-        mark_point = opts.MarkPointOpts(
-            data=[
-                opts.MarkPointItem(type_="max", name="最大值"),
-                opts.MarkPointItem(type_="min", name="最小值"),
-            ]
-        )
-        for sw in swz_list:
-            print(f"{sw}")
-                    # HTML 文件和目标图片文件的路径
-            html_filepath = os.path.join(htmls_dir, f"{sw}.html")
-            image_filepath = os.path.join(imgs_dir, f"{sw}.png")
-
-            # 创建折线图
-            line = Line(init_opts=opts.InitOpts(theme='white'))
-            # 添加 X 轴数据
-            line.add_xaxis(xaxis_data=x_data)
-            
-            # 添加 Y 轴数据（温度）
-            line.add_yaxis(
-                series_name="流量(m3/s)",
-                y_axis=hyk_lldatas,
-                label_opts=opts.LabelOpts(is_show=False),
-                is_smooth=True,  # 是否平滑曲线
-                markpoint_opts=mark_point
-            )
-
-            # 设置全局配置项
-            title = f"{sk2name[sw]}调度过程曲线"
-            line.set_global_opts(
-                title_opts=opts.TitleOpts(title=title),
-                tooltip_opts=opts.TooltipOpts(trigger="axis"),
-                legend_opts=opts.LegendOpts(),
-                yaxis_opts=opts.AxisOpts(
-                    min_=min(hyk_lldatas)-100,
-                    type_="value",
-                    name="流量(m3/s)",
-                    axislabel_opts=opts.LabelOpts(formatter="{value}"),
-                    splitline_opts=opts.SplitLineOpts(is_show=True),
-                ),
-            )
-            line.render(html_filepath)
-            imgkit.from_file(html_filepath, image_filepath, config=cfg, options=options)
-
-        for sk in sk_list:
-            print(f"{sk}")
-                    # HTML 文件和目标图片文件的路径
-            html_filepath = os.path.join(htmls_dir, f"{sk}.html")
-            image_filepath = os.path.join(imgs_dir, f"{sk}.png")
-            
-            # 创建 Line 对象
-            y_data_line1 = drawDataPool['smx']['sw']
-            y_data_line2 = drawDataPool['smx']['inflow']
-            y_data_line3 = drawDataPool['smx']['outflow']
-
-            # 创建折线图
-            line = Line(init_opts=opts.InitOpts(theme='white'))
-            # 添加 X 轴数据
-            line.add_xaxis(xaxis_data=x_data)
-
-            # 添加 Y 轴数据（温度）
-            line.add_yaxis(
-                series_name="水位(m)",
-                y_axis=y_data_line1,
-                label_opts=opts.LabelOpts(is_show=False),
-                is_smooth=True,  # 是否平滑曲线
-                markpoint_opts=mark_point
-            )
-
-            # 添加额外的 Y 轴（湿度）
-            line.extend_axis(
-                yaxis=opts.AxisOpts(
-                    min_=min([min(y_data_line2), min(y_data_line3)])-100,
-                    type_="value",
-                    name="流量(m3/s)",
-                    position="right",
-                    axislabel_opts=opts.LabelOpts(formatter="{value}"),
-                    splitline_opts=opts.SplitLineOpts(is_show=True),
-                )
-            )
-
-            # 添加 Y 轴数据（入库流量）
-            line.add_yaxis(
-                series_name="入库流量(m3/s)",
-                y_axis=y_data_line2,
-                label_opts=opts.LabelOpts(is_show=False),
-                yaxis_index=1,  # 指定该系列数据对应的是第二个 Y 轴
-                is_smooth=True,  # 是否平滑曲线
-                markpoint_opts=mark_point
-            )
-
-            line.add_yaxis(
-                series_name="出库流量(m3/s)",
-                y_axis=y_data_line3,
-                label_opts=opts.LabelOpts(is_show=False),
-                yaxis_index=1,
-                is_smooth=True,
-                markpoint_opts=mark_point
-            )
-
-            # 设置全局配置项
-            title = f"{sk2name[sk]}调度过程曲线"
-            line.set_global_opts(
-                title_opts=opts.TitleOpts(title=title),
-                tooltip_opts=opts.TooltipOpts(trigger="axis"),
-                legend_opts=opts.LegendOpts(),
-                yaxis_opts=opts.AxisOpts(
-                    min_=min(y_data_line1)-10,
-                    type_="value",
-                    name="水位(m)",
-                    axislabel_opts=opts.LabelOpts(formatter="{value}"),
-                    splitline_opts=opts.SplitLineOpts(is_show=True),
-                ),
-            )
-            # 设置全局配置项
-            # 渲染图表到 HTML 文件
-            line.render(html_filepath)
-            imgkit.from_file(html_filepath, image_filepath, config=cfg, options=options)
-            # imgkit.from_url('https://httpbin.org/ip', 'ip.jpg', config=cfg) # 从url获取html，再转为图片
-            # imgkit.from_string('Hello!','hello.jpg', config=cfg)  #将字符串转为图片
-
+        yautils.plot_save_html(df_path, business_type=myType, myDate=myDate)
         print("绘图完成")
         krrs = BaseApiResponseSerializer(data={"code": 200, "msg": "上传调度方案单成功", "success": True}, many=False)
         krrs.is_valid()
