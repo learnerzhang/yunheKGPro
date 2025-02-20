@@ -1022,6 +1022,7 @@ class YuAnUserPtSaveApiPost(generics.GenericAPIView):
                 'id': openapi.Schema(type=openapi.TYPE_NUMBER, description="id"),
                 'name': openapi.Schema(type=openapi.TYPE_STRING, description="name"),
                 'yadate': openapi.Schema(type=openapi.TYPE_STRING, description="yadate"),
+                'ctype': openapi.Schema(type=openapi.TYPE_NUMBER, description="ctype"),
                 'nodeList': openapi.Schema(type=openapi.TYPE_ARRAY, 
                                            description="节点列表", 
                                            items=openapi.Schema(type=openapi.TYPE_OBJECT, properties={})),
@@ -1044,11 +1045,12 @@ class YuAnUserPtSaveApiPost(generics.GenericAPIView):
         pid = params.get("id", None)
         name = params.get("name", None)
         yadate = params.get("yadate", str(datetime.now().strftime("%Y-%m-%d")))
+        ctype = params.get("ctype", None)
         nodeList = params.get("nodeList", [])
         print("uid:", uid, name, nodeList)
         # TODO
         if pid is None:
-            tmpP = PlanByUser.objects.create(name=name, yadate=yadate)
+            tmpP = PlanByUser.objects.create(name=name, yadate=yadate,ctype=ctype)
         else:
             tmpP = PlanByUser.objects.get(id=pid)
 
@@ -1265,14 +1267,17 @@ class DDFAUploadApiPost(generics.GenericAPIView):
     def post(self, request, *args, **krgs):
         print(request.FILES, flush=True)
         myFile = request.FILES.get("myfile", None)
-        myType = request.FILES.get("mytype", 0)
+        myType = request.GET.get("mytype", 0)
         myDate = request.GET.get("mydate", str(datetime.now().strftime("%Y-%m-%d")))
         if not myFile:
             krrs = BaseApiResponseSerializer(data={"code": 200, "msg": "No document provided.!"}, many=False)
             krrs.is_valid()
             return Response(krrs.data, status=status.HTTP_400_BAD_REQUEST)
         
-        df_path = os.path.join("media", "ddfa", str(myType), f"{myDate}.xlsx")
+        tmproot = os.path.join("media", "ddfa", str(myType))
+        if not os.path.exists(tmproot):
+            os.makedirs(tmproot)
+        df_path = os.path.join(tmproot, f"{myDate}.xlsx")
         f = open(df_path, "wb+")
         # 分块写入文件
         for chunk in myFile.chunks():

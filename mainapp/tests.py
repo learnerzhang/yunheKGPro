@@ -143,143 +143,234 @@ from yaapp.api_yuan import query_question
 
 from langchain.llms import Ollama
 def query_question(text):
-    llm = Ollama(model="qwen2.5:14b")
+    #llm = Ollama(model="qwen2.5:14b")
+    llm = Ollama(model="deepseek-r1:7b")
     res = llm(text)
     return res
 
-def parse_excel(file_path):
+def query_expert(text):
+    prompt = f"""用户问题为：{text}\n,
+    根据用户问题，抽取语义中包含的参数，从给定的下述函数中自主匹配规则，返回给用户相关答案，答案简洁明了，不要出现冗余描述。如果匹配不到相关规则，则根据已有知识回答。
+    相关函数定义如下\n：
+    def yujingdengji(shuiku_shuiwei: dict, shuiwenzhan_liuliang: dict):
+    print("预警等级")
+    "
+    TODO 条件
+    :param smx_sw: 三门峡水位
+    :param lh_sw:  陆浑水位
+    :param xld_sw: 小浪底水位
+    :param gx_sw:  故县水位
+    :param dph_sw: 大平湖水位
+    :param hkc_sw: 河口村水位
+    :param swz_ll: 石嘴山水位
+    :return: 具体应对措施
+    "
+    smx_sw = shuiku_shuiwei.get("三门峡", ).get('level', 0)
+    xld_sw = shuiku_shuiwei.get("小浪底", ).get('level', 0)
+    lh_sw = shuiku_shuiwei.get("陆浑", ).get('level', 0)
+    gx_sw = shuiku_shuiwei.get("故县", ).get('level', 0)
+    hkc_sw = shuiku_shuiwei.get("河口村", ).get('level', 0)
+    dph_sw = shuiku_shuiwei.get("东平湖", ).get('level', 0)
+
+    knh_ll = shuiwenzhan_liuliang.get("唐乃亥", ).get('flow', 0)
+    lz_ll = shuiwenzhan_liuliang.get("兰州", ).get('flow', 0)
+    szs_ll = shuiwenzhan_liuliang.get("石嘴山", ).get('flow', 0)
+    lm_ll = shuiwenzhan_liuliang.get("龙门", ).get('flow', 0)
+    tg_ll = shuiwenzhan_liuliang.get("潼关", ).get('flow', 0)
+    hx_ll = shuiwenzhan_liuliang.get("华县", ).get('flow', 0)
+    hyk_ll = shuiwenzhan_liuliang.get("花园口", ).get('flow', 0)
+    gc_ll = shuiwenzhan_liuliang.get("高村", ).get('flow', 0)
+    wl_ll = shuiwenzhan_liuliang.get("武陟", ).get('flow', 0)
+    act_flag, lev = None, None#huangwei_yujing_rec()
+    print(act_flag, lev)
+    if (act_flag and lev == 'Ⅰ') or lh_sw >= 331.8 or hkc_sw >= 285.43 or dph_sw >= 43.22 or gx_sw >= 549.86 or xld_sw >= 275 or smx_sw >= 335 or knh_ll >= 5000 or lz_ll >= 6500 or szs_ll >= 5500 or lm_ll >= 18000 or tg_ll >= 15000 or hyk_ll >= 15000 or hx_ll >= 8000 or wl_ll >= 4000:
+        print("# 启动防汛一级应急响应")
+        return "按照《黄河防汛抗旱应急预案》，启动一级应急响应，响应行动如下：（1）黄河防总总指挥或常务副总指挥坐镇指挥黄河抗洪工作，主持抗洪抢险会商会，研究部署抗洪抢险工作。视情与相关省区进行异地会商。（2）根据会商意见，黄河防总办公室向相关省区防指通报关于启动防汛一级应急响应的命令及黄河汛情，对防汛工作提出要求，并向黄河防总总指挥报告。黄河防总向国家防总、水利部报告有关情况，为国家防总和水利部提供调度参谋意见，请求加强对黄河抗洪抢险指导，动员社会力量支援黄河抗洪抢险救灾。（3）黄河防总办公室各成员单位按照黄委防御大洪水职责分工和机构设置上岗到位，全面开展工作，各职能组充实人员。黄委全体职工全力投入抗洪抢险工作。水情测报组滚动进行洪水预测预报，每日至少制作发布气象水情预报 3 次，每日至少提供12 次干支流重要测站监测信息，情况紧急时根据需要加密测报；综合调度组根据预报滚动计算水利工程调度方案，做好干流及重要支流水库调度和东平湖、北金堤滞洪区运用的分析研判；宣传组适时举行新闻发布会，向社会报道黄河抗洪抢险动态，做好新闻宣传工作。（4）黄河防总根据汛情需要，及时增派司局级领导带队的工作组、专家组赶赴现场，指导抗洪抢险救灾工作。（5）根据各地抗洪抢险需要，黄河防总按程序调度黄委防汛物资、黄河机动抢险队支援抗洪抢险，必要时请求国家防总调动流域内外抢险队、物资支援黄河抗洪抢险。（6）有关省区防汛抗旱指挥机构的主要负责同志主持会商，动员部署防汛工作；按照权限组织调度水工程；根据预案转移安置危险地区群众，组织强化巡堤查险和堤防防守，及时控制险情；增派工作组、专家组赴一线指导防汛工作；受灾地区的各级防汛抗旱指挥机构负责人、成员单位负责人，应按照职责到分管的区域组织指挥防汛工作，或驻点具体帮助重灾区做好防汛工作；可按照预案和程序适时请调人民解放军和武警部队支援黄河抗洪抢险；将工作情况上报省区人民政府及黄河防总。根据汛情，相关县级以上人民政府防汛抗旱指挥部宣布进入紧急防汛期，动员一切社会力量投入黄河抗洪抢险"
+    if (act_flag and lev == 'Ⅱ') or lh_sw >= 327.5 or hkc_sw >= 285.43 or dph_sw >= 43.22 - 0.5 or gx_sw >= 547.39 or xld_sw >= 274 or smx_sw >= 335 or knh_ll >= 4000 or lz_ll >= 5000 or szs_ll >= 4000 or lm_ll >= 12000 or tg_ll >= 10000 or hyk_ll >= 8000 or hx_ll >= 6000 or wl_ll >= 3000:
+        print("# 启动防汛二级应急响应")
+        return "按照《黄河防汛抗旱应急预案》，启动二级应急响应，响应行动如下：（1）黄河防总总指挥或常务副总指挥坐镇指挥黄河抗洪工作，主持抗洪抢险会商会，研究部署抗洪抢险工作。视情与相关省区进行异地会商。（2）根据会商意见，黄河防总办公室向相关省区防指通报关于启动防汛二级应急响应的命令及黄河汛情，对防汛工作提出要求，并向黄河防总总指挥报告。黄河防总向国家防总、水利部报告有关情况，为国家防总和水利部提供调度参谋意见，请求加强对黄河抗洪抢险指导。（3）黄河防总办公室各成员单位按照黄委防御大洪水职责分工和机构设置上岗到位，全面开展工作。黄委全体职工做好随时投入抗洪抢险工作的准备。（4）黄河防总实时掌握雨情、水情、汛情（凌情）、工情、险情、灾情动态。水情测报组滚动进行洪水预测预报，每日至少制作发布气象水情预报 2 次，每日至少提供 6 次干支流重要测站监测信息，情况紧急时根据需要加密测报；综合调度组根据预报滚动计算水利工程调度方案，做好干流及重要支流水库调度和东平湖滞洪区运用的分析研判；宣传组定期举行新闻发布会，向社会公布黄河抗洪抢险动态。（5）黄河防总办公室根据汛情需要，及时派出司局级领导带队的工作组、专家组赶赴现场，检查、指导抗洪抢险救灾工作，核实汛情灾情。（6）根据各地抗洪抢险需要，黄河防总办公室按程序调度黄委防汛物资、黄河机动抢险队支援抗洪抢险。（7）有关省区防汛抗旱指挥机构负责同志主持会商，具体安排防汛工作；按照权限组织调度水工程；根据预案做好巡堤查险、抗洪抢险、群众转移安置等抗洪救灾工作，派出工作组、专家组赴一线指导防汛工作；将防汛工作情况上报省级人民政府主要负责同志、国家防总及黄河防总。按照预案和程序适时请调人民解放军和武警部队支援黄河抗洪抢险。根据汛情，相关县级以上人民政府防汛抗旱指挥部宣布进入紧急防汛期。"
+    if (act_flag and lev == 'Ⅲ') or lh_sw >= 319.5 or hkc_sw >= 285.43 or dph_sw >= 43.22 or gx_sw >= 549.86 or smx_sw >= 335 or knh_ll >= 3000 or lz_ll >= 4000 or szs_ll >= 3000 or lm_ll >= 8000 or tg_ll >= 8000 or hyk_ll >= 6000 or hx_ll >= 4000 or wl_ll >= 2000:
+        # 启动防汛三级应急响应
+        print("# 启动防汛三级应急响应")
+        return "按照《黄河防汛抗旱应急预案》，启动三级应急响应，响应行动如下：（1）黄河防总秘书长主持防汛会商会，研究部署抗洪抢险工作。视情与相关省区进行异地会商。（2）根据会商意见，黄河防总办公室向相关省区防指通报关于启动防汛三级应急响应的命令及黄河汛情，对防汛工作提出要求，并向黄河防总总指挥、常务副总指挥报告。黄河防总向国家防总、水利部报告有关情况，为国家防总和水利部提供调度参谋意见，请求加强对黄河抗洪抢险指导。（3）黄河防总办公室各成员单位按照黄委防御大洪水职责分工和机构设置上岗到位，全面开展工作。水情测报组滚动进行洪水预测预报，每日至少制作发布气象水情预报 1 次，每日至少提供 3 次（8 时、14 时、20 时）干支流重要测站监测信息，情况紧急时根据需要加密测报；综合调度组根据预报滚动计算水利工程调度方案，做好干流及重要支流水库调度；宣传组加强黄河抗洪抢险宣传。（4）黄河防总办公室根据汛情需要，及时派出工作组、专家组赶赴现场，检查、指导抗洪抢险救灾工作，核实汛情灾情。黄委防汛物资、黄河机动抢险队支援抗洪抢险。（5）根据各地抗洪抢险需要，黄河防总办公室按程序调度黄委防汛物资、黄河机动抢险队支援抗洪抢险。（6）有关省区防汛抗旱指挥机构负责同志主持会商，具体安排防汛工作；按照权限组织调度水工程；根据预案做好巡堤查险、抗洪抢险、群众转移安置等抗洪救灾工作，派出工作组、专家组赴一线指导防汛工作；将防汛工作情况上报省级人民政府分管负责同志和黄河防总。可按照预案和程序适时请调人民解放军和武警部队支援黄河抗洪抢险。在省级主要媒体及新媒体平台发布防汛抗旱有关情况。"
+    if (act_flag and lev == 'IV') or lh_sw >= 331.8 or hkc_sw >= 285.43 or dph_sw >= 43.22 or gx_sw >= 549.86 or smx_sw >= 335 or knh_ll >= 2500 or lz_ll >= 2500 or szs_ll >= 2000 or lm_ll >= 5000 or tg_ll >= 5000 or hyk_ll >= 4000 or hx_ll >= 2500 or wl_ll >= 1000:
+        # 启动防汛四级应急响应
+        print("# 启动防汛四级应急响应")
+        return "按照《黄河防汛抗旱应急预案》，启动四级应急响应，响应行动如下：（1）黄河防总秘书长主持会商，研究部署抗洪抢险工作，确定运行机制。响应期间，根据汛情发展变化，受黄河防总秘书长委托，可由黄河防总办公室副主任主持会商，并将情况报黄河防总秘书长。（2）根据会商意见，黄河防总办公室向相关省区防指通报关于启动防汛四级应急响应的命令及黄河汛情，对防汛工作提出要求，并向国家防办、水利部报告有关情况，必要时向黄河防总总指挥、常务副总指挥报告。（3）黄河防总办公室成员单位人员坚守工作岗位，加强防汛值班值守。按照黄委防御大洪水职责分工和机构设置，综合调度、水情测报和工情险情组等人员上岗到位。其余成员单位按照各自职责做好技术支撑、通信保障、后勤及交通保障，加强宣传报道。水情测报组及时分析天气形势并结合雨水情发展态势，做好雨情、水情、沙情的预测预报，加强与水利部信息中心、黄河流域气象中心、省区气象水文部门会商研判，每日至少制作发布气象水情预报 1 次，每日至少提供 2 次（8 时、20 时）干支流重要测站监测信息，情况紧急时根据需要加密测报。（4）黄委按照批准的洪水调度方案，结合当前汛情做好水库等水工程调度，监督指导地方水行政主管部门按照调度权限做好水工程调度。（5）黄河防总办公室根据汛情需要，及时派出工作组、专家组赶赴现场，检查、指导抗洪抢险救灾工作，核实汛情灾情。（6）有关省区防汛抗旱指挥机构负责同志主持会商，具体安排防汛工作；按照权限组织调度水工程；按照预案做好辖区内巡堤查险、抗洪抢险、群众转移安置等抗洪救灾工作，必要时请调解放军和武警部队、民兵参加重要堤段、重点工程的防守或突击抢险；派出工作组、专家组赴一线指导防汛工作；将防汛工作情况上报省级人民政府和黄河防总办公室。"
+    print("预警等级: 按照《黄河防汛抗旱应急预案》，当前无预警")
+    return "按照《黄河防汛抗旱应急预案》，当前无预警"
     """
-    解析 Excel 表格数据。
+    llm = Ollama(model="deepseek-r1:7b")
+    res = llm(prompt)
+    return res
+# res = query_expert("陆浑水位为335m,应当如何处置？")
+# print(res)
+import requests
 
-    参数:
-        file_path (str): Excel 文件路径。
 
-    返回:
-        list: 包含解析后的数据的字典列表。
-    """
-    # 读取 Excel 文件
-    df = pd.read_excel(file_path, header=None)
+import requests
 
-    # 处理表头
-    # 获取前两行作为表头信息
-    first_row = df.iloc[0, :].fillna('')  # 第一行
-    second_row = df.iloc[1, :].fillna('')  # 第二行
+def run_workflow(api_key, user, query, url='http://192.168.8.2:80/v1/workflows/run'):
+    headers = {
+        'Authorization': f'Bearer {api_key}',
+        'Content-Type': 'application/json',
+    }
 
-    # 合并表头信息
-    header = []
-    for i in range(len(first_row)):
-        prefix = str(first_row[i]).strip()
-        suffix = str(second_row[i]).strip()
-        if prefix and suffix:
-            header.append(f"{prefix} {suffix}")
-        elif prefix:
-            header.append(prefix)
-        else:
-            header.append(suffix)
+    data = {
+        "inputs": {"query": query},
+        "response_mode": "blocking",
+        "user": user
+    }
 
-    # 设置列名
-    df.columns = header
-    df = df.drop([0, 1, 2])  # 删除前3行
+    try:
+        response = requests.post(url, headers=headers, json=data)
+        response.raise_for_status()  # 如果请求失败，抛出异常
+        return response.json()  # 返回 JSON 格式的响应
+    except requests.exceptions.RequestException as e:
+        print(f"请求失败: {e}")
+        return None
 
-    # 动态匹配列名
-    time_column = None
-    for col in header:
-        if "月.日" in col:
-            time_column = col
-            break
-    if time_column is None:
-        raise ValueError("未找到时间列")
+# 使用示例
+api_key = 'app-lfd1N6uy7KhJAmrXKyYn1wwn'
+user = 'Jack Li'
+query = '潼关最大流量是多少'
+response = run_workflow(api_key, user, query)
 
-    tongguan_column = None
-    for col in header:
-        if "潼关" in col and "预报流量" in col:
-            tongguan_column = col
-            break
-    if tongguan_column is None:
-        raise ValueError("未找到潼关预报流量列")
+print(response)
+# def parse_excel(file_path):
+#     """
+#     解析 Excel 表格数据。
+#
+#     参数:
+#         file_path (str): Excel 文件路径。
+#
+#     返回:
+#         list: 包含解析后的数据的字典列表。
+#     """
+#     # 读取 Excel 文件
+#     df = pd.read_excel(file_path, header=None)
+#
+#     # 处理表头
+#     # 获取前两行作为表头信息
+#     first_row = df.iloc[0, :].fillna('')  # 第一行
+#     second_row = df.iloc[1, :].fillna('')  # 第二行
+#
+#     # 合并表头信息
+#     header = []
+#     for i in range(len(first_row)):
+#         prefix = str(first_row[i]).strip()
+#         suffix = str(second_row[i]).strip()
+#         if prefix and suffix:
+#             header.append(f"{prefix} {suffix}")
+#         elif prefix:
+#             header.append(prefix)
+#         else:
+#             header.append(suffix)
+#
+#     # 设置列名
+#     df.columns = header
+#     df = df.drop([0, 1, 2])  # 删除前3行
+#
+#     # 动态匹配列名
+#     time_column = None
+#     for col in header:
+#         if "月.日" in col:
+#             time_column = col
+#             break
+#     if time_column is None:
+#         raise ValueError("未找到时间列")
+#
+#     tongguan_column = None
+#     for col in header:
+#         if "潼关" in col and "预报流量" in col:
+#             tongguan_column = col
+#             break
+#     if tongguan_column is None:
+#         raise ValueError("未找到潼关预报流量列")
+#
+#     sanmenxia_inflow = None
+#     for col in header:
+#         if "三门峡" in col and "入库流量" in col:
+#             sanmenxia_inflow = col
+#             break
+#     if sanmenxia_inflow is None:
+#         raise ValueError("未找到三门峡入库流量列")
+#     #print(df.iloc[:,1])
+#     # 解析数据
+#     data = []
+#     for _, row in df.iterrows():
+#         time_value = row[time_column]
+#         formatted_time = ""
+#
+#         if isinstance(time_value, pd.Timestamp):
+#             formatted_time = time_value.strftime('%Y-%m-%d %H')  # 格式化为 "YYYY-MM-DD HH:MM:SS"
+#         elif isinstance(time_value, str):
+#             try:
+#                 time_obj = pd.to_datetime(time_value)
+#                 formatted_time = time_obj.strftime('%Y-%m-%d %H')  # 格式化为 "YYYY-MM-DD HH:MM:SS"
+#             except ValueError:
+#                 formatted_time = time_value  # 如果解析失败，保持原样
+#         else:
+#             formatted_time = str(time_value)  # 如果不是时间格式，转为字符串
+#             if '.' in formatted_time:  # 检查是否包含毫秒
+#                 formatted_time = formatted_time.split('.')[0]  # 去除毫秒部分
+#             else:
+#                 formatted_time = formatted_time  # 如果没有毫秒，保持
+#         print(formatted_time)  # 打印格式化后的时间
+#         row_data = {
+#             "时间": formatted_time,#row[time_column].strftime('%Y-%m-%d %H:%M:%S') if isinstance(row[time_column], pd.Timestamp) else str(row[time_column]),
+#             "潼关": {
+#                 "预报流量（m³/s）": row.iloc[1]
+#             },
+#             "三门峡": {
+#                 "入库流量（m³/s）": row.iloc[2],
+#                 "出库流量（m³/s）": row.iloc[3],
+#                 "水位（m）": row.iloc[4],
+#                 "蓄水量（亿m³）": row.iloc[5],
+#             },
+#             "小浪底": {
+#                 "入库流量（m³/s）": row.iloc[6],
+#                 "出库流量（m³/s）": row.iloc[7],
+#                 "水位（m）": row.iloc[8],
+#                 "蓄水量（亿m³）": row.iloc[9],
+#             },
+#             "陆浑": {
+#                 "入库流量（m³/s）": row.iloc[10],
+#                 "出库流量（m³/s）": row.iloc[11],
+#                 "水位（m）": row.iloc[12],
+#                 "蓄水量（亿m³）": row.iloc[13],
+#             },
+#             "故县": {
+#                 "入库流量（m³/s）": row.iloc[14],
+#                 "出库流量（m³/s）": row.iloc[15],
+#                 "水位（m）": row.iloc[16],
+#                 "蓄水量（亿m³）": row.iloc[17],
+#             },
+#             "河口村": {
+#                 "入库流量（m³/s）": row.iloc[18],
+#                 "出库流量（m³/s）": row.iloc[19],
+#                 "水位（m）": row.iloc[20],
+#                 "蓄水量（亿m³）": row.iloc[21],
+#             },
+#             "花园口": {
+#                 "流量（m³/s）": row.iloc[22],
+#             },
+#         }
+#         data.append(row_data)
+#
+#     return data
+# # 示例调用
+# file_path = "media/ddfa/2024-12-23.xlsx"  # 替换为你的 Excel 文件路径
+# data = parse_excel(file_path)
+# print("type(data):",type(data))
+# default_context =("小浪底和西霞院水库联合调度，6月25日8时起按控制花园口水文站4400m3/s泄放，26日8时起按4000m3/s泄放，之后视情况实时调整下泄流量，7月8日前库水位降至汛限水位235m以下，结束应急抗旱调度过程。\n"
+#                   "三门峡水库6月25日20时起继续按600m3/s下泄，之后视情况实时调整下泄流量，7月10日前库水位降至汛限水位305m以下，而后进出库平衡运用。")
+# prompt = (f"参考描述：{default_context}"
+#           "依据参考描述，请根据以下数据,撰写三门峡、小浪底、陆浑、故县、河口村数据的运用方式。"
+#           f"数据为：{data}")      #百度API不支持数据接入，超出其最长输序列
+# res = query_question(prompt)
+# print(res)
 
-    sanmenxia_inflow = None
-    for col in header:
-        if "三门峡" in col and "入库流量" in col:
-            sanmenxia_inflow = col
-            break
-    if sanmenxia_inflow is None:
-        raise ValueError("未找到三门峡入库流量列")
-    #print(df.iloc[:,1])
-    # 解析数据
-    data = []
-    for _, row in df.iterrows():
-        time_value = row[time_column]
-        formatted_time = ""
-
-        if isinstance(time_value, pd.Timestamp):
-            formatted_time = time_value.strftime('%Y-%m-%d %H')  # 格式化为 "YYYY-MM-DD HH:MM:SS"
-        elif isinstance(time_value, str):
-            try:
-                time_obj = pd.to_datetime(time_value)
-                formatted_time = time_obj.strftime('%Y-%m-%d %H')  # 格式化为 "YYYY-MM-DD HH:MM:SS"
-            except ValueError:
-                formatted_time = time_value  # 如果解析失败，保持原样
-        else:
-            formatted_time = str(time_value)  # 如果不是时间格式，转为字符串
-            if '.' in formatted_time:  # 检查是否包含毫秒
-                formatted_time = formatted_time.split('.')[0]  # 去除毫秒部分
-            else:
-                formatted_time = formatted_time  # 如果没有毫秒，保持
-        print(formatted_time)  # 打印格式化后的时间
-        row_data = {
-            "时间": formatted_time,#row[time_column].strftime('%Y-%m-%d %H:%M:%S') if isinstance(row[time_column], pd.Timestamp) else str(row[time_column]),
-            "潼关": {
-                "预报流量（m³/s）": row.iloc[1]
-            },
-            "三门峡": {
-                "入库流量（m³/s）": row.iloc[2],
-                "出库流量（m³/s）": row.iloc[3],
-                "水位（m）": row.iloc[4],
-                "蓄水量（亿m³）": row.iloc[5],
-            },
-            "小浪底": {
-                "入库流量（m³/s）": row.iloc[6],
-                "出库流量（m³/s）": row.iloc[7],
-                "水位（m）": row.iloc[8],
-                "蓄水量（亿m³）": row.iloc[9],
-            },
-            "陆浑": {
-                "入库流量（m³/s）": row.iloc[10],
-                "出库流量（m³/s）": row.iloc[11],
-                "水位（m）": row.iloc[12],
-                "蓄水量（亿m³）": row.iloc[13],
-            },
-            "故县": {
-                "入库流量（m³/s）": row.iloc[14],
-                "出库流量（m³/s）": row.iloc[15],
-                "水位（m）": row.iloc[16],
-                "蓄水量（亿m³）": row.iloc[17],
-            },
-            "河口村": {
-                "入库流量（m³/s）": row.iloc[18],
-                "出库流量（m³/s）": row.iloc[19],
-                "水位（m）": row.iloc[20],
-                "蓄水量（亿m³）": row.iloc[21],
-            },
-            "花园口": {
-                "流量（m³/s）": row.iloc[22],
-            },
-        }
-        data.append(row_data)
-
-    return data
-# 示例调用
-file_path = "media/ddfa/2024-12-23.xlsx"  # 替换为你的 Excel 文件路径
-data = parse_excel(file_path)
-print("type(data):",type(data))
-default_context =("小浪底和西霞院水库联合调度，6月25日8时起按控制花园口水文站4400m3/s泄放，26日8时起按4000m3/s泄放，之后视情况实时调整下泄流量，7月8日前库水位降至汛限水位235m以下，结束应急抗旱调度过程。\n"
-                  "三门峡水库6月25日20时起继续按600m3/s下泄，之后视情况实时调整下泄流量，7月10日前库水位降至汛限水位305m以下，而后进出库平衡运用。")
-prompt = (f"参考描述：{default_context}"
-          "依据参考描述，请根据以下数据,撰写三门峡、小浪底、陆浑、故县、河口村数据的运用方式。"
-          f"数据为：{data}")      #百度API不支持数据接入，超出其最长输序列
-res = query_question(prompt)
-print(res)
 #
 #
 # # 给定的出库流量数据
@@ -434,3 +525,11 @@ print(res)
 #     #batch_QA()
 #     test()
 # print("aaaaaaa")
+#
+# import webbrowser
+#
+# def open_baidu():
+#     url = 'https://www.baidu.com'
+#     webbrowser.open(url)
+#
+# open_baidu()

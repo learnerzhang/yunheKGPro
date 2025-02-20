@@ -22,9 +22,9 @@ import json
 import difflib
 
 from userapp.models import User
-from yaapp import divHtml, pd2HtmlCSS, text_table, extract_shuiku_data,extract_shuiku_data_jianyi
+from yaapp import divHtml, pd2HtmlCSS, text_table, extract_shuiku_data,extract_shuiku_data_jianyi,yujingdengji
 from yaapp.models import PlanTemplate
-
+from langchain.llms import Ollama
 def get_access_token():
     """
     使用 API Key，Secret Key 获取access_token，替换下列示例中的应用API Key、应用Secret Key
@@ -49,29 +49,29 @@ def get_access_token():
     return response.json().get("access_token")
 
 #注意：翻墙的时候无法调用百度  api  接口
-def query_question(text):
-    url = "https://aip.baidubce.com/rpc/2.0/ai_custom/v1/wenxinworkshop/chat/eb-instant?access_token=" + get_access_token()
-    #s = input()
-    # 注意message必须是奇数条
-    payload = json.dumps({
-        "messages": [
-            {
-                "role": "user",
-                "content": text
-            }
-        ],
-    })
-    headers = {
-        'Content-Type': 'application/json'
-    }
-
-    res = requests.request("POST", url, headers=headers, data=payload).json()
-    return res['result']
-
 # def query_question(text):
-#     llm = Ollama(model="qwen2.5")
-#     res = llm(text)
-#     return res
+#     url = "https://aip.baidubce.com/rpc/2.0/ai_custom/v1/wenxinworkshop/chat/eb-instant?access_token=" + get_access_token()
+#     #s = input()
+#     # 注意message必须是奇数条
+#     payload = json.dumps({
+#         "messages": [
+#             {
+#                 "role": "user",
+#                 "content": text
+#             }
+#         ],
+#     })
+#     headers = {
+#         'Content-Type': 'application/json'
+#     }
+#
+#     res = requests.request("POST", url, headers=headers, data=payload).json()
+#     return res['result']
+
+def query_question(text):
+    llm = Ollama(model="qwen2.5")
+    res = llm(text)
+    return res
 
 
 def qiuxun2Word(context=None):
@@ -925,6 +925,7 @@ def huanghe_xiangying_level(context):
                   f"已知预警等级为：{yujing_level}。\n"
                   f"请根据一直预警等级生成对应的响应措施，不要生成总结或无关信息。")
         res = query_question(prompt)
+        #res = yujingdengji(shuiku_shuiwei: dict, shuiwenzhan_liuliang: dict)
     else:
         res = query_question(context)
     return res
@@ -934,6 +935,7 @@ def huanghe_diaodu_result(context):
     tanqu_yanmo_result=huanghe_tanqu_yanmo(context)
     keneng_danger=huanghe_keneng_danger(context)
     xiangying_level=huanghe_xiangying_level(context)
+    #xiangying_level =
     diaodu_result=(f"\n"
                    f"1) 水库 \n"
                    f"{shuiku_diaodu_result}\n"
@@ -1735,8 +1737,8 @@ def jaccard_similarity(s1, s2):
 
 def map_input_to_label1(user_input):
     labels = [
-        "雨情实况", "河道水情", "水库水情", "工情险情实况", "降雨预报",
-        "洪水预报", "调度方案", "调度结果", "工程研判", "枢纽运用方案", "安全举措"
+        "雨情实况", "实时雨水情","河道水情", "水库水情", "工情险情实况", "降雨预报","河道边界条件",
+        "洪水预报", "调度方案", "调度结果", "工程研判", "枢纽运用方案", "安全举措","来水预估", "调度原则和调度目标"
     ]
 
     user_input = user_input.lower()
@@ -1761,8 +1763,8 @@ def similarity_ratio(s1, s2):
 
 def map_input_to_label(user_input):
     labels = [
-        "雨情实况", "河道水情", "水库水情", "工情险情实况", "降雨预报",
-        "洪水预报", "调度方案", "调度结果", "工程研判", "枢纽运用方案", "安全举措"
+        "雨情实况", "实时雨水情","河道水情", "水库水情", "工情险情实况", "降雨预报","河道边界条件",
+        "洪水预报", "调度方案", "调度结果", "工程研判", "枢纽运用方案", "安全举措","来水预估", "调度原则和调度目标"
     ]
 
     user_input = user_input.lower()
@@ -1911,7 +1913,145 @@ def generate_docx(context=None):
     #
     # doc.save("output.docx")
     # res = yushuiqing()
+def shj_yushui_context(context=None):
+    default_context = "雨情：6月22日，兰州以上部分，兰托区间局部地区降小雨，个别站中雨；黄河流域其他地区降分散性小雨。最大点雨量出现在黄河上游凉坪站和石骨岔站，均为15毫米。"
+    now = datetime.now()
+        # 获取当前的年、月和日
+    year = now.year
+    month = now.month
+    day = now.day
+    if isinstance(context, dict):
+        huanghe_weather = context.get("huanghe_weather")  # 从 context 中获取值
+        lanzhou_weather = context.get("lanzhou_weather")
+        yuliang = context.get("yuliang")
+        information = (
+            f"兰州区域天气情况：{lanzhou_weather}，"
+            f"黄河流域天气情况：{huanghe_weather}，"
+            f"降雨量情况：{yuliang}"
+        )
+        prompt = (
+            f"参考描述：{default_context}\n"
+            f"请模仿上述描述，根据以下已知信息生成雨水实况，并进行优化，不要生成无关信息提示，"
+            f"也请不要使用'优化后的描述：'这样的字样。"
+            f"确保不包含任何说明性文字。"
+            f"\n已知信息：{information},当前日期: {year}年{month}月{day}日"
+        )
+        res = query_question(prompt)
+    else:
+        res = query_question(context)
+    return res
 
+def shj_shuikuxushui_generate_dfjson(context):
+    if isinstance(context, dict):
+        default_list = context['sksq']
+        df = pd.DataFrame(default_list)
+        res = df.to_json(orient='records')
+    else:
+        res = query_question(context)
+    return res
+
+def shj_shuikuxushui_generate(context):
+    if isinstance(context, dict):
+        default_list = context['sksq']
+        df = pd.DataFrame(default_list)
+        res = pd2HtmlCSS() + divHtml(df.to_html(index=False))
+    else:
+        res = query_question(context)
+    return res
+
+def shj_hedaoshuiqing_generate_dfjson(context):
+    if isinstance(context, dict):
+        default_list = context['hdsq']
+        df = pd.DataFrame(default_list)
+        res = df.to_json(orient='records')
+    else:
+        res = query_question(context)
+    return res
+
+def shj_hedaoshuiqing_generate(context):
+    if isinstance(context, dict):
+        default_list = context['hdsq']
+        df = pd.DataFrame(default_list)
+        res = pd2HtmlCSS() + divHtml(df.to_html(index=False))
+    else:
+        res = query_question(context)
+    return res
+
+def shj_laishuiyugu_context(context=None):
+    default_context = "考虑未来降雨，预估未来七天，唐乃亥站日均流量为1240～1300m3/s，总水量约7.63亿m3；龙刘区间、刘兰区间水量分别约为1.25亿m3和1.14亿m3。头道拐站日均流量为370～510m3/s，潼关站日均流量为470～630m3/s。"
+    if isinstance(context, dict):
+        tng_rjll = context.get("tng_rjll")  # 从 context 中获取值
+        tng_zhl = context.get("tng_zhl")
+        llqujian = context.get("llqujian")
+        llqj = context.get("llqj")
+        tgd_rjll = context.get("tgd_rjll")
+        tg_rjll = context.get("tg_rjll")
+        information = (
+            f"唐乃亥日均流量：{tng_rjll}，"
+            f"唐乃亥总水量：{tng_zhl}，"
+            f"龙刘区间流量：{llqujian}，"
+            f"刘兰区间流量：{llqj}，"
+            f"头道拐日均流量：{tgd_rjll}，"
+            f"潼关日均流量：{tg_rjll}"
+        )
+        prompt = (
+            f"参考描述：{default_context}\n"
+            f"请模仿上述描述，根据以下已知信息生成雨水实况，并进行优化，不要生成无关信息提示，"
+            f"也请不要使用'优化后的描述：'这样的字样。"
+            f"确保不包含任何说明性文字。"
+            f"\n已知信息：{information}"
+        )
+        res = query_question(prompt)
+    else:
+        res = query_question(context)
+    return res
+
+def shj_laishuiyugu_generate_dfjson(context):
+    if isinstance(context, dict):
+        default_list = context['lsyg']
+        df = pd.DataFrame(default_list)
+        res = df.to_json(orient='records')
+    else:
+        res = query_question(context)
+    return res
+
+def shj_laishuiyugu_generate(context):
+    if isinstance(context, dict):
+        default_list = context['lsyg']
+        df = pd.DataFrame(default_list)
+        res = pd2HtmlCSS() + divHtml(df.to_html(index=False))
+    else:
+        res = query_question(context)
+    return res
+
+def shj_hedaobijian_context(context=None):
+    default_context = "据分析预估，黄河上游龙羊峡水库以下河道安全过洪流量，青海、甘肃、宁夏、内蒙古河段分别约为3660m3/s、3730m3/s、5620m3/s、5510m3/s。黄河中游小北干流河道最小平滩流量约为3000m3/s；黄河下游河道最小平滩流量为4600m3/s。"
+    if isinstance(context, dict):
+        qh_aqghll = context.get("qh_aqghll")  # 从 context 中获取值
+        gs_aqghll = context.get("gs_aqghll")
+        nx_aqghll = context.get("nx_aqghll")
+        nm_aqghll = context.get("nm_aqghll")
+        xbgl_aqghll = context.get("xbgl_aqghll")
+        hhxx_aqghll = context.get("hhxx_aqghll")
+        information = (
+            f"青海河道安全过洪流量：{qh_aqghll}，"
+            f"甘肃河道安全过洪流量：{gs_aqghll}，"
+            f"宁夏河道安全过洪流量：{nx_aqghll}，"
+            f"内蒙古河道安全过洪流量：{nm_aqghll}，"
+            f"小北干流河道最小平滩流量：{xbgl_aqghll}，"
+            f"黄河下游河道最小平滩流量：{hhxx_aqghll}"
+        )
+        prompt = (
+            f"参考描述：{default_context}\n"
+            f"请模仿上述描述，根据以下已知信息生成雨水实况，并进行优化，不要生成无关信息提示，"
+            f"也请不要使用'优化后的描述：'这样的字样。"
+            f"确保不包含任何说明性文字。"
+            f"\n已知信息：{information}"
+        )
+        res = query_question(prompt)
+    else:
+        res = query_question(context)
+    return res
 # res = huanghe_yuqing_generate(context="黄河中下游洪水调度方案")
 # print(res)
 

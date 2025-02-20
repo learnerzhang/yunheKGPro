@@ -14,9 +14,9 @@ from pyecharts import options as opts
 
 
 idx_list = ['水位', '入库', '出库', '蓄量', "流量"]
-sknames = { '三门峡', '小浪底',  '陆浑', '故县', '河口村', '西霞院'}
+sknames = { '三门峡', '小浪底',  '陆浑', '故县', '河口村', '西霞院', '万家寨', '龙口'}
 swznames = { '花园口', '小花间'}
-othnames = { '24h水位' }
+othnames = { '24h水位', '古贤坝址'}
 
 
 def process_complex_header(file_path):
@@ -147,7 +147,9 @@ def plot_save_html(ddfa_file_path, business_type=0, myDate=None):
     try:
         json_data = excel_to_json(ddfa_file_path)
         # print(file, "JSON 数据：\n", json_data)
-        print("JSON 数据：\n", ddfa_file_path)
+        # print("JSON 数据：\n", ddfa_file_path)
+        # print("="*100)
+        # print(json_data)
         skMapData = collections.defaultdict(dict)
         swMapData = collections.defaultdict(list)
         date_list = []
@@ -156,7 +158,7 @@ def plot_save_html(ddfa_file_path, business_type=0, myDate=None):
             new_record_keys = [ "".join(k.split("_")[:2]) for k in record_keys]
             # print(record_keys)
             # print(new_record_keys)
-            # print(len(record_keys), len(new_record_keys))
+            print(len(record_keys), len(new_record_keys))
             for skname in sknames:
                 for idx in idx_list:
                     for key in record_keys:
@@ -175,14 +177,14 @@ def plot_save_html(ddfa_file_path, business_type=0, myDate=None):
             elif '月.日' in record_keys:
                 date_list.append(record['月.日'])
         
-        # print(date_list)
-        # pprint.pprint(swMapData)       
+        print(date_list)
+        pprint.pprint(swMapData)       
         print("开始绘图")
         if myDate is None:
             myDate = str(date.today())
 
-        htmls_dir = os.path.join("data", str(business_type), myDate, "html")
-        imgs_dir = os.path.join("data", str(business_type), myDate, "imgs")
+        htmls_dir = os.path.join("data", "ddfaouts", str(business_type), myDate, "html")
+        imgs_dir = os.path.join("data", "ddfaouts", str(business_type), myDate, "imgs")
         if not os.path.exists(htmls_dir):
             os.makedirs(htmls_dir)
         if not os.path.exists(imgs_dir):
@@ -388,5 +390,6 @@ if __name__ == "__main__":
 
 
 
-    r = excel_to_dict("data/shj_ddfad/调度方案单13.xlsx")
-    print(r)
+    # r = excel_to_dict("data/shj_ddfad/调度方案单13.xlsx")
+    # print(r)
+    pass

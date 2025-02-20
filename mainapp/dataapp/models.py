@@ -19,7 +19,7 @@ class DataModel(models.Model):
     version = models.CharField(max_length=200, verbose_name="版本号", help_text="版本号", unique=False, null=True)
     req_type = models.IntegerField(max_length=1, verbose_name="请求方式", help_text="请求方式", unique=False, null=True)
     activate = models.IntegerField(max_length=1, verbose_name="激活状态", help_text="激活状态", unique=False, null=True)
-    kg_user_id = models.ForeignKey(User, verbose_name="创建作者", help_text="创建作者", blank=True,
+    kg_user_data_id = models.ForeignKey(User, verbose_name="创建作者", help_text="创建作者", blank=True,
                                    on_delete=models.CASCADE, null=True)
     update_time = models.DateTimeField(verbose_name="更新时间", null=True)
     create_time = models.DateTimeField(verbose_name="创建时间", null=True)

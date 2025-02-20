@@ -93,7 +93,8 @@ class BaseDataFactory():
             # 仅需要执行get开头的自定义方法
             if callable(getattr(self, method_name)) and method_name.startswith("get"):
                 # 执行方法
-                getattr(self, method_name)()
+                result = getattr(self, method_name)()
+                self.dataJsonPool.update(result)  # 合并数据
         
         print("收集数据执行结束")
         print("开始执行持久化操作")
@@ -105,6 +106,8 @@ class BaseDataFactory():
             jsonFileName = f"data/plans/XLDQX_api_data_{self.date}.json"
         elif self.dataType ==2:
             jsonFileName = f"data/plans/XLDTSTS_api_data_{self.date}.json"
+        elif self.dataType ==3:
+            jsonFileName = f"../data/plans/SHJ_api_data_{self.date}.json"
 
         with codecs.open(jsonFileName, "w", "utf-8") as f:
             json.dump(self.dataJsonPool, f, ensure_ascii=False, indent=4)

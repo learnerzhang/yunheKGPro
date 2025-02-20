@@ -16,15 +16,15 @@ Including another URLconf
 from django.urls import path
 from rest_framework.urlpatterns import format_suffix_patterns
 from . import views
-
+#url 不要以/结尾，否则会返回html和页面
 urlpatterns = [
-    path('kgmodel/', views.KgModelList.as_view()),
+    path('kgmodel', views.KgModelList.as_view()),
     path('kgmodel/add', views.ModelAddApiView.as_view()),
     path('kgmodel/update', views.ModelUpdateApiView.as_view()),
     path('kgmodel/delete', views.ModelDelApiView.as_view()),
     path('kgmodel/detail', views.ModelDetailApiView.as_view()),
     path('kgmodel/typelist', views.ModelTypeListApiView.as_view()),
-    path('kgmodelparam/', views.KgModelParamList.as_view()),
+    path('kgmodelparam', views.KgModelParamList.as_view()),
     path('kgmodelparam/listbymodel', views.KgModelParamListByModel.as_view()),
     path('kgmodelparam/add', views.ModelParamAddApiView.as_view()),
     path('kgmodelparam/batchadd', views.ModelParamBatchAddApiView.as_view()),

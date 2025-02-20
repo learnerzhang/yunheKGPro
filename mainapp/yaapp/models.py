@@ -115,7 +115,7 @@ class PlanByUser(models.Model):
     name = models.CharField(max_length=100, blank=True, verbose_name='预案名称')
     yadate = models.CharField(max_length=10, null=True, blank=True,default='2024-01-01', help_text="预案日期")
     nodes = models.ManyToManyField(TemplateNode, verbose_name="内容节点", blank=True)
-    ctype = models.IntegerField(choices=((0, '黄河中下游'), (1, '小浪底秋汛'), (2, '小浪底调水调沙'), (3, '其他')), default=0, verbose_name='预案模板类型', blank=True)
+    ctype = models.IntegerField(choices=((0, '黄河中下游'), (1, '小浪底秋汛'), (2, '小浪底调水调沙'), (3, '三花间'),(4, "其他")), default=0, verbose_name='预案模板类型', blank=True)
     word_data = models.JSONField(verbose_name='word数据', blank=True, null=True)
     html_data = models.JSONField(verbose_name='html数据', blank=True, null=True)
     created_at = models.DateTimeField(auto_now_add=True)
