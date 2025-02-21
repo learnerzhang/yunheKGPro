@@ -43,4 +43,7 @@ urlpatterns = [
     path('yuAnUserPlanList', views.YuAnUserPtListApiGet.as_view()),
     path('ddfaUpload', views.DDFAUploadApiPost.as_view()),
     path('downloadPlan', views.downloadPlan, name="downloadPlan"),
+    path('llmYuAnTask', views.LLMYuAnTaskApiView.as_view(), name="llmYuAnTask"),
+    path('llmYuAnTaskStatus', views.LLMYuAnTaskStatusApiView.as_view(), name="llmYuAnTaskStatus"),
+    path('resultFromTask', views.ResultFromTaskApiView.as_view(), name="resultFromTask"),
 ]

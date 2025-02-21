@@ -238,7 +238,7 @@ class PlanFactory:
             import pandas as pd
             import time
             yadate = self.context['plan']['yadate']
-            ddfa_excel = os.path.join("media", "ddfa", f"{yadate}.xlsx")
+            ddfa_excel = os.path.join("media", str(self.context['plan']['ctype']), "ddfa", f"{yadate}.xlsx")
             if not os.path.exists(ddfa_excel):
                 raise Exception("调度方案单不存在")
             ddjy = generate_ddjy(ddfa_excel)

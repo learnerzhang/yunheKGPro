@@ -49,29 +49,29 @@ def get_access_token():
     return response.json().get("access_token")
 
 #注意：翻墙的时候无法调用百度  api  接口
-# def query_question(text):
-#     url = "https://aip.baidubce.com/rpc/2.0/ai_custom/v1/wenxinworkshop/chat/eb-instant?access_token=" + get_access_token()
-#     #s = input()
-#     # 注意message必须是奇数条
-#     payload = json.dumps({
-#         "messages": [
-#             {
-#                 "role": "user",
-#                 "content": text
-#             }
-#         ],
-#     })
-#     headers = {
-#         'Content-Type': 'application/json'
-#     }
-#
-#     res = requests.request("POST", url, headers=headers, data=payload).json()
-#     return res['result']
-
 def query_question(text):
-    llm = Ollama(model="qwen2.5")
-    res = llm(text)
-    return res
+    url = "https://aip.baidubce.com/rpc/2.0/ai_custom/v1/wenxinworkshop/chat/eb-instant?access_token=" + get_access_token()
+    #s = input()
+    # 注意message必须是奇数条
+    payload = json.dumps({
+        "messages": [
+            {
+                "role": "user",
+                "content": text
+            }
+        ],
+    })
+    headers = {
+        'Content-Type': 'application/json'
+    }
+
+    res = requests.request("POST", url, headers=headers, data=payload).json()
+    return res['result']
+
+# def query_question(text):
+#     llm = Ollama(model="qwen2.5")
+#     res = llm(text)
+#     return res
 
 
 def qiuxun2Word(context=None):

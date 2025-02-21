@@ -745,3 +745,57 @@ def autoFullProSimTask(paramdict):
     tmptask.task_status = 4
     tmptask.save()
     return results
+
+
+
+@shared_task
+def LLMYuAnProdTask(paramdict):
+    """
+        预案生产
+    """
+    from kgapp.models import KgProductTask, KgDoc, KgTmpQA, KgQA
+    from yaapp.models import PlanByUser
+    from django.forms.models import model_to_dict
+    from yaapp.plan import PlanFactory
+    from yaapp import getYuAnParamPath
+    
+    print("开始自动生产任务", paramdict)
+    planId = paramdict['planId']
+    prodtaskid = paramdict['task_id']
+    tmptask = KgProductTask.objects.get(id=prodtaskid)
+    userYuAnPlan = PlanByUser.objects.get(id=planId)
+    print("userYuAnPlan:", userYuAnPlan)
+    # 通用生成方法
+    # node.result = qwty(node.description)
+    results = {}
+    tmp_param_path = getYuAnParamPath(userYuAnPlan.ctype, userYuAnPlan.yadate)
+    print("预案参数文件路径:", tmp_param_path)
+    if not os.path.exists(tmp_param_path):
+        data = {"code": 201, "data": {}, "msg": "参数文件不存在, 请先搜集参数"}
+        results['data'] = data
+        tmptask.task_status = -1
+        tmptask.save()
+        return results
+    
+    ctx = {
+        "type": userYuAnPlan.ctype,
+        "yadate": userYuAnPlan.yadate,
+        "plan": model_to_dict(userYuAnPlan, exclude=["html_data", "html_data", "created_at", "updated_at", "nodes"]),
+        "param_path": tmp_param_path
+    }
+    try:
+        for node in userYuAnPlan.nodes.all():
+            pf = PlanFactory(context=ctx, node=node)
+            pf.make_context()
+    except Exception as e:
+        data = {"code": 201, "data": {}, "msg": "生成失败！"}
+        results['data'] = data
+        tmptask.task_status = -1
+    #### 0 未执行,  1 任务开启, 执行数据装载, 2 数据装载完成, 3 比对任务开启, 4 比对任务完成, 5 最终任务完成, -1 任务失败
+    resultJson =  model_to_dict(userYuAnPlan, exclude=['parent', "nodes"])
+    resultJson['nodeList'] = userYuAnPlan.nodeDetailList
+    data = {"code": 200, "data": resultJson, "msg": "生成成功！"}
+    results['data'] = data
+    tmptask.task_status = 5
+    tmptask.save()
+    return results

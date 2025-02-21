@@ -11,3 +11,5 @@ class BaseApiResponseSerializer(serializers.Serializer):
     page = serializers.IntegerField()
     pageSize = serializers.IntegerField()
     success = serializers.BooleanField()
+    status = serializers.CharField(max_length=20)
+    

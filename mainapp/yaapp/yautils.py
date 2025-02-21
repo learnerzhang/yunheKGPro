@@ -342,7 +342,8 @@ def plot_save_html(ddfa_file_path, business_type=0, myDate=None):
                 tooltip_opts=opts.TooltipOpts(trigger="axis"),
                 legend_opts=opts.LegendOpts(),
                 yaxis_opts=opts.AxisOpts(
-                    min_=min(swdatas)-10,
+                    min_= min(swdatas)-10,
+                    max_= max(swdatas)+10,
                     type_="value",
                     name="水位(m)",
                     axislabel_opts=opts.LabelOpts(formatter="{value}"),

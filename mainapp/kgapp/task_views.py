@@ -412,7 +412,7 @@ class ProdTaskAddApiView(generics.GenericAPIView):
                 'name': openapi.Schema(type=openapi.TYPE_STRING, description="任务名称"),
                 'desc': openapi.Schema(type=openapi.TYPE_STRING, description="任务描述"),
                 'taskType': openapi.Schema(type=openapi.TYPE_INTEGER,
-                                           description="生产类型 0(知识导入)|1(自动生成)|2(全文生产)|3(图谱导入)|4(图谱自动生产)"),
+                                           description="生产类型 0(知识导入)|1(自动生成)|2(全文生产)|3(图谱导入)|4(图谱自动生产)|5(预案生成)"),
             },
         ),
         responses={

@@ -43,7 +43,8 @@ from rest_framework.parsers import (
     MultiPartParser
 )
 
-from kgapp.models import KgBusiness
+from kgapp.models import KgBusiness, KgProductTask, KgTask
+from userapp.models import User
 from yaapp import yautils
 from yaapp import getYuAnName, getYuAnParamPath
 from yaapp.api_yuan import map_input_to_template, recommend_plan
@@ -668,7 +669,6 @@ class LLMNodePlan(generics.GenericAPIView):
 
         resultJson =  model_to_dict(userYuAnPlan, exclude=['parent', "nodes"])
         resultJson['nodeList'] = userYuAnPlan.nodeDetailList
-
         data = {"code": 200, "data": resultJson, "msg": "生成成功！"}
         serializers = BaseApiResponseSerializer(data=data, many=False)
         serializers.is_valid()
@@ -1304,3 +1304,181 @@ def downloadPlan(request):
     response['Content-Disposition'] = f'attachment; filename="{tmpDoc.name}.docx"'
 
     return response
+
+
+
+class LLMYuAnTaskApiView(generics.GenericAPIView):
+
+    authentication_classes = (CsrfExemptSessionAuthentication, BasicAuthentication)
+    serializer_class = BaseApiResponseSerializer
+
+    @swagger_auto_schema(
+        operation_summary='[可用] 预案生成任务',
+        operation_description='POST /llmYuAnTask',
+        request_body=openapi.Schema(
+            type=openapi.TYPE_OBJECT,
+            required=["user_id", "ptid"],
+            properties={
+                'user_id': openapi.Schema(type=openapi.TYPE_INTEGER, description="创建作者ID"),
+                'name': openapi.Schema(type=openapi.TYPE_STRING, description="任务名称"),
+                'desc': openapi.Schema(type=openapi.TYPE_STRING, description="任务描述"),
+                'ptid': openapi.Schema(type=openapi.TYPE_INTEGER, description="预案ID"),
+                'taskType': openapi.Schema(type=openapi.TYPE_INTEGER,
+                                           description="生产类型 0(知识导入)|1(自动生成)|2(全文生产)|3(图谱导入)|4(图谱自动生产)|5(预案生成)"),
+            },
+        ),
+        responses={
+            200: BaseApiResponseSerializer(many=False),
+            400: "请求失败",
+        },
+        tags = ['task']
+    )
+    @csrf_exempt
+    def post(self, request, *args, **krgs):
+        data = {"code": 200 }
+        name = request.data.get("name", None)
+        taskType = int(request.data.get("taskType", 5))
+        desc = request.data.get("desc", "预案生成任务")
+        user_id = request.data.get("user_id", 1)
+        planId = request.data.get("ptid", None)
+
+        if name is None or user_id is None or not planId:
+            data['code'] = 201
+            data['msg'] = '请求参数错误, 缺少参数！！！'
+            serializers = BaseApiResponseSerializer(data=data, many=False)
+            serializers.is_valid()
+            return Response(serializers.data,  status=status.HTTP_200_OK)
+        else:
+            
+            try:
+                tmpuser = User.objects.get(id=user_id)
+            except:
+                data = {"code": 202, "msg": "用户ID不存在！！！" }
+                serializers = BaseApiResponseSerializer(data=data, many=False)
+                serializers.is_valid()
+                return Response(serializers.data, status=status.HTTP_200_OK)
+            
+
+            tmptask = KgProductTask()
+            tmptask.create_time = datetime.now()
+            tmptask.update_time = datetime.now()
+            tmptask.name = name
+            tmptask.desc = desc
+            tmptask.task_type = taskType
+            
+            tmptask.kg_user_id = tmpuser
+            tmptask.task_status = 0  #### 0 未执行,  1 任务开启, 执行数据装载, 2 数据装载完成, 3 比对任务开启, 4 比对任务完成, 5 最终任务完成, -1 任务失败
+            tmptask.save()
+
+            from yunheKGPro.celery import LLMYuAnProdTask
+            param_dict = model_to_dict(tmptask, exclude=['kg_doc_ids'])
+            param_dict['planId'] = planId
+            param_dict['task_id'] = tmptask.id
+            result = LLMYuAnProdTask.delay(param_dict)
+            # 记录 celery id 入库 
+            subtask, tmpbool = KgTask.objects.get_or_create(kg_prod_task_id=tmptask, task_step=1, celery_id=result.id)
+            if tmpbool:
+                print("ProductTask 任务创建成功...", subtask)
+
+            data = {"code": 200, "msg": "预案生产任务新建成功", "success": True, "data": model_to_dict(subtask)}
+            data['data'] = model_to_dict(subtask)
+            serializers = BaseApiResponseSerializer(data=data, many=False)
+            serializers.is_valid()
+            return Response(serializers.data, status=status.HTTP_200_OK)
+
+
+
+class LLMYuAnTaskStatusApiView(mixins.ListModelMixin,
+                  mixins.CreateModelMixin,
+                  generics.GenericAPIView):
+    
+    serializer_class = BaseApiResponseSerializer
+    @swagger_auto_schema(
+            operation_description='GET /llmYuAnTaskStatus',
+            operation_summary="异步任务状态",
+            # 接口参数 GET请求参数
+            manual_parameters=[
+                # 声明参数
+                openapi.Parameter(
+                    "taskid", 
+                    openapi.IN_QUERY, 
+                    description="任务ID", 
+                    type=openapi.TYPE_INTEGER
+                ),
+            ],
+            responses={
+                200: BaseApiResponseSerializer(many=False),
+                400: "请求失败",
+            },
+            tags = ['task'])
+    def get(self, request, *args, **kwargs):
+        taskid = request.GET.get("taskid", None)
+        if taskid is None:
+            data = {"code": 201, "msg": "参数错误！！！" }
+            serializers = BaseApiResponseSerializer(data=data, many=False)
+            serializers.is_valid()
+            return Response(serializers.data, status=status.HTTP_200_OK)
+        
+        tmptask = KgTask.objects.filter(kg_prod_task_id=taskid).first()
+        if tmptask:
+            from celery.result import AsyncResult
+            celery_task = AsyncResult(tmptask.celery_id)
+            celery_status = celery_task.status
+        else:
+            celery_status = 'TASK_NOT_FOUND'
+        data = {"code": 200, "msg": "", "status":  celery_status}
+        serializers = BaseApiResponseSerializer(data=data, many=False)
+        serializers.is_valid()
+        return Response(serializers.data, status=status.HTTP_200_OK)
+
+
+
+
+class ResultFromTaskApiView(mixins.ListModelMixin,
+                  mixins.CreateModelMixin,
+                  generics.GenericAPIView):
+    
+    authentication_classes = (CsrfExemptSessionAuthentication, BasicAuthentication)
+    serializer_class = BaseApiResponseSerializer
+    
+    
+    @swagger_auto_schema(
+            operation_description='GET /resultFromTask',
+            operation_summary="获取生成的结果",
+            # 接口参数 GET请求参数
+            request_body=openapi.Schema(
+            type=openapi.TYPE_OBJECT,
+            required=['task_id'],
+            properties={
+                'task_id': openapi.Schema(type=openapi.TYPE_INTEGER, description="任务ID"),
+            },
+        ),
+            responses={
+                200: BaseApiResponseSerializer(many=False),
+                400: "请求失败",
+            },
+            tags = ['task'])
+    def post(self, request, *args, **kwargs):
+
+        # 根据不同的任务，启动不同的装载数据方式
+        task_id = request.data.get("task_id", None)
+        tmptask = KgTask.objects.get(id=task_id)
+        if tmptask is None:
+            data = {"code": 202, "msg": "暂无生产子任务失败" }
+            serializers = BaseApiResponseSerializer(data=data, many=False)
+            serializers.is_valid()
+            return Response(serializers.data, status=status.HTTP_200_OK)
+        
+        from celery.result import AsyncResult
+        import pprint
+        res = AsyncResult(tmptask.celery_id) # 参数为task id
+        if not res:
+            data = {"code": 200, "msg": "任务ID结果不存在" }
+            serializers = BaseApiResponseSerializer(data=data, many=False)
+            serializers.is_valid()
+            return Response(serializers.data, status=status.HTTP_200_OK)
+        print("res.result:", res.result)
+        resultSet = res.result['data']
+        serializers = BaseApiResponseSerializer(data=resultSet, many=False)
+        serializers.is_valid()
+        return Response(serializers.data,  status=status.HTTP_200_OK)

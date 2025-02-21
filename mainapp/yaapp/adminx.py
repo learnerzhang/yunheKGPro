@@ -34,7 +34,7 @@ class WordParagraphAdmin(object):
 
 
 class PlanTemplateAdmin(object):
-    list_display = ("name","ctype", "operation")
+    list_display = ("id", "name","ctype", "operation")
     search_fields = ("ctype", "name")
     list_filter = ("ctype", "name")
     model_icon = 'fa fa-paper-plane'
@@ -46,7 +46,7 @@ class PlanTemplateAdmin(object):
 
 
 class PlanByUserAdmin(object):
-    list_display = ("name","ctype", "yadate", "operation")
+    list_display = ("id", "name","ctype", "yadate", "operation")
     search_fields = ("ctype", "name")
     list_filter = ("ctype", "name")
     model_icon = 'fa fa-paper-plane'
@@ -58,7 +58,7 @@ class PlanByUserAdmin(object):
 
 
 class PlanByUserDocumentAdmin(object):
-    list_display = ("name","document", "operation")
+    list_display = ("id", "name","document", "operation")
     search_fields = ("document", "name")
     list_filter = ("document", "name")
     model_icon = 'fa fa-paper-plane'
