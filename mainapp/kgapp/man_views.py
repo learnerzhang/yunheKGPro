@@ -326,3 +326,67 @@ class KgQAUpdateApiView(mixins.ListModelMixin,
         serializers = KgQADetailResponseSerializer(data={"code": 201, "msg": "参数错误"}, many=False)
         serializers.is_valid()
         return Response(serializers.data, status=status.HTTP_200_OK)
+
+
+class KgAutoQAApiView(mixins.ListModelMixin,
+                      mixins.CreateModelMixin,
+                      generics.GenericAPIView):
+    serializer_class = KgQADetailResponseSerializer
+    authentication_classes = (CsrfExemptSessionAuthentication, BasicAuthentication)
+
+    @swagger_auto_schema(
+        operation_description='GET /kgapp/prodqalist/autoQA',
+        operation_summary="问答对话QA",
+
+        request_body=openapi.Schema(
+            type=openapi.TYPE_OBJECT,
+            required=['question'],
+            properties={
+                'question': openapi.Schema(type=openapi.TYPE_STRING, description="问题"),
+            },
+        ),
+        tags=['artifi'])
+    def post(self, request, *args, **kwargs):
+        question = request.data.get('question', None)
+        if question is None:
+            serializers = KgQADetailResponseSerializer(data={"code": 201, "msg": "问题不能为空"}, many=False)
+            serializers.is_valid()
+            return Response(serializers.data, status=status.HTTP_200_OK)
+        data = {"code": 200}
+
+        objs = KgQA.objects.filter(question__contains=question).all()
+        kds = KgQASerializer(data=objs, many=True)
+        kds.is_valid()
+        data['data'] = kds.data
+        serializers = KgQAResponseSerializer(data=data, many=False)
+        serializers.is_valid()
+        return Response(serializers.data, status=status.HTTP_200_OK)
+
+
+class KgRecomQuestApiView(mixins.ListModelMixin,
+                          mixins.CreateModelMixin,
+                          generics.GenericAPIView):
+    serializer_class = KgQAResponseSerializer
+
+    @swagger_auto_schema(
+        operation_description='GET /prodqalist/recomQuest',
+        operation_summary="推荐N条问题,默认10条",
+        # 接口参数 GET请求参数
+        manual_parameters=[
+            openapi.Parameter('num', openapi.IN_QUERY, type=openapi.TYPE_NUMBER),
+        ],
+        responses={
+            200: KgQAResponseSerializer(many=False),
+            400: "请求失败",
+        },
+        tags=['artifi'])
+    def get(self, request, *args, **kwargs):
+        data = {"code": 200}
+        num = int(request.data.get('num', 10))
+        objs = KgQA.objects.order_by('?')[:num]
+        kds = KgQASerializer(data=objs, many=True)
+        kds.is_valid()
+        data['data'] = kds.data
+        serializers = KgQAResponseSerializer(data=data, many=False)
+        serializers.is_valid()
+        return Response(serializers.data, status=status.HTTP_200_OK)

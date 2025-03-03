@@ -714,6 +714,7 @@ class MakePlanWord(generics.GenericAPIView):
         # 设置段落编号
         # paragraph_format.numeration = True
         for i, node in enumerate(tmpTemplate.nodelist):
+            print(i, "node:", node)
             writeParagraphs2Word(i, node, doc)
         # 保存文档 
         doc.save(f'media/plans/{tmpTemplate.name}.docx')
@@ -1331,7 +1332,7 @@ class LLMYuAnTaskApiView(generics.GenericAPIView):
             200: BaseApiResponseSerializer(many=False),
             400: "请求失败",
         },
-        tags = ['task']
+        tags = ['ya_api']
     )
     @csrf_exempt
     def post(self, request, *args, **krgs):
@@ -1410,7 +1411,7 @@ class LLMYuAnTaskStatusApiView(mixins.ListModelMixin,
                 200: BaseApiResponseSerializer(many=False),
                 400: "请求失败",
             },
-            tags = ['task'])
+            tags = ['ya_api'])
     def get(self, request, *args, **kwargs):
         taskid = request.GET.get("taskid", None)
         if taskid is None:
@@ -1457,7 +1458,7 @@ class ResultFromTaskApiView(mixins.ListModelMixin,
                 200: BaseApiResponseSerializer(many=False),
                 400: "请求失败",
             },
-            tags = ['task'])
+            tags = ['ya_api'])
     def post(self, request, *args, **kwargs):
 
         # 根据不同的任务，启动不同的装载数据方式

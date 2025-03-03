@@ -947,7 +947,7 @@ class KgTempByCttList(mixins.ListModelMixin,
         try:
             objs =  paginator.page(page)
         except PageNotAnInteger:
-            objs = paginator.page(1)
+            objs =  paginator.page(1)
         except:
             objs = paginator.page(paginator.num_pages)
         kds = KgTemplateSerializer(data=objs, many=True)

@@ -366,29 +366,33 @@ def excel_to_dict(ddfa_file_path):
     
 
 if __name__ == "__main__":
-
-    for file in os.listdir("data/ddfa/0"):
-        file_path = f"data/ddfa/0/{file}"
-        # df = pd.read_excel(file_path, sheet_name='Sheet1')
-        # print(df.head(10))
-        plot_save_html(file_path,)
-        break
-    
-    print("="*100)
-    # # 文件列表
-    files = [
-        "调度方案单13.xlsx",
-        "调度方案单12.xlsx",
-        "调度方案单11.xlsx",
-        "调度方案单07.xlsx",
-        "调度方案单04.xlsx",
-        "调度方案单02.xlsx"
-    ]
-
-    for file in files:
-        file_path = f"data/ddfa/3/{file}"
-        plot_save_html(file_path, 3)
-        break
-
-    r = excel_to_dict("data/ddfa/3/调度方案单13.xlsx")
-    print(r)
+    file_path = "media/ddfa/0/2024-12-23.xlsx"
+    res = excel_to_dict(file_path)
+    print("res：", res)
+    # res = process_complex_header(file_path)
+    # print("res：", res)
+    # for file in os.listdir("data/ddfa/0"):
+    #     file_path = f"data/ddfa/0/{file}"
+    #     # df = pd.read_excel(file_path, sheet_name='Sheet1')
+    #     # print(df.head(10))
+    #     plot_save_html(file_path,)
+    #     break
+    #
+    # print("="*100)
+    # # # 文件列表
+    # files = [
+    #     "调度方案单13.xlsx",
+    #     "调度方案单12.xlsx",
+    #     "调度方案单11.xlsx",
+    #     "调度方案单07.xlsx",
+    #     "调度方案单04.xlsx",
+    #     "调度方案单02.xlsx"
+    # ]
+    #
+    # for file in files:
+    #     file_path = f"data/ddfa/3/{file}"
+    #     plot_save_html(file_path, 3)
+    #     break
+    #
+    # r = excel_to_dict("data/ddfa/3/调度方案单13.xlsx")
+    # print(r)

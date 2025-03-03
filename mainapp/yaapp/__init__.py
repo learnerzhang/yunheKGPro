@@ -1,5 +1,6 @@
 import pandas as pd
 import datetime
+from . import yautils
 
 
 def getYuAnParamPath(ctype, mydate):
@@ -792,7 +793,7 @@ def process_outflow(data, timestamps):
     res = "，".join(output) + "。"
     return res
 
-def generate_ddjy(file_path):
+def generate_ddjy_v1(file_path):
     """
     解析 Excel 表格数据。
 
@@ -884,6 +885,27 @@ def generate_ddjy(file_path):
     data = "三门峡水库："+smx_ddjy+"\n小浪底水库："+xld_ddjy+"\n陆浑水库："+lh_ddjy+"\n故县水库："+gx_ddjy+"\n河口村水库："+hkc_ddjy
     return data
 
+def generate_ddjy(file_path):
+    """
+    解析 Excel 表格数据。
+
+    参数:
+        file_path (str): Excel 文件路径。
+
+    返回:
+        list: 包含解析后的数据的字典列表。
+    """
+    # 读取 Excel 文件
+    skMapData, swMapData, date_list = yautils.excel_to_dict(file_path)
+    smx_ckll,xld_ckll,lh_ckll,gx_ckll,hkc_ckll = yautils.skddjy(file_path)
+    smx_ddjy = process_outflow(smx_ckll,date_list)
+    xld_ddjy = process_outflow(xld_ckll,date_list)
+    lh_ddjy = process_outflow(lh_ckll,date_list)
+    gx_ddjy = process_outflow(gx_ckll,date_list)
+    hkc_ddjy = process_outflow(hkc_ckll,date_list)
+    data = "三门峡水库："+smx_ddjy+"\n小浪底水库："+xld_ddjy+"\n陆浑水库："+lh_ddjy+"\n故县水库："+gx_ddjy+"\n河口村水库："+hkc_ddjy
+    return data
+
 def yujingdengji(shuiku_shuiwei: dict, shuiwenzhan_liuliang: dict):
     print("预警等级")
     """
@@ -931,3 +953,7 @@ def yujingdengji(shuiku_shuiwei: dict, shuiwenzhan_liuliang: dict):
         return """按照《黄河防汛抗旱应急预案》，启动四级应急响应，响应行动如下：（1）黄河防总秘书长主持会商，研究部署抗洪抢险工作，确定运行机制。响应期间，根据汛情发展变化，受黄河防总秘书长委托，可由黄河防总办公室副主任主持会商，并将情况报黄河防总秘书长。（2）根据会商意见，黄河防总办公室向相关省区防指通报关于启动防汛四级应急响应的命令及黄河汛情，对防汛工作提出要求，并向国家防办、水利部报告有关情况，必要时向黄河防总总指挥、常务副总指挥报告。（3）黄河防总办公室成员单位人员坚守工作岗位，加强防汛值班值守。按照黄委防御大洪水职责分工和机构设置，综合调度、水情测报和工情险情组等人员上岗到位。其余成员单位按照各自职责做好技术支撑、通信保障、后勤及交通保障，加强宣传报道。水情测报组及时分析天气形势并结合雨水情发展态势，做好雨情、水情、沙情的预测预报，加强与水利部信息中心、黄河流域气象中心、省区气象水文部门会商研判，每日至少制作发布气象水情预报 1 次，每日至少提供 2 次（8 时、20 时）干支流重要测站监测信息，情况紧急时根据需要加密测报。（4）黄委按照批准的洪水调度方案，结合当前汛情做好水库等水工程调度，监督指导地方水行政主管部门按照调度权限做好水工程调度。（5）黄河防总办公室根据汛情需要，及时派出工作组、专家组赶赴现场，检查、指导抗洪抢险救灾工作，核实汛情灾情。（6）有关省区防汛抗旱指挥机构负责同志主持会商，具体安排防汛工作；按照权限组织调度水工程；按照预案做好辖区内巡堤查险、抗洪抢险、群众转移安置等抗洪救灾工作，必要时请调解放军和武警部队、民兵参加重要堤段、重点工程的防守或突击抢险；派出工作组、专家组赴一线指导防汛工作；将防汛工作情况上报省级人民政府和黄河防总办公室。"""
     print("""预警等级: 按照《黄河防汛抗旱应急预案》，当前无预警""")
     return """按照《黄河防汛抗旱应急预案》，当前无预警"""
+
+# if __name__ == '__main__':
+#     res = generate_ddjy("../../mainapp/media/ddfa/2025-02-08.xlsx")
+#     print(res)
