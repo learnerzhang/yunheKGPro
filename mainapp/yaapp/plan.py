@@ -238,7 +238,7 @@ class PlanFactory:
             import pandas as pd
             import time
             yadate = self.context['plan']['yadate']
-            ddfa_excel = os.path.join("media", str(self.context['plan']['ctype']), "ddfa", f"{yadate}.xlsx")
+            ddfa_excel = os.path.join("media", "ddfa", str(self.context['plan']['ctype']), f"{yadate}.xlsx")
             if not os.path.exists(ddfa_excel):
                 raise Exception("调度方案单不存在")
             ddjy = generate_ddjy(ddfa_excel)
@@ -353,7 +353,9 @@ class PlanFactory:
             sw2image = {}
             for swname in swMapData:
                 record = swMapData[swname]
-                keys = list(record.keys())
+                print(record)
+                # keys = list(record.keys())
+                keys = record
                 if "流量" not in keys:
                     continue
                 lldata = list(record["流量"])
