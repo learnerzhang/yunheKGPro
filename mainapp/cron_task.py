@@ -35,8 +35,8 @@ def dataIndexByMinuteJob():
     tmpDI = KgDataIndex.objects.create(template_num=template_num, qa_num=qa_num,
                                        rel_num=rel_num, ent_num=ent_num, doc_num=doc_num,
                                        span_type=0, span_value="{}时{}分".format(hour, minute),
-                                       update_time=datetime.now(),
-                                       create_time=datetime.now())
+                                       updated_at=datetime.now(),
+                                       created_at=datetime.now())
     tmpDI.save()
     print('{} 任务运行成功！{}'.format(tmpDI, time.strftime("%Y-%m-%d %H:%M:%S")))
 
@@ -57,8 +57,8 @@ def dataIndexByHourJob():
     tmpDI = KgDataIndex.objects.create(template_num=template_num, qa_num=qa_num,
                                        rel_num=rel_num, ent_num=ent_num, doc_num=doc_num,
                                        span_type=1, span_value="{}日{}时".format(day, hour),
-                                       update_time=datetime.now(),
-                                       create_time=datetime.now())
+                                       updated_at=datetime.now(),
+                                       created_at=datetime.now())
 
     tmpDI.save()
     print('{} 任务运行成功！{}'.format(tmpDI, time.strftime("%Y-%m-%d %H:%M:%S")))
@@ -81,8 +81,8 @@ def dataIndexByDayJob():
     tmpDI = KgDataIndex.objects.create(template_num=template_num, qa_num=qa_num,
                                        rel_num=rel_num, ent_num=ent_num, doc_num=doc_num,
                                        span_type=2, span_value="{}月{}日".format(month, day),
-                                       update_time=datetime.now(),
-                                       create_time=datetime.now())
+                                       updated_at=datetime.now(),
+                                       created_at=datetime.now())
 
     tmpDI.save()
     print('{} 任务运行成功！{}'.format(tmpDI, time.strftime("%Y-%m-%d %H:%M:%S")))
@@ -106,8 +106,8 @@ def dataIndexByMonthJob():
     tmpDI = KgDataIndex.objects.create(template_num=template_num, qa_num=qa_num,
                                        rel_num=rel_num, ent_num=ent_num, doc_num=doc_num,
                                        span_type=3, span_value="{}年{}月".format(year, month),
-                                       update_time=datetime.now(),
-                                       create_time=datetime.now())
+                                       updated_at=datetime.now(),
+                                       created_at=datetime.now())
     tmpDI.save()
     print('{} 任务运行成功！{}'.format(tmpDI, time.strftime("%Y-%m-%d %H:%M:%S")))
 

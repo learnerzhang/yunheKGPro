@@ -116,9 +116,9 @@ class DataModelAPIView(generics.GenericAPIView):
                               required=True),
             openapi.Parameter('user_name', openapi.IN_FORM, description='创建用户名称', type=openapi.TYPE_STRING,
                               required=False),
-            openapi.Parameter('update_time', openapi.IN_FORM, description='更新时间', type=openapi.TYPE_STRING,
+            openapi.Parameter('updated_at', openapi.IN_FORM, description='更新时间', type=openapi.TYPE_STRING,
                               required=False),
-            openapi.Parameter('create_time', openapi.IN_FORM, description='创建时间', type=openapi.TYPE_STRING,
+            openapi.Parameter('created_at', openapi.IN_FORM, description='创建时间', type=openapi.TYPE_STRING,
                               required=False),
         ],
         responses={
@@ -181,8 +181,8 @@ class DataModelAPIView(generics.GenericAPIView):
                 version=request.data.get('version'),
                 business_tag=business_tag,  # 添加 business_tag
                 no=request.data.get('no'),
-                create_time=request.data.get('create_time', datetime.now()),
-                update_time=request.data.get('update_time', datetime.now())
+                created_at=request.data.get('created_at', datetime.now()),
+                updated_at=request.data.get('updated_at', datetime.now())
             )
             model.save()
 
@@ -432,14 +432,14 @@ class DataModelUpdateAPIView(generics.GenericAPIView):
                 required=False
             ),
             openapi.Parameter(
-                'update_time',
+                'updated_at',
                 openapi.IN_FORM,
                 description='更新时间',
                 type=openapi.TYPE_INTEGER,
                 required=False
             ),
             openapi.Parameter(
-                'create_time',
+                'created_at',
                 openapi.IN_FORM,
                 description='创建时间',
                 type=openapi.TYPE_INTEGER,
@@ -506,7 +506,7 @@ class DataModelUpdateAPIView(generics.GenericAPIView):
             model.desc = request.data.get('desc', model.desc)  # 保持原值如未提供
             model.version = request.data.get('version', model.version)  # 保持原值如未提供
             model.no = request.data.get('no', model.no)  # 保持原值如未提供
-            model.update_time = datetime.now()  # 更新当前时间
+            model.updated_at = datetime.now()  # 更新当前时间
             # 更新业务标签
             kgTag_id = request.data.get('kgTag_id')
             if kgTag_id is not None:
@@ -622,10 +622,10 @@ class DataModelSearchAPIView(mixins.ListModelMixin,
         if keyword:
             querySet = querySet.filter(name__icontains=keyword)  # 使用不区分大小写的匹配
         if start_time:
-            querySet = querySet.filter(create_time__gte=start_time)  # 包含开始时间
+            querySet = querySet.filter(created_at__gte=start_time)  # 包含开始时间
         if end_time:
-            querySet = querySet.filter(create_time__lte=end_time)  # 包含结束时间
-        querySet = querySet.order_by('-update_time')  # 按更新时间降序排列
+            querySet = querySet.filter(created_at__lte=end_time)  # 包含结束时间
+        querySet = querySet.order_by('-updated_at')  # 按更新时间降序排列
 
         data['total'] = querySet.count()  # 获取总记录数
         data['page'] = page
@@ -674,8 +674,8 @@ class DataModelParamAPIView(generics.GenericAPIView):
                                 'necessary': openapi.Schema(type=openapi.TYPE_INTEGER, description='是否为必须参数'),
                                 'activate': openapi.Schema(type=openapi.TYPE_INTEGER, description='激活状态'),
                                 'kg_model_id': openapi.Schema(type=openapi.TYPE_INTEGER, description='关联模型ID'),
-                                'update_time': openapi.Schema(type=openapi.TYPE_STRING, description='更新时间'),
-                                'create_time': openapi.Schema(type=openapi.TYPE_STRING, description='创建时间'),
+                                'updated_at': openapi.Schema(type=openapi.TYPE_STRING, description='更新时间'),
+                                'created_at': openapi.Schema(type=openapi.TYPE_STRING, description='创建时间'),
                             }
                         )
                     )
@@ -715,8 +715,8 @@ class DataModelParamAPIView(generics.GenericAPIView):
                     'necessary': param.necessary,
                     'activate': param.activate,
                     'kg_model_id': param.model_id,  # 使用 model_id 属性
-                    'update_time': param.update_time.isoformat() if param.update_time else None,
-                    'create_time': param.create_time.isoformat() if param.create_time else None,
+                    'updated_at': param.updated_at.isoformat() if param.updated_at else None,
+                    'created_at': param.created_at.isoformat() if param.created_at else None,
                 }
                 for param in params
             ]
@@ -938,8 +938,8 @@ class DataParamAddApiView(generics.GenericAPIView):
             data_model_param.necessary = necessary
             data_model_param.activate = 0
             data_model_param.default = default
-            data_model_param.create_time = datetime.now()
-            data_model_param.update_time = datetime.now()
+            data_model_param.created_at = datetime.now()
+            data_model_param.updated_at = datetime.now()
             data_model_param.save()
             serializer = DataModelParamSerializer(data_model_param)
             return Response({"code": 200, "msg": "参数创建成功", "data": serializer.data}, status=status.HTTP_200_OK)
@@ -1000,8 +1000,8 @@ class DataParamBatchAddApiView(generics.GenericAPIView):
                     data_model_param.necessary = necessary
                     data_model_param.activate = 0
                     data_model_param.default = default
-                    data_model_param.create_time = datetime.now()
-                    data_model_param.update_time = datetime.now()
+                    data_model_param.created_at = datetime.now()
+                    data_model_param.updated_at = datetime.now()
                     data_model_param.save()
                     success_cnt += 1
                 else:
@@ -1058,7 +1058,7 @@ class DataParamUpdateApiView(generics.GenericAPIView):
                 data_model_param.default = default
             if necessary is not None:
                 data_model_param.necessary = necessary
-            data_model_param.update_time = datetime.now()
+            data_model_param.updated_at = datetime.now()
             data_model_param.save()
 
             return Response({"code": 200, "msg": "参数更新成功"}, status=status.HTTP_200_OK)
@@ -1110,7 +1110,7 @@ class DataParamBatchUpdateApiView(generics.GenericAPIView):
                 data_model_param.desc = desc if desc is not None else data_model_param.desc
                 data_model_param.default = default if default is not None else data_model_param.default
                 data_model_param.necessary = necessary if necessary is not None else data_model_param.necessary
-                data_model_param.update_time = datetime.now()
+                data_model_param.updated_at = datetime.now()
                 data_model_param.save()
                 success_count += 1
             except DataModelParam.DoesNotExist:
@@ -1528,8 +1528,8 @@ class OpenapiFormatAPI(generics.GenericAPIView):
             # print(f"激活状态: {data_model.activate}")
             # print(f"创建作者ID: {data_model.user_id}")
             # print(f"创建作者名称: {data_model.user_name}")
-            # print(f"更新时间: {data_model.update_time}")
-            # print(f"创建时间: {data_model.create_time}")
+            # print(f"更新时间: {data_model.updated_at}")
+            # print(f"创建时间: {data_model.created_at}")
             # 调用 generate_swagger 函数生成 OpenAPI 文档
             swagger_json = self.generate_swagger(data_model)
             return Response(json.loads(swagger_json), status=status.HTTP_200_OK)
@@ -1733,10 +1733,10 @@ class AppAPIList(mixins.ListModelMixin,
         if keyword is not None and len(keyword) > 0:
             querySet = querySet.filter(appname__contains="{}".format(keyword))
         if start_time:
-            querySet = querySet.filter(create_time__gt="{}".format(start_time))
+            querySet = querySet.filter(created_at__gt="{}".format(start_time))
         if end_time:
-            querySet = querySet.filter(create_time__lt="{}".format(end_time))
-        querySet = querySet.all().order_by('-update_time')
+            querySet = querySet.filter(created_at__lt="{}".format(end_time))
+        querySet = querySet.all().order_by('-updated_at')
         # querySet = KgDoc.objects.all()
         data['total'] = len(querySet)
         data['page'] = page

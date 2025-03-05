@@ -6,7 +6,7 @@ from rest_framework import routers, serializers, viewsets
 # class KgModelSerializer(serializers.HyperlinkedModelSerializer):
 #     class Meta:
 #         model = KgModel
-#         fields = ['name', 'no', 'function', 'desc', 'url', 'version', "activate", "kg_user_id", "update_time", "create_time"]
+#         fields = ['name', 'no', 'function', 'desc', 'url', 'version', "activate", "kg_user_id", "updated_at", "created_at"]
 
 # # ViewSets define the view behavior.
 # class KgModelViewSet(viewsets.ModelViewSet):
@@ -18,7 +18,7 @@ from rest_framework import routers, serializers, viewsets
 # class KgModelParamSerializer(serializers.HyperlinkedModelSerializer):
 #     class Meta:
 #         model = KgModelParam
-#         fields = ['name', 'type', 'necessary', 'activate', 'kg_model_id', "update_time", "create_time"]
+#         fields = ['name', 'type', 'necessary', 'activate', 'kg_model_id', "updated_at", "created_at"]
 
 # # ViewSets define the view behavior.
 # class KgModelParamViewSet(viewsets.ModelViewSet):
@@ -37,8 +37,8 @@ class KgModelSerializer(serializers.Serializer):
     activate = serializers.IntegerField()
     req_type = serializers.IntegerField()
     user_name = serializers.CharField(max_length=50)
-    update_time = serializers.DateTimeField()
-    create_time = serializers.DateTimeField()
+    updated_at = serializers.DateTimeField()
+    created_at = serializers.DateTimeField()
 
 
 class KgModelDetailResponseSerializer(serializers.Serializer):
@@ -73,8 +73,8 @@ class KgModelParamSerializer(serializers.Serializer):
     default = serializers.CharField(max_length=200)
     model_id = serializers.IntegerField()
     necessary = serializers.IntegerField()
-    update_time = serializers.DateTimeField()
-    create_time = serializers.DateTimeField()
+    updated_at = serializers.DateTimeField()
+    created_at = serializers.DateTimeField()
 
 class KgModelParamResponseSerializer(serializers.Serializer):
     total = serializers.IntegerField()

@@ -16,8 +16,8 @@ class DataModelSerializer(serializers.Serializer):
     activate = serializers.IntegerField()
     req_type = serializers.IntegerField()
     user_name = serializers.CharField(max_length=50)
-    update_time = serializers.DateTimeField()
-    create_time = serializers.DateTimeField()
+    updated_at = serializers.DateTimeField()
+    created_at = serializers.DateTimeField()
     kgTag_id = serializers.IntegerField(source='business_tag.id', required=False)  # 添加 kgTag_id 字段
 
     def to_representation(self, instance):
@@ -62,8 +62,8 @@ class DataModelParamSerializer(serializers.Serializer):
     default = serializers.CharField(max_length=200)
     model_id = serializers.IntegerField()
     necessary = serializers.IntegerField()
-    update_time = serializers.DateTimeField()
-    create_time = serializers.DateTimeField()
+    updated_at = serializers.DateTimeField()
+    created_at = serializers.DateTimeField()
 
 
 class DataModelParamResponseSerializer(serializers.Serializer):

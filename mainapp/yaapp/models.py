@@ -58,8 +58,8 @@ class PtBusiness(models.Model):
     name = models.CharField(max_length=200, verbose_name="业务名称", help_text="业务名称", unique=False)
     code = models.CharField(max_length=10, verbose_name="业务代号", help_text="业务代号", unique=False)
     desc = models.CharField(max_length=512, verbose_name="业务描述", help_text="业务描述", unique=False, null=True, blank=True)
-    update_time = models.DateTimeField(verbose_name="更新时间", null=True)
-    create_time = models.DateTimeField(verbose_name="创建时间", null=True)
+    updated_at = models.DateTimeField(verbose_name="更新时间", null=True)
+    created_at = models.DateTimeField(verbose_name="创建时间", null=True)
 
     def __str__(self):
         return str(self.name)

@@ -44,8 +44,8 @@ class Menu(models.Model):
                                    null=True, default=1, blank=True)
     hideMenu = models.IntegerField(choices=((0, '隐藏'), (1, '显示')), verbose_name="是否显示", help_text="是否显示", unique=False,
                                    null=True, default=1, blank=True)
-    update_time = models.DateTimeField(verbose_name="更新时间", null=True, default=datetime.datetime.now())
-    create_time = models.DateTimeField(verbose_name="创建时间", null=True, default=datetime.datetime.now())
+    updated_at = models.DateTimeField(verbose_name="更新时间", null=True, default=datetime.datetime.now())
+    created_at = models.DateTimeField(verbose_name="创建时间", null=True, default=datetime.datetime.now())
 
     def __str__(self):
         return str(self.id) + " #@ " + str(self.name) + " #@ " + str(self.menu_type) + " #@ " + str(self.desc)
@@ -64,8 +64,8 @@ class Role(models.Model):
     remark = models.CharField(max_length=512, verbose_name="备注", help_text="备注", unique=False)
     activate = models.IntegerField(max_length=1, verbose_name="激活状态", help_text="激活状态", unique=False, null=True,
                                    default=1)
-    update_time = models.DateTimeField(verbose_name="更新时间", null=True, default=datetime.datetime.now())
-    create_time = models.DateTimeField(verbose_name="创建时间", null=True, default=datetime.datetime.now())
+    updated_at = models.DateTimeField(verbose_name="更新时间", null=True, default=datetime.datetime.now())
+    created_at = models.DateTimeField(verbose_name="创建时间", null=True, default=datetime.datetime.now())
 
     @property
     def menus_list(self):

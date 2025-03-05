@@ -15,6 +15,7 @@ Including another URLconf
 """
 from django.urls import path
 from . import views
+from . import knowledge_views
 
 urlpatterns = [
     path('api/outline', views.OutlineApiView.as_view()),
@@ -23,4 +24,12 @@ urlpatterns = [
     path('api/text2sql', views.OlineText2SQLApiView.as_view()),
     path('api/text_extends', views.TextExtentApiView.as_view()),
     path('api/graphquery', views.GraphQueryApiView.as_view()),
+    path("knowledge/upload", knowledge_views.KnowledgeUploadApiView.as_view()),
+    path('knowledge/train', knowledge_views.KnowledgeTrainTaskApiView.as_view()),
+    path('knowledge/parse', knowledge_views.KnowledgeDocParseTaskApiView.as_view()),
+    path('knowledge/batchparse', knowledge_views.KnowledgeDocBatchParseTaskApiView.as_view()),
+    path('knowledge/add', knowledge_views.KnowledgeAddApiView.as_view()),
+    path('knowledge/del', knowledge_views.KnowledgeDeleteApiView.as_view()),
+    path('knowledge/list', knowledge_views.KnowledgeListApiView.as_view()),
+    path('knowledge/retrieval', knowledge_views.KnowledgeRetrieval.as_view()),
 ]

@@ -134,10 +134,10 @@ class KgDataIndexApiView(mixins.ListModelMixin,
         if span_type is not None:
             querySet = querySet.filter(span_type=span_type)
         if start_time:
-            querySet = querySet.filter(create_time__gt="{}".format(start_time))
+            querySet = querySet.filter(created_at__gt="{}".format(start_time))
         if end_time:
-            querySet = querySet.filter(create_time__lte="{}".format(end_time))
-        querySet = querySet.all().order_by('create_time')
+            querySet = querySet.filter(created_at__lte="{}".format(end_time))
+        querySet = querySet.all().order_by('created_at')
         dataList = collections.defaultdict(list)
         attrs = ['template_num', 'qa_num', 'rel_num', 'doc_num', 'ent_num']
         spans = []
@@ -472,9 +472,9 @@ class KgDocByCttList(mixins.ListModelMixin,
         if prodflag:
             querySet = querySet.filter(prodflag=1)
         if start_time:
-            querySet = querySet.filter(create_time__gt="{}".format(start_time))
+            querySet = querySet.filter(created_at__gt="{}".format(start_time))
         if end_time:
-            querySet = querySet.filter(create_time__lt="{}".format(end_time))
+            querySet = querySet.filter(created_at__lt="{}".format(end_time))
         querySet = querySet.all().order_by('-star')
         # querySet = KgDoc.objects.all()
         data['total'] = len(querySet)
@@ -704,8 +704,8 @@ class DocAddApiView(generics.GenericAPIView):
             if desc:
                 tmpdoc.desc = desc
             tmpdoc.star = star
-            tmpdoc.create_time = datetime.now()
-            tmpdoc.update_time = datetime.now()
+            tmpdoc.created_at = datetime.now()
+            tmpdoc.updated_at = datetime.now()
             tmpdoc.path = filepath
             tmpdoc.type = filetype
             tmpdoc.size = os.stat(new_path).st_size
@@ -857,8 +857,8 @@ class DocBatchAddApiView(generics.GenericAPIView):
                 filepath = os.path.join("docs", new_filename)
                 tmpdoc = KgDoc.objects.filter(title=filename, kg_table_content_id=tmpctc).first()
                 if dflag == 0 and tmpdoc is not None:
-                    tmpdoc.create_time = datetime.now()
-                    tmpdoc.update_time = datetime.now()
+                    tmpdoc.created_at = datetime.now()
+                    tmpdoc.updated_at = datetime.now()
                     tmpdoc.path = filepath
                     tmpdoc.type = filetype
                     tmpdoc.star = star
@@ -1120,7 +1120,7 @@ class DocUpdateApiView(generics.GenericAPIView):
                 tmpdoc.kg_table_content_id = tmpctc
             except:
                 pass
-        tmpdoc.update_time = datetime.now()
+        tmpdoc.updated_at = datetime.now()
         tmpdoc.save()
         data = {"code": 200, "msg": "文档更新成功"}
         serializers = KgDocResponseSerializer(data=data, many=False)
@@ -1164,7 +1164,7 @@ class DocBatchUpdateApiView(generics.GenericAPIView):
             for td in tmpdocs:
                 td.prodflag = 0
                 td.desc = ""
-                td.update_time = datetime.now()
+                td.updated_at = datetime.now()
                 td.save()
             data = {"code": 200, "msg": "文档删除成功"}
         else:
@@ -1332,7 +1332,7 @@ class KgTabTagList(mixins.ListModelMixin,
         page = request.GET.get("page", 1)
         pageSize = request.GET.get("pageSize", 10)
         if keyword:
-            values = KgTabTag.objects.filter(name__icontains=keyword).all().order_by('-update_time')
+            values = KgTabTag.objects.filter(name__icontains=keyword).all().order_by('-updated_at')
         else:
             values = KgTabTag.objects.all()
 
@@ -1419,13 +1419,13 @@ class KgTagByTabList(mixins.ListModelMixin,
                     if keyword not in t.name:
                         continue
                 if start_time and end_time:
-                    if start_time < t.create_time < end_time:
+                    if start_time < t.created_at < end_time:
                         querySet.append(t)
                 elif start_time:
-                    if start_time < t.create_time:
+                    if start_time < t.created_at:
                         querySet.append(t)
                 elif end_time:
-                    if t.create_time < end_time:
+                    if t.created_at < end_time:
                         querySet.append(t)
                 else:
                     querySet.append(t)
@@ -1434,9 +1434,9 @@ class KgTagByTabList(mixins.ListModelMixin,
             if keyword is not None and len(keyword) > 0:
                 querySet = querySet.filter(name__contains="{}".format(keyword))
             if start_time:
-                querySet = querySet.filter(create_time__gt="{}".format(start_time))
+                querySet = querySet.filter(created_at__gt="{}".format(start_time))
             if end_time:
-                querySet = querySet.filter(create_time__lt="{}".format(end_time))
+                querySet = querySet.filter(created_at__lt="{}".format(end_time))
             querySet = querySet.all()
 
         # querySet = KgDoc.objects.all()
@@ -1484,8 +1484,8 @@ class TabTagAddApiView(mixins.ListModelMixin,
             try:
                 tmptag, tmpbool = KgTabTag.objects.get_or_create(name=name)
                 if tmpbool:
-                    tmptag.create_time = datetime.now()
-                    tmptag.update_time = datetime.now()
+                    tmptag.created_at = datetime.now()
+                    tmptag.updated_at = datetime.now()
                     tmptag.save()
                     serializers = KgTagResponseSerializer(data={"code": 200, "msg": "新建标签成功", "data": tmptag.toJson()},
                                                           many=False)
@@ -1582,8 +1582,8 @@ class TabTagAddTagApiView(mixins.ListModelMixin,
                     tt, tb = KgTag.objects.get_or_create(name=tmpstr)
                     if tb:
                         tt.desc = desc
-                        tt.create_time = datetime.now()
-                        tt.update_time = datetime.now()
+                        tt.created_at = datetime.now()
+                        tt.updated_at = datetime.now()
                         tt.save()
                     tmptabtag.tags.add(tt)
                 tmptabtag.save()
@@ -1674,7 +1674,7 @@ class KgTagList(mixins.ListModelMixin,
         page = request.GET.get("page", 1)
         pageSize = request.GET.get("pageSize", 10)
         if keyword:
-            values = KgTag.objects.filter(name__icontains=keyword).all().order_by('-update_time')
+            values = KgTag.objects.filter(name__icontains=keyword).all().order_by('-updated_at')
         else:
             values = KgTag.objects.all()
 
@@ -1725,8 +1725,8 @@ class TagAddApiView(mixins.ListModelMixin,
                 tmptag, tmpbool = KgTag.objects.get_or_create(name=name)
                 if tmpbool:
                     tmptag.desc = desc
-                    tmptag.create_time = datetime.now()
-                    tmptag.update_time = datetime.now()
+                    tmptag.created_at = datetime.now()
+                    tmptag.updated_at = datetime.now()
                     tmptag.save()
                     serializers = KgTagResponseSerializer(data={"code": 200, "msg": "新建标签成功", "data": tmptag.toJson()},
                                                           many=False)
@@ -1897,7 +1897,7 @@ class KgTabCTTList(mixins.ListModelMixin,
             return tree
 
         data = {"code": 200}
-        ctts = KgTableContent.objects.all().order_by('-update_time')
+        ctts = KgTableContent.objects.all().order_by('-updated_at')
 
         tmpctts = [model_to_dict(ctt) for ctt in ctts]
         data['tabctt'] = arr2tree(tmpctts, 0)
@@ -2094,9 +2094,9 @@ class KgText2SqlList(mixins.ListModelMixin,
         pageSize = request.GET.get("pageSize", 10000)
 
         if keyword:
-            querySet = KgText2SQL.objects.filter(query__contains="{}".format(keyword)).order_by('-update_time')
+            querySet = KgText2SQL.objects.filter(query__contains="{}".format(keyword)).order_by('-updated_at')
         else:
-            querySet = KgText2SQL.objects.all().order_by('-update_time')
+            querySet = KgText2SQL.objects.all().order_by('-updated_at')
         data['total'] = len(querySet)
         data['page'] = page
         data['pageSize'] = pageSize

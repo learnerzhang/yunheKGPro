@@ -1360,8 +1360,8 @@ class LLMYuAnTaskApiView(generics.GenericAPIView):
             
 
             tmptask = KgProductTask()
-            tmptask.create_time = datetime.now()
-            tmptask.update_time = datetime.now()
+            tmptask.created_at = datetime.now()
+            tmptask.updated_at = datetime.now()
             tmptask.name = name
             tmptask.desc = desc
             tmptask.task_type = taskType

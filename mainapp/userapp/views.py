@@ -574,8 +574,8 @@ class RoleAddorUpdateApiView(generics.GenericAPIView):
                 'user_id': openapi.Schema(type=openapi.TYPE_INTEGER, description="用户ID"),
                 'remark': openapi.Schema(type=openapi.TYPE_STRING, description="备注"),
                 'activate': openapi.Schema(type=openapi.TYPE_INTEGER, description="激活状态"),
-                'update_time': openapi.Schema(type=openapi.FORMAT_DATETIME, description="更新时间"),
-                'create_time': openapi.Schema(type=openapi.FORMAT_DATETIME, description="创建时间"),
+                'updated_at': openapi.Schema(type=openapi.FORMAT_DATETIME, description="更新时间"),
+                'created_at': openapi.Schema(type=openapi.FORMAT_DATETIME, description="创建时间"),
             },
         ),
         responses={
@@ -590,8 +590,8 @@ class RoleAddorUpdateApiView(generics.GenericAPIView):
         user_id = request.data.get("lastname", None)
         remark = request.data.get("firstname", None)
         activate = request.data.get("password", None)
-        update_time = request.data.get("name", None)
-        create_time = request.data.get("sex", None)
+        updated_at = request.data.get("name", None)
+        created_at = request.data.get("sex", None)
 
         data = {}
 
@@ -664,7 +664,7 @@ class KgMenuList(mixins.ListModelMixin,
             return tree
 
         data = {"code": 200}
-        menus = Menu.objects.all().order_by('-update_time')
+        menus = Menu.objects.all().order_by('-updated_at')
         tmpms = [model_to_dict(m) for m in menus]
         data['menus'] = arr2tree(tmpms, 0)
         serializers = KgMenuResponseSerializer(data=data, many=False)
@@ -780,13 +780,13 @@ class KgMenuAddByUser(generics.GenericAPIView):
                     enum=[0, 1],
                     default=1
                 ),
-                'update_time': openapi.Schema(
+                'updated_at': openapi.Schema(
                     type=openapi.TYPE_STRING,
                     description='更新时间',
                     format=openapi.FORMAT_DATETIME,
                     default=timezone.now().isoformat()
                 ),
-                'create_time': openapi.Schema(
+                'created_at': openapi.Schema(
                     type=openapi.TYPE_STRING,
                     description='创建时间',
                     format=openapi.FORMAT_DATETIME,
@@ -813,8 +813,8 @@ class KgMenuAddByUser(generics.GenericAPIView):
         rank = request.data.get("rank", 0)
         activate = request.data.get("activate", 1)
         hideMenu = request.data.get("hideMenu", 1)
-        update_time = request.data.get("update_time", timezone.now().isoformat())
-        create_time = request.data.get("create_time", timezone.now().isoformat())
+        updated_at = request.data.get("updated_at", timezone.now().isoformat())
+        created_at = request.data.get("created_at", timezone.now().isoformat())
 
         if uid is None or title is None or menu_type is None:
             return Response({"code": 400, "msg": "缺少必要参数！"}, status=status.HTTP_400_BAD_REQUEST)
@@ -836,8 +836,8 @@ class KgMenuAddByUser(generics.GenericAPIView):
                 rank=rank,
                 activate=activate,
                 hideMenu=hideMenu,
-                create_time=create_time,
-                update_time=update_time
+                created_at=created_at,
+                updated_at=updated_at
             )
 
             # 将新菜单添加到用户的角色中
@@ -945,7 +945,7 @@ class KgMenuUpdateByUser(generics.GenericAPIView):
             type=openapi.TYPE_OBJECT,
             required=['uid', 'menu_id', 'menu_type', 'title', 'desc', 'icon', 'img', 'path',
                       'redirect', 'component', 'rank', 'father_id', 'activate', 'hideMenu',
-                      'update_time', 'create_time'],  # 所有字段均为必填项
+                      'updated_at', 'created_at'],  # 所有字段均为必填项
             properties={
                 'uid': openapi.Schema(type=openapi.TYPE_INTEGER, description="用户ID"),
                 'menu_id': openapi.Schema(type=openapi.TYPE_INTEGER, description="菜单ID"),
@@ -968,12 +968,12 @@ class KgMenuUpdateByUser(generics.GenericAPIView):
                                            default=1, enum=[0, 1]),
                 'hideMenu': openapi.Schema(type=openapi.TYPE_INTEGER, description="是否显示 0|1",
                                            default=1, enum=[0, 1]),
-                'update_time': openapi.Schema(
+                'updated_at': openapi.Schema(
                     type=openapi.TYPE_STRING,
                     description="更新时间",
                     format=openapi.FORMAT_DATETIME
                 ),
-                'create_time': openapi.Schema(
+                'created_at': openapi.Schema(
                     type=openapi.TYPE_STRING,
                     description="创建时间",
                     format=openapi.FORMAT_DATETIME
@@ -1008,8 +1008,8 @@ class KgMenuUpdateByUser(generics.GenericAPIView):
         father_id = data.get("father_id", 0)
         activate = data.get("activate", 1)
         hideMenu = data.get("hideMenu", 1)
-        create_time = data.get("create_time")
-        update_time = timezone.now()  # 更新当前时间
+        created_at = data.get("created_at")
+        updated_at = timezone.now()  # 更新当前时间
 
         # 验证必填项
         if not uid or not title or not menu_id:
@@ -1044,8 +1044,8 @@ class KgMenuUpdateByUser(generics.GenericAPIView):
             menu.father_id = father_id
             menu.activate = activate
             menu.hideMenu = hideMenu
-            menu.create_time = create_time  # 如果需要更新创建时间
-            menu.update_time = update_time  # 更新当前时间
+            menu.created_at = created_at  # 如果需要更新创建时间
+            menu.updated_at = updated_at  # 更新当前时间
             menu.save()  # 保存更改
 
             return Response({"code": 200, "msg": "菜单更新成功！"}, status=status.HTTP_200_OK)
@@ -1100,8 +1100,8 @@ class KgMenuRetrieveByUser(generics.GenericAPIView):
             #         "father_id": menu.father_id,
             #         "activate": menu.activate,
             #         "hideMenu": menu.hideMenu,
-            #         "create_time": menu.create_time,
-            #         "update_time": menu.update_time,
+            #         "created_at": menu.created_at,
+            #         "updated_at": menu.updated_at,
             #     })
 
             response_data = {

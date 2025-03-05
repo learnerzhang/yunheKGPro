@@ -42,8 +42,8 @@ def populate_db():
         father_id=0,  # 顶级菜单
         activate=1,   # 激活
         hideMenu=1,   # 显示
-        create_time=timezone.now(),
-        update_time=timezone.now()
+        created_at=timezone.now(),
+        updated_at=timezone.now()
     )
     print(f"菜单创建成功: {menu1.title}")
 
@@ -62,8 +62,8 @@ def populate_db():
         father_id=menu1.id,  # 关联到父级菜单
         activate=1,          # 激活
         hideMenu=1,          # 显示
-        create_time=timezone.now(),
-        update_time=timezone.now()
+        created_at=timezone.now(),
+        updated_at=timezone.now()
     )
     print(f"菜单创建成功: {menu2.title}")
     menu2 = Menu.objects.create(
@@ -81,8 +81,8 @@ def populate_db():
         father_id=menu1.id,  # 关联到父级菜单
         activate=1,          # 激活
         hideMenu=1,          # 显示
-        create_time=timezone.now(),
-        update_time=timezone.now()
+        created_at=timezone.now(),
+        updated_at=timezone.now()
     )
     print(f"菜单创建成功: {menu2.title}")
     # 创建角色并关联菜单
@@ -91,8 +91,8 @@ def populate_db():
         user_id=user.id,
         remark='具有管理员权限',
         activate=1,
-        create_time=timezone.now(),
-        update_time=timezone.now()
+        created_at=timezone.now(),
+        updated_at=timezone.now()
     )
     role.menus.add(menu1, menu2)  # 将菜单关联到角色
     print(f"角色创建成功: {role.name}，并关联菜单。")

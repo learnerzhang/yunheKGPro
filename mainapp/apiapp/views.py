@@ -416,8 +416,8 @@ class OlineText2SQLApiView(generics.GenericAPIView):
                 tmpts, tmpb = KgText2SQL.objects.get_or_create(query=query)
                 if tmpb:
                     tmpts.sql_ctt = sql_text
-                    tmpts.create_time = datetime.now()
-                    tmpts.update_time = datetime.now()
+                    tmpts.created_at = datetime.now()
+                    tmpts.updated_at = datetime.now()
                     tmpts.save()
                 else:
                     print(f"问题 {query} 已经存在!")

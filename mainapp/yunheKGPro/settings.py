@@ -207,7 +207,9 @@ ELASTICSEARCH_DSL = {
 
 
 TTF_PATH = "arial.ttf"
+MODEL_PATH = "D:\\data\\models\\bge-large-zh"
 if sys.platform.startswith('linux'):
+    MODEL_PATH = "/data/bge-large-zh"
     DATA_DIR_PATH = "/data/nmc"
     TTF_PATH = "/usr/share/fonts/dejavu/DejaVuSans.ttf"
     DATABASES = {
@@ -227,10 +229,10 @@ if sys.platform.startswith('linux'):
             'http_auth': (ES_USER, ES_PWD)
         },
     }
-    
 
     print('当前系统为 Linux')
 elif sys.platform.startswith('win'):
+    MODEL_PATH = "D:\\data\\models\\bge-large-zh"
     DATA_DIR_PATH = "D:\\data\\nmc\\"
     TTF_PATH = "arial.ttf"
     DATABASES = {

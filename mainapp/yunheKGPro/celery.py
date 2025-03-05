@@ -8,10 +8,15 @@ from typing import List
 from celery import Celery
 from celery import shared_task
 import time
+import jieba
+import jieba.analyse
 import codecs
 import re
 import pandas as pd
-
+from langchain_community.document_loaders import PyPDFLoader, TextLoader, Docx2txtLoader, JSONLoader
+from langchain_ollama import OllamaEmbeddings, OllamaLLM
+from langchain.text_splitter import RecursiveCharacterTextSplitter
+from yunheKGPro.settings import MODEL_PATH
 from yunheKGPro.neo import Neo4j
 
 os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'yunheKGPro.settings')
@@ -104,8 +109,8 @@ def importGraphKgByCelery(paramdict):
                 tmp, tmpb = KgEntity.objects.get_or_create(name=tmpname, type=tmptype, task=tmpTask)
                 if tmpb:
                     success_cnt += 1
-                    tmp.create_time = datetime.now()
-                    tmp.update_time = datetime.now()
+                    tmp.created_at = datetime.now()
+                    tmp.updated_at = datetime.now()
                     tmp.save()
 
                 # 入库操作
@@ -124,8 +129,8 @@ def importGraphKgByCelery(paramdict):
                         tmpatt, tmpattb = KgEntityAtt.objects.get_or_create(attname=att['attName'],
                                                                             atttvalue=att['attvalue'])
                         if tmpattb:
-                            tmpatt.create_time = datetime.now()
-                            tmpatt.update_time = datetime.now()
+                            tmpatt.created_at = datetime.now()
+                            tmpatt.updated_at = datetime.now()
                             tmpatt.save()
                         tmp.atts.add(tmpatt)
                     except:
@@ -137,8 +142,8 @@ def importGraphKgByCelery(paramdict):
                 for tag in tmptags:
                     tmptag, tmptagb = KgTag.objects.get_or_create(name=tag['name'])
                     if tmptagb:
-                        tmptag.create_time = datetime.now()
-                        tmptag.update_time = datetime.now()
+                        tmptag.created_at = datetime.now()
+                        tmptag.updated_at = datetime.now()
                         tmptag.save()
                     tmp.tags.add(tmptag)
                 tmp.save()
@@ -168,8 +173,8 @@ def importGraphKgByCelery(paramdict):
                     tmprel, tmprelb = KgRelation.objects.get_or_create(from_nodeid=tmp.id, name=relname,
                                                                        to_nodeid=toEnt.id, task=tmpTask)
                     if tmprelb:
-                        tmprel.create_time = datetime.now()
-                        tmprel.update_time = datetime.now()
+                        tmprel.created_at = datetime.now()
+                        tmprel.updated_at = datetime.now()
                         relation_cnt += 1
                     else:
                         print("KgRel 已经存在", tmprel)
@@ -220,8 +225,8 @@ def loadGraphKgFromDoc(paramdict):
             # -> KgEntityScheme 增加实体约束
             tmpEnt, tmpBool = KgEntityScheme.objects.get_or_create(name=kEntType)
             if tmpBool:
-                tmpEnt.create_time = datetime.now()
-                tmpEnt.update_time = datetime.now()
+                tmpEnt.created_at = datetime.now()
+                tmpEnt.updated_at = datetime.now()
                 tmpEnt.save()
 
             rels = [rel.name for rel in KgRelationScheme.objects.all()]
@@ -283,8 +288,8 @@ def loadGraphKgFromDoc(paramdict):
             for k, ent in att2Ent.items():
                 tmeas, tmab = KgEntityAttrScheme.objects.get_or_create(attname=ent['attName'], atttype=ent['atttype'], attmulti=0, attdesc=ent['attName'])
                 if tmab:
-                    tmeas.create_time = datetime.now()
-                    tmeas.update_time = datetime.now()
+                    tmeas.created_at = datetime.now()
+                    tmeas.updated_at = datetime.now()
                     tmeas.save()
                 tmpEnt.attrs.add(tmeas)
                 tmpEnt.save()
@@ -424,8 +429,8 @@ def loadKgFromDoc(paramdict):
                 if cur%2 == 0 and tmp_qest and tmp_answ:
                     tmpqa, tmpb = KgTmpQA.objects.get_or_create(task_id=tmptask, doc_id=tmpdoc, question=tmp_qest, answer=tmp_answ)
                     if tmpb:
-                        tmpqa.update_time = datetime.now()
-                        tmpqa.create_time = datetime.now()
+                        tmpqa.updated_at = datetime.now()
+                        tmpqa.created_at = datetime.now()
                         tmpqa.save()
                         print(f"入临时库成功==> [{tmp_qest}, {tmp_answ}]",)
                     else:
@@ -451,8 +456,8 @@ def loadKgFromDoc(paramdict):
             tmp_answ = row[r'回复']
             tmpqa, tmpb = KgTmpQA.objects.get_or_create(task_id=tmptask, doc_id=tmpdoc, question=tmp_qest, answer=tmp_answ)
             if tmpb:
-                tmpqa.create_time = datetime.now()
-                tmpqa.update_time = datetime.now()
+                tmpqa.created_at = datetime.now()
+                tmpqa.updated_at = datetime.now()
                 tmpqa.save()
                 print(f"入临时库成功==> [{tmp_qest}, {tmp_answ}]",)
             else:
@@ -617,8 +622,8 @@ def autoProWithLLM(paramdict):
             print("生产Single结果-->", tmp_qest, tmp_answ)
             try:
                 tmqa, _ = KgTmpQA.objects.get_or_create(task_id=tmptask, doc_id=tmpdoc, question=tmp_qest, answer=tmp_answ)
-                tmqa.create_time = datetime.now()
-                tmqa.update_time = datetime.now()
+                tmqa.created_at = datetime.now()
+                tmqa.updated_at = datetime.now()
                 tmqa.save()
                 data.append(dict(task_id=prodtaskid,
                                             doc_id=tmpdoc.id,
@@ -796,6 +801,175 @@ def LLMYuAnProdTask(paramdict):
     resultJson['nodeList'] = userYuAnPlan.nodeDetailList
     data = {"code": 200, "data": resultJson, "msg": "生成成功！"}
     results['data'] = data
+    tmptask.task_status = 5
+    tmptask.save()
+    return results
+
+
+
+@shared_task
+def knowledgeExtractTask(paramdict):
+    """
+        知识库文档规则抽取
+    """
+    from kgapp.models import KgProductTask, KgDoc, KgTmpQA, KgQA
+    from yaapp.models import PlanByUser
+    from django.forms.models import model_to_dict
+    from yaapp.plan import PlanFactory
+    from yaapp import getYuAnParamPath
+    
+    print("开始自动抽取任务", paramdict)
+    results = {"code": 200, "data": [], "msg": "生成成功！"}
+    return results
+
+@shared_task
+def knowledgeParseTask(paramdict):
+    """
+        知识库文档解析
+    """
+    from kgapp.models import KgProductTask, KgDoc, KgTmpQA, KgDocCttTag, KgDocFragmentation, Knowledge
+    from yaapp.models import PlanByUser
+    from django.forms.models import model_to_dict
+    from yaapp.plan import PlanFactory
+    from yaapp import getYuAnParamPath
+    
+    print("开始自动解析任务", paramdict)
+    prodtaskid = paramdict['task_id']
+    kg_doc_ids = paramdict['kg_doc_ids']
+    knowledge_id = paramdict['knowledge_id']
+    tmptask = KgProductTask.objects.get(id=prodtaskid)
+    tmptask.task_status = 1  # 开始执行
+    tmptask.save()
+    tmpkg = Knowledge.objects.filter(hashid=knowledge_id).first()
+    text_splitter = RecursiveCharacterTextSplitter(chunk_size=512, chunk_overlap=64)
+    for kg_doc_id in kg_doc_ids:
+        tmpdoc = KgDoc.objects.get(id=kg_doc_id)
+        filepath = os.path.join("media", tmpdoc.filepath)
+        
+        if filepath.startswith("/"):
+            filepath = filepath[1:]
+
+        print("Exist:", os.path.exists(filepath), "Path:", filepath)
+        if not os.path.exists(filepath):
+            continue
+        # filepath="D://workspace//yunheKGProWH//data//tst.pdf"# Save the uploaded file to a temporary file
+        file_extension = os.path.splitext(filepath)[1]
+        if file_extension.lower() == ".pdf":
+            docs = PyPDFLoader(file_path=filepath).load()
+        elif file_extension.lower() == ".txt":
+            docs = TextLoader(file_path=filepath).load()
+        elif file_extension.lower() == ".docx":
+            docs = Docx2txtLoader(file_path=filepath).load()
+        elif file_extension.lower() == '.json':
+            docs = JSONLoader(file_path=filepath, jq_schema='.', text_content=False).load()
+        else:
+            raise ValueError(f"Unsupported file type: {file_extension}")
+        # 清空历史数据
+        
+        for kgfrag in KgDocFragmentation.objects.filter(kg_doc_id=tmpdoc).all():
+            for tmptag in kgfrag.tags.all():
+                tmptag.delete()
+            kgfrag.delete()
+        # KgDocCttTag.objects.all().delete()
+        print("清空Fragment标签")
+        chunks = text_splitter.split_documents(docs)
+        start = time.time()
+        for idx, chunk in enumerate(chunks):
+            # print(f'第 {idx + 1} 个文档:', chunk.page_content)
+            # keywords = jieba.analyse.extract_tags(chunk.page_content, topK=10, withWeight=True)
+            keywords = jieba.analyse.textrank(chunk.page_content, topK=10, withWeight=True)
+            tmpfrag = KgDocFragmentation.objects.create(no=idx+1, 
+                                              kg_doc_id=tmpdoc, 
+                                              kg_knowledge_id=tmpkg, 
+                                              content=chunk.page_content,
+                                              ctt_size=len(chunk.page_content),
+                                              recall_cnt=0,
+                                              )
+            for keyword, weight in keywords:
+                tmpTag = KgDocCttTag.objects.create(weight=weight,name=keyword)
+                tmpfrag.tags.add(tmpTag)
+            tmpfrag.save()
+        tmpdoc.parseflag = 1
+        tmpdoc.save()
+        print(f'处理完成，耗时: {time.time() - start} 秒')
+    results = {"code": 200, "data": [], "msg": "生成成功！"}
+    tmptask.task_status = 5
+    tmptask.save()
+    return results
+
+@shared_task
+def knowledgeTrainFaissTask(paramdict):
+    """
+        知识库文档规则抽取
+    """
+    from kgapp.models import KgProductTask, Knowledge
+    from langchain.document_loaders import DirectoryLoader
+    from langchain.text_splitter import RecursiveCharacterTextSplitter
+    from langchain.embeddings import HuggingFaceEmbeddings
+    from langchain.vectorstores import FAISS
+    from transformers import AutoTokenizer, AutoModel
+    from langchain_core.documents import Document
+    
+    print("开始训练知识库Faiss模型任务", paramdict)
+    prodtaskid = paramdict['task_id']
+    knowledge_id = paramdict['knowledge_id']
+    tmptask = KgProductTask.objects.get(id=prodtaskid)
+    tmptask.task_status = 1  # 开始执行
+    tmptask.save()
+
+    tmpKg = Knowledge.objects.filter(hashid=knowledge_id).first()
+    if not tmpKg:
+        errmsg = "❌ 未找到知识库!"
+        print(errmsg)
+        results = {"code": 201, "data": [], "msg": errmsg}
+        tmptask.task_status = -1
+        tmptask.save()
+        return results
+
+    # 加载本地 embedding 模型（启用 GPU 加速）
+    kgdir = f"data/knowledges/{knowledge_id}"
+    if not os.path.exists(kgdir):
+        os.makedirs(kgdir)
+    index_path = os.path.join(kgdir, "faiss.index")
+    embedding = HuggingFaceEmbeddings(
+        # model_name="BAAI/bge-small-zh-v1.5",
+        model_name=MODEL_PATH,
+        model_kwargs={'device': 'cpu'},
+        encode_kwargs={
+            'batch_size': 64,
+            'normalize_embeddings': True
+        }
+    )
+
+    frags = tmpKg.kgdocfragmentation_set.all()
+    if not frags:
+        errmsg = "❌ 未找到任何对应的知识片段!"
+        print(errmsg)
+        results = {"code": 202, "data": [], "msg": errmsg}
+        tmptask.task_status = -1
+        tmptask.save()
+        return results
+    
+    split_frags = []
+    for idx, frag in enumerate(frags):
+        split_frags.append(Document(frag.content, metadata={"id": frag.id, "docid": frag.kg_doc_id.id}))
+
+    # 创建向量库
+    print("🔄 创建新向量库...")
+    # 分批次处理提升性能
+    batch_size = 100
+    for i in range(0, len(split_frags), batch_size):
+        batch = split_frags[i:i+batch_size]
+        if i == 0:
+            db = FAISS.from_documents(batch, embedding)
+        else:
+            db.add_documents(batch)
+        print(f"进度: {min(i+batch_size, len(split_frags))}/{len(split_frags)}")
+    
+    print("🔄 保存向量库...")
+    db.save_local(index_path)
+    print("✅ 向量库保存完成")
+    results = {"code": 200, "data": [], "msg": "生成成功！"}
     tmptask.task_status = 5
     tmptask.save()
     return results

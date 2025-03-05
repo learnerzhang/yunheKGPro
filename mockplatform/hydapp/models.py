@@ -33,8 +33,8 @@ class HeDaoData(models.Model):
     stcd = models.CharField(max_length=200, verbose_name="站号", help_text="站号", unique=False)
     flow_h8 = models.FloatField(verbose_name="流量", null=True)
     date = models.DateTimeField(verbose_name="日期", null=True)
-    update_time = models.DateTimeField(verbose_name="更新时间", null=True)
-    create_time = models.DateTimeField(verbose_name="创建时间", null=True)
+    updated_at = models.DateTimeField(verbose_name="更新时间", null=True)
+    created_at = models.DateTimeField(verbose_name="创建时间", null=True)
 
     def __str__(self):
         return str(self.id) + " #@ " + str(self.name)
@@ -60,8 +60,8 @@ class ShuiKuData(models.Model):
     sediment_rate = models.FloatField(verbose_name="泥沙含量（%）", null=True)
     date = models.DateTimeField(verbose_name="日期", null=True)
 
-    update_time = models.DateTimeField(verbose_name="更新时间", null=True)
-    create_time = models.DateTimeField(verbose_name="创建时间", null=True)
+    updated_at = models.DateTimeField(verbose_name="更新时间", null=True)
+    created_at = models.DateTimeField(verbose_name="创建时间", null=True)
 
     def __str__(self):
         return str(self.id) + " #@ " + str(self.name)
@@ -78,8 +78,8 @@ class HoleData(models.Model):
     waterflow = models.FloatField(verbose_name="排水流量", null=True, blank=True)
     date = models.DateTimeField(verbose_name="日期", null=True, blank=True)
     status = models.BooleanField(verbose_name="运行状态", null=True)
-    update_time = models.DateTimeField(verbose_name="更新时间", null=True)
-    create_time = models.DateTimeField(verbose_name="创建时间", null=True)
+    updated_at = models.DateTimeField(verbose_name="更新时间", null=True)
+    created_at = models.DateTimeField(verbose_name="创建时间", null=True)
 
     def __str__(self):
         return str(self.id) + " #@ " + str(self.name)
@@ -99,8 +99,8 @@ class GenerateSetData(models.Model):
     waterflow = models.FloatField(verbose_name="排水流量", null=True, blank=True)
     date = models.DateTimeField(verbose_name="日期", null=True, blank=True)
     status = models.BooleanField(verbose_name="运行状态", null=True)
-    update_time = models.DateTimeField(verbose_name="更新时间", null=True)
-    create_time = models.DateTimeField(verbose_name="创建时间", null=True)
+    updated_at = models.DateTimeField(verbose_name="更新时间", null=True)
+    created_at = models.DateTimeField(verbose_name="创建时间", null=True)
 
     def __str__(self):
         return str(self.id) + " #@ " + str(self.name)
@@ -118,8 +118,8 @@ class FutureHeDaoData(models.Model):
     stcd = models.CharField(max_length=200, verbose_name="站号", help_text="站号", unique=False)
     flow_h8 = models.FloatField(verbose_name="8时流量", null=True)
     date = models.DateTimeField(verbose_name="日期", null=True)
-    update_time = models.DateTimeField(verbose_name="更新时间", null=True)
-    create_time = models.DateTimeField(verbose_name="创建时间", null=True)
+    updated_at = models.DateTimeField(verbose_name="更新时间", null=True)
+    created_at = models.DateTimeField(verbose_name="创建时间", null=True)
 
     def __str__(self):
         return str(self.id) + " #@ " + str(self.name)
@@ -146,8 +146,8 @@ class FutureShuiKuData(models.Model):
     sediment_rate = models.FloatField(verbose_name="泥沙含量（%）", null=True)
     date = models.DateTimeField(verbose_name="日期", null=True)
 
-    update_time = models.DateTimeField(verbose_name="更新时间", null=True)
-    create_time = models.DateTimeField(verbose_name="创建时间", null=True)
+    updated_at = models.DateTimeField(verbose_name="更新时间", null=True)
+    created_at = models.DateTimeField(verbose_name="创建时间", null=True)
 
     def __str__(self):
         return str(self.id) + " #@ " + str(self.name)

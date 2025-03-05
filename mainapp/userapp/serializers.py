@@ -70,8 +70,8 @@ class RoleSerializer(serializers.Serializer):
     user_id = serializers.IntegerField()
     remark = serializers.CharField(max_length=512)
     activate = serializers.IntegerField()
-    update_time = serializers.DateTimeField()
-    create_time = serializers.DateTimeField()
+    updated_at = serializers.DateTimeField()
+    created_at = serializers.DateTimeField()
     menus = KgMenuSerializer(many=True)
 
     def validate(self, attrs):
