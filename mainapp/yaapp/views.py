@@ -714,6 +714,7 @@ class MakePlanWord(generics.GenericAPIView):
         # 设置段落编号
         # paragraph_format.numeration = True
         for i, node in enumerate(tmpTemplate.nodelist):
+            print(i, "node:", node)
             writeParagraphs2Word(i, node, doc)
         # 保存文档 
         doc.save(f'media/plans/{tmpTemplate.name}.docx')

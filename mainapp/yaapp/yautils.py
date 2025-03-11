@@ -11,11 +11,11 @@ import json
 from collections import defaultdict
 from pyecharts.charts import Line
 from pyecharts import options as opts
-
-
+#from . import rule
+import rule
 idx_list = ['水位', '入库', '出库', '蓄量', "流量"]
 sknames = { '三门峡', '小浪底',  '陆浑', '故县', '河口村', '西霞院', '万家寨', '龙口'}
-swznames = { '花园口', '小花间'}
+swznames = { '花园口', '小花间',"潼关"}
 othnames = { '24h水位', '古贤坝址'}
 
 
@@ -103,7 +103,7 @@ def excel_to_dict(ddfa_file_path):
     try:
         json_data = excel_to_json(ddfa_file_path)
         # print(file, "JSON 数据：\n", json_data)
-        print("JSON 数据：\n", ddfa_file_path)
+        #print("JSON 数据：\n", ddfa_file_path)
         skMapData = collections.defaultdict(dict)
         swMapData = collections.defaultdict(list)
         date_list = []
@@ -197,7 +197,8 @@ def plot_save_html(ddfa_file_path, business_type=0, myDate=None):
             ]
         )
         if sys.platform.startswith('win'):
-            path_wkimg = r'D:\\Program Files\\wkhtmltopdf\\bin\\wkhtmltoimage.exe'  # 工具路径
+            #path_wkimg = r'D:\\Program Files\\wkhtmltopdf\\bin\\wkhtmltoimage.exe'  # 工具路径
+            path_wkimg = r'D:\\software\\wkhtmltopdf\\bin\\wkhtmltoimage.exe'
         else:
             path_wkimg = r'/usr/bin/wkhtmltoimage'
 
@@ -364,15 +365,54 @@ def plot_save_html(ddfa_file_path, business_type=0, myDate=None):
         print(f"Error plotting and saving HTML: {str(e)}")
         return f"Error plotting and saving HTML: {str(e)}"
 
-if __name__ == "__main__":
+def skddjy(filepath):
+    r = excel_to_dict(filepath)
+    skMapData, swMapData, date_list = r
+    smx_ddjy =[]
+    for i in range(0, len(swMapData["花园口"])):
+        ddjy = rule.smx_sk(swMapData["花园口"][i])
+        smx_ddjy.append(ddjy["result"])
+    xld_ddjy = []
+    for i in range(0, len(swMapData["花园口"])):
+        # print(skMapData["小浪底"]["水位"][i])
+        # print(swMapData["花园口"][i])
+        # print(swMapData)
+        ddjy = rule.xld_sk(skMapData["小浪底"]["水位"][i],swMapData["花园口"][i],swMapData["潼关"][i])
+        xld_ddjy.append(ddjy["result"])
+    lh_ddjy = []
+    for i in range(0, len(swMapData["花园口"])):
+        # print(skMapData["小浪底"]["水位"][i])
+        # print(swMapData["花园口"][i])
+        # print(swMapData)
+        ddjy = rule.lh_sk(skMapData["陆浑"]["水位"][i],swMapData["花园口"][i])
+        lh_ddjy.append(ddjy["result"])
+    gx_ddjy = []
+    for i in range(0, len(swMapData["花园口"])):
+        print("len(skMapData[故县]):",len(skMapData["故县"]["水位"]))
+        print(len(swMapData["花园口"]))
+        # print(swMapData)
+        ddjy = rule.gx_sk(skMapData["故县"]["水位"][i],swMapData["花园口"][i])
+        gx_ddjy.append(ddjy["result"])
+    hkc_ddjy = []
+    for i in range(0, len(swMapData["花园口"])):
+        # print(skMapData["小浪底"]["水位"][i])
+        # print(swMapData["花园口"][i])
+        # print(swMapData)
+        ddjy = rule.hkc_sk(skMapData["河口村"]["水位"][i],swMapData["花园口"][i])
+        hkc_ddjy.append(ddjy["result"])
+    return smx_ddjy,xld_ddjy,lh_ddjy,gx_ddjy,hkc_ddjy
 
+import pprint
+if __name__ == "__main__":
+    #pass
+    skddjy("../../mainapp/media/ddfa/2025-02-08.xlsx")
     # for file in os.listdir("data/ddfa"):
     #     file_path = f"data/ddfa/{file}"
     #     # df = pd.read_excel(file_path, sheet_name='Sheet1')
     #     # print(df.head(10))
     #     plot_save_html(file_path,)
     #     break
-    
+    #
     # print("="*100)
     # # # 文件列表
     # files = [
@@ -383,7 +423,7 @@ if __name__ == "__main__":
     #     "调度方案单04.xlsx",
     #     "调度方案单02.xlsx"
     # ]
-
+    #
     # for file in files:
     #     file_path = f"data/shj_ddfad/{file}"
     #     plot_save_html(file_path, 3)
@@ -391,6 +431,22 @@ if __name__ == "__main__":
 
 
 
-    # r = excel_to_dict("data/shj_ddfad/调度方案单13.xlsx")
-    # print(r)
+    r = excel_to_dict("../../mainapp/media/ddfa/2025-02-08.xlsx")
+    #pprint.pprint(r)
+    if r:
+        skMapData, swMapData, date_list = r
+
+        # 打印 skMapData
+        print("SK Map Data:")
+        print(skMapData["故县"]["水位"])
+        print(len(skMapData["故县"]["水位"]))
+        # 打印 SW Map Data
+        print("\nSW Map Data:")
+        print(swMapData)
+
+        # 打印日期列表
+        print("\nDate List:")
+        print(date_list)
+    else:
+        print("数据提取失败。")
     pass

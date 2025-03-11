@@ -94,6 +94,8 @@ urlpatterns = [
     path('prodqalist/synToLLM', man_views.KgQASynToLLMApiView.as_view()),
     path('prodqalist/delete', man_views.KgQADelApiView.as_view()),
     path('prodqalist/batchdelete', man_views.KgQABatchDelApiView.as_view()),
+    path('prodqalist/recomQuest', man_views.KgRecomQuestApiView.as_view()),
+    path('prodqalist/autoQA', man_views.KgAutoQAApiView.as_view()),
     path('graphEntityScheme/list', graph_views.KgEntitySchemeList.as_view()),
     path('graphEntityScheme/add', graph_views.KgEntitySchemeAddApiView.as_view()),
     path('graphEntityScheme/detail', graph_views.KgEntitySchemeDetailApiView.as_view()),

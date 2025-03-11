@@ -144,7 +144,7 @@ from yaapp.api_yuan import query_question
 from langchain.llms import Ollama
 def query_question(text):
     #llm = Ollama(model="qwen2.5:14b")
-    llm = Ollama(model="deepseek-r1:7b")
+    llm = Ollama(model="deepseek-r1:14b")
     res = llm(text)
     return res
 
@@ -229,14 +229,63 @@ def run_workflow(api_key, user, query, url='http://192.168.8.2:80/v1/workflows/r
     except requests.exceptions.RequestException as e:
         print(f"请求失败: {e}")
         return None
+def smx_sk(smx_sw: int = None, hyk_liuliang: int = None):
+    smx_sw = smx_sw if smx_sw is not None else 0
+    hyk_liuliang = hyk_liuliang if hyk_liuliang is not None else 0
+
+    print("三门峡SK", hyk_liuliang, smx_sw)
+    """
+    三门峡
+    :return:
+    """
+    result = "适时控制运用"
+    if hyk_liuliang <= 4500:
+        result = "视潼关站来水来沙情况，原则上按敞泄运用"
+    elif hyk_liuliang <= 8000:
+        result = "视潼关站来水来沙情况，原则上按敞泄运用"
+    elif hyk_liuliang <= 10000:
+        result = "视潼关站来水来沙情况，原则上按敞泄运用"
+    elif hyk_liuliang <= 22000:
+        result = "原则上敞泄运用，视水库蓄水及来水情况适时控泄"
+
+    return {"result": result}
+
+import pandas as pd
+df = pd.read_excel('media/ddfa/1-20.xlsx')
+df2markdown = df.to_markdown()
+def smx_skyyfs(df2markdown):
+    skyyfs = (
+        "1. 花园口流量 < 4500m³/s：三门峡水库调用方式为：视潼关站来水来沙情况，原则上按敞泄运用。\n"
+        "2. 4500m³/s ≤ 花园口流量 < 8000m³/s：三门峡水库调用方式为：视潼关站来水来沙情况，原则上按敞泄运用。\n"
+        "3. 8000m³/s ≤ 花园口流量 < 10000m³/s：三门峡水库调用方式为：视潼关站来水来沙情况，原则上按敞泄运用。\n"
+        "4. 10000m³/s ≤ 花园口流量 < 22000m³/s：三门峡水库调用方式为：三门峡水库原则上敞泄运用，视水库蓄水及来水情况适时控泄。"
+    )
+    smx_shuiku = (
+        "三门峡水库7月4日8时按1000m³/s泄放，之后视情况实时调整下泄流量，7月10日前降至汛限水位305m以下后进出库平衡运用。"
+    )
+    prompt = (
+        f"根据以下三门峡水库运用规则：\n{skyyfs}\n\n"
+        f"以及当前调度方案数据（包含三门峡、小浪底、河口村、陆浑、故县水库的水位及进出库流量，以及潼关和花园口水文站的预报流量）：\n{df2markdown}\n\n"
+        f"参考描述：{smx_shuiku}\n\n"
+        f"请根据调度方案数据，结合三门峡水库的运用规则，直接生成三门峡水库的调度方案。要求：\n"
+        f"1. 方案简洁明了，避免冗余描述。\n"
+        f"2. 结合花园口流量，明确水库的运用方式（敞泄或控泄）。\n"
+        f"3. 根据实时数据，明确下泄流量调整建议。"
+    )
+    res = query_question(prompt)
+    return res
+res = smx_skyyfs(df2markdown)
+print(res)
+#print(df2markdown)
+
 
 # 使用示例
-api_key = 'app-lfd1N6uy7KhJAmrXKyYn1wwn'
-user = 'Jack Li'
-query = '潼关最大流量是多少'
-response = run_workflow(api_key, user, query)
-
-print(response)
+# api_key = 'app-lfd1N6uy7KhJAmrXKyYn1wwn'
+# user = 'Jack Li'
+# query = '潼关最大流量是多少'
+# response = run_workflow(api_key, user, query)
+#
+# print(response)
 # def parse_excel(file_path):
 #     """
 #     解析 Excel 表格数据。

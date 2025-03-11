@@ -47,7 +47,7 @@ def smx_sk(smx_sw: int = None, hyk_liuliang: int = None):
     smx_sw = smx_sw if smx_sw is not None else 0
     hyk_liuliang = hyk_liuliang if hyk_liuliang is not None else 0
 
-    print("三门峡SK", hyk_liuliang, smx_sw)
+    #print("三门峡SK", hyk_liuliang, smx_sw)
     """
     三门峡
     :return:
@@ -71,7 +71,7 @@ def xld_sk(xld_sw: int = None, hyk_liuliang: int = None, tongguan_liuliang: int 
     tongguan_liuliang = tongguan_liuliang if tongguan_liuliang is not None else 0
 
     rate_p = float(tongguan_liuliang) / (float(hyk_liuliang) + 0.001)
-    print("小浪底SK", hyk_liuliang, tongguan_liuliang, xld_sw)
+    #print("小浪底SK", hyk_liuliang, tongguan_liuliang, xld_sw)
     """
     小浪底库
     :return: dict
@@ -115,7 +115,7 @@ def lh_sk(lh_sw: int = None, hyk_liuliang: int = None):
     lh_sw = lh_sw if lh_sw is not None else 0
     hyk_liuliang = hyk_liuliang if hyk_liuliang is not None else 0
 
-    print("陆浑水库SK", hyk_liuliang, lh_sw)
+    #print("陆浑水库SK", hyk_liuliang, lh_sw)
 
     result = {}
 
@@ -161,7 +161,7 @@ def gx_sk(gx_sw: int = None, hyk_liuliang: int = None):
     gx_sw = gx_sw if gx_sw is not None else 0
     hyk_liuliang = hyk_liuliang if hyk_liuliang is not None else 0
 
-    print("故县SK", hyk_liuliang, gx_sw)
+    #print("故县SK", hyk_liuliang, gx_sw)
 
     result = {}
 
@@ -207,7 +207,7 @@ def hkc_sk(hkc_sw: int = None, hyk_liuliang: int = None):
     hkc_sw = hkc_sw if hkc_sw is not None else 0
     hyk_liuliang = hyk_liuliang if hyk_liuliang is not None else 0
 
-    print("河口村SK", hyk_liuliang, hkc_sw)
+    #print("河口村SK", hyk_liuliang, hkc_sw)
 
     result = {}
 
@@ -427,3 +427,44 @@ def tanquyanmo(hyk_liuliang):
         ) + "山东省预计漫滩面积234.71万亩，淹没耕地176.90万亩，109个滩区进水，243个自然村进水，157个自然村被水围困，涉及31.68万人，其中需转移安置20.09万人，就地或就近安置11.59万人。"
 
     return {"result": main_str}
+
+def smx_yujingdengji(lm_ll=None, tg_ll=None, hx_ll=None,):
+    print("预警等级")
+
+    lm_ll = lm_ll if lm_ll is not None else 0
+    tg_ll = tg_ll if tg_ll is not None else 0
+    hx_ll = hx_ll if hx_ll is not None else 0
+    act_flag, lev = None, None  # 这里可以加入其他的函数逻辑
+    result = """按照《黄河防汛抗旱应急预案》，当前无预警"""
+    if  lm_ll >= 18000 or tg_ll >= 15000 or hx_ll >= 8000:
+        print("# 启动防汛一级应急响应")
+        result = """启动防汛一级应急响应，响应行动如下：（1）局防指向水库防汛行政责任人、河南省防指及黄河防总办公室汇报雨情、水情、汛情、工情、险情等情况，请示由水库抢险指挥机构全面部署水库防汛应急相关工作。\n
+        （2）水库抢险指挥机构指挥长或其委托人主持召开三门峡水库防汛抢险会商会，部署开展枢纽防汛运用措施，研究制定枢纽运用方案。\n
+        （3）局防指指挥长到枢纽现场指挥。组织局防汛抢险专家等技术力量研究应急处置方案，局防指办及各单位、部门组织实施。机关部门相关岗位人员全部上岗到位。局防指办全员到岗，及时滚动以短信等方式向局防指成员发布水雨情、水库调度、险情等最新信息。\n
+        （4）三门峡发电公司、水电公司、服务中心等单位所有相关岗位人员全部上岗到位。紧盯电厂厂房、供电点、防汛设备启闭机室以及防汛道路等重点区域，严防雨水正（倒）灌引发事故灾害；加强枢纽防汛设备与水工建筑物险工、险点等巡视检查，发现险情，立即组织抢险并按应急处置程序逐级上报。\n
+        （5）局防指办按工作部署及时向有关各方汇报枢纽防汛运用、险情处置等情况。"""
+    if  lm_ll >= 12000 or tg_ll >= 10000 or hx_ll >= 6000:
+        print("# 启动防汛二级应急响应")
+        result = """启动二级应急响应，响应行动如下：（1）局防指向水库防汛行政责任人、河南省防指及黄河防总办公室汇报雨情、水情、汛情、工情、险情等情况，请示由水库抢险指挥机构指导部署水库防汛应急相关工作。\n
+        （2）局防指指挥长主持召开三门峡枢纽防汛会商会，落实水库抢险指挥机构工作部署。通报雨水情、工情、险情等重要预警信息，组织开展枢纽防汛运用措施，根据黄委等调度要求研究制定枢纽运用方案。\n
+        （3）局防指常务副指挥长到枢纽现场指挥。组织局防汛抢险专家等技术力量研究应急处置方案，局防指办及各单位、部门组织实施。机关部门主要负责人到岗。局防指办值班实行双人双岗值班，根据情况增加值班人员，及时以短信等方式向局防指成员发布水雨情、水库调度等最新信息（每日 8 时、14 时、20 时）。防汛督察与宣传报道人员上岗。\n
+        （4）三门峡发电公司、水电公司、服务中心等单位主要负责人到岗，做好协调与分级指挥工作。防汛抢险队员上岗待命。增加防汛电源、防汛物资、交通、后勤保障、电厂厂房防正（倒）灌、通信、网络、大坝安全监测等岗位人员。加强对所辖坝区工作、生活的低洼区域以及防汛道路的巡查，严防雨水正灌引发事故灾害；加强枢纽防汛设备与水工建筑物险工、险点等巡视检查，发现险情，立即组织抢险并按应急处置程序逐级上报。\n
+        （5）局防指办按工作部署及时向有关各方汇报枢纽防汛运用、险情处置等情况。"""
+    if  lm_ll >= 8000 or tg_ll >= 8000 or hx_ll >= 4000:
+        # 启动防汛三级应急响应
+        print("# 启动防汛三级应急响应")
+        result = """启动三级应急响应，响应行动如下：（1）局防指常务副指挥长（或副指挥长）主持召开防汛会商会，安排部署枢纽防汛工作，并及时向指挥长汇报枢纽防汛运用情况。局防指成员参加会商。\n
+        （2）根据会商意见，局防指向局属相关单位、部门发出通知，通报雨水情、工情、险情等重要预警信息，对枢纽防汛工作提出要求。\n
+        （3）局防指办根据黄委等调度要求研究制定枢纽运用方案，经常务副指挥长批准后组织落实。局防指带班领导到枢纽现场指挥、带班。机关相关部门主要负责人到岗。局防指办值班实行双人双岗值班，根据情况增加值班人员，及时以短信等方式向局防指成员发布水雨情、水库调度等最新信息（每日 8 时、14 时、20 时）。\n
+        （4）三门峡发电公司、水电公司、服务中心等单位主要负责人到岗，配合做好防汛会商、协调、部署与分级指挥工作。各单位防汛抢险队员待命。增加防汛电源、防汛物资、交通、后勤保障与电厂厂房防正（倒）灌、通信、网络等岗位人员，保障各系统可靠运转。\n
+        （5）局防指办及时向三门峡市防指、河南省防指及黄河防总办公室报告启动响应及枢纽运用等情况。"""
+    if  lm_ll >= 5000 or tg_ll >= 5000 or hx_ll >= 2500:
+        # 启动防汛四级应急响应
+        print("# 启动防汛四级应急响应")
+        result = """启动四级应急响应，响应行动如下：（1）局防指办主任主持召开防汛会商会，安排部署枢纽防汛工作，并及时向带班领导、常务副指挥长汇报枢纽防汛运用情况。局防指成员单位派员参加会商。\n
+        （2）根据会商意见，局防指向局属相关单位、部门发出通知，通报雨水情、工情、险情等重要预警信息，对枢纽防汛工作提出要求。\n
+        （3）局防指办根据黄委等调度要求研究制定枢纽运用方案，经常务副指挥长批准后组织落实。局防指带班领导到枢纽现场指挥、带班。局防指办值班实行双人双岗值班，及时以短信等方式向局防指成员发布水雨情、水库调度等最新信息（每日 8 时、20 时）。\n
+        （4）三门峡发电公司、水电公司、服务中心等单位分管负责人到岗，配合做好防汛会商、协调、部署与分级指挥工作。枢纽闸门启闭、防汛电源、通信、网络、交通等重要防汛岗位人员，按照防汛预案保障防汛系统可靠运转。\n
+        （5）局防指办及时向三门峡市防指、河南省防指及黄河防总办公室报告启动响应及枢纽运用等情况。"""
+    print("""预警等级: 按照《黄河防汛抗旱应急预案》，当前无预警""")
+    return {"result": result}
