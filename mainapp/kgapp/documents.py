@@ -43,8 +43,8 @@ class KgDocInfDocument(Document):  #  注意命名规范
     score = fields.FloatField(attr='star')
     doc_url = fields.TextField(attr='filepath')
     
-    create_time = fields.DateField(attr='create_time')
-    update_time = fields.DateField(attr='update_time')
+    created_at = fields.DateField(attr='created_at')
+    updated_at = fields.DateField(attr='updated_at')
 
     # attr里填入Django模型的属性名称
     def prepare_tags(self, instance):

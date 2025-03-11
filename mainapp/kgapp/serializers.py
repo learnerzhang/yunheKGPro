@@ -21,7 +21,7 @@ class KgDataIndexResponseSerializer(serializers.Serializer):
 class KgTableContentSerializer(serializers.HyperlinkedModelSerializer):
     class Meta:
         model = KgTableContent
-        fields = ['name', 'no', 'order_no', "kg_user_id", "update_time", "create_time"]
+        fields = ['name', 'no', 'order_no', "kg_user_id", "updated_at", "created_at"]
 
 
 # ViewSets define the view behavior.
@@ -40,8 +40,8 @@ class KgDocSerializer(serializers.Serializer):
     kg_ctt = serializers.CharField()
     kg_ctt_id = serializers.IntegerField()
     # highlight_title = serializers.CharField()
-    update_time = serializers.DateTimeField()
-    create_time = serializers.DateTimeField()
+    updated_at = serializers.DateTimeField()
+    created_at = serializers.DateTimeField()
     desc = serializers.CharField()
     filepath = serializers.CharField()
     tag_list = serializers.ListField(read_only=True)
@@ -88,8 +88,8 @@ class KgTagSerializer(serializers.Serializer):
     name = serializers.CharField(max_length=200)
     desc = serializers.CharField(max_length=512)
     tabctt = serializers.CharField(max_length=200)
-    update_time = serializers.DateTimeField()
-    create_time = serializers.DateTimeField()
+    updated_at = serializers.DateTimeField()
+    created_at = serializers.DateTimeField()
 
 
 class KgTagResponseSerializer(serializers.Serializer):
@@ -141,8 +141,8 @@ class KgTemplateSerializer(serializers.Serializer):
     kg_ctt = serializers.CharField()
     kg_ctt_id = serializers.IntegerField()
     kg_business = serializers.CharField()
-    update_time = serializers.DateTimeField()
-    create_time = serializers.DateTimeField()
+    updated_at = serializers.DateTimeField()
+    created_at = serializers.DateTimeField()
     filepath = serializers.CharField()
 
     def validate(self, data):
@@ -176,8 +176,8 @@ class KgTaskSerializer(serializers.Serializer):
     kg_user = serializers.CharField()
     kg_doc = serializers.ListField()
     kg_doc_type = serializers.CharField()
-    update_time = serializers.DateTimeField()
-    create_time = serializers.DateTimeField()
+    updated_at = serializers.DateTimeField()
+    created_at = serializers.DateTimeField()
 
 
 class KgTaskDetailResponseSerializer(serializers.Serializer):
@@ -242,8 +242,8 @@ class KgTmeplateSerializer(serializers.Serializer):
     id = serializers.IntegerField()
     title = serializers.CharField(max_length=200)
     path = serializers.CharField(max_length=512)
-    update_time = serializers.DateTimeField()
-    create_time = serializers.DateTimeField()
+    updated_at = serializers.DateTimeField()
+    created_at = serializers.DateTimeField()
 
 
 class KgTaskTemplateResponseSerializer(serializers.Serializer):
@@ -260,8 +260,8 @@ class KgQASerializer(serializers.Serializer):
     answer = serializers.CharField()
     question = serializers.CharField()
     doc = serializers.CharField()
-    update_time = serializers.DateTimeField()
-    create_time = serializers.DateTimeField()
+    updated_at = serializers.DateTimeField()
+    created_at = serializers.DateTimeField()
 
 
 class KgQAResponseSerializer(serializers.Serializer):
@@ -291,8 +291,8 @@ class KgEntitySerializer(serializers.Serializer):
     relations = serializers.ListField()
     tagliststr = serializers.CharField()
     groupRelations = serializers.DictField()
-    update_time = serializers.DateTimeField()
-    create_time = serializers.DateTimeField()
+    updated_at = serializers.DateTimeField()
+    created_at = serializers.DateTimeField()
 
 
 class KgEntiyResponseSerializer(serializers.Serializer):
@@ -316,8 +316,8 @@ class KgEntitySchemeSerializer(serializers.Serializer):
     color = serializers.CharField()
     size = serializers.IntegerField()
     attlist = serializers.ListField()
-    update_time = serializers.DateTimeField()
-    create_time = serializers.DateTimeField()
+    updated_at = serializers.DateTimeField()
+    created_at = serializers.DateTimeField()
 
 
 class KgEntiySchemeResponseSerializer(serializers.Serializer):
@@ -342,8 +342,8 @@ class KgRelationSchemeSerializer(serializers.Serializer):
     id = serializers.IntegerField()
     name = serializers.CharField()
     desc = serializers.CharField()
-    update_time = serializers.DateTimeField()
-    create_time = serializers.DateTimeField()
+    updated_at = serializers.DateTimeField()
+    created_at = serializers.DateTimeField()
 
 
 class KgRelationSchemeResponseSerializer(serializers.Serializer):
@@ -370,8 +370,8 @@ class KgRelationSchemeDetailResponseSerializer(serializers.Serializer):
 #     id = serializers.IntegerField()
 #     name = serializers.CharField()
 #     kguser = serializers.CharField()
-#     update_time = serializers.DateTimeField()
-#     create_time = serializers.DateTimeField()
+#     updated_at = serializers.DateTimeField()
+#     created_at = serializers.DateTimeField()
 
 
 # class KgDDActionResponseSerializer(serializers.Serializer):
@@ -398,8 +398,8 @@ class KgDDRuleAttributeSerializer(serializers.Serializer):
     zhName = serializers.CharField()
     valueType = serializers.CharField()
     type = serializers.IntegerField()
-    update_time = serializers.DateTimeField()
-    create_time = serializers.DateTimeField()
+    updated_at = serializers.DateTimeField()
+    created_at = serializers.DateTimeField()
 
 
 class KgDDRuleAttributeResponseSerializer(serializers.Serializer):
@@ -441,9 +441,9 @@ class KgDDRuleSerializer(serializers.Serializer):
 
     status = serializers.IntegerField()
 
-    update_time = serializers.DateTimeField()
+    updated_at = serializers.DateTimeField()
 
-    create_time = serializers.DateTimeField()
+    created_at = serializers.DateTimeField()
 
 
 class KgDDRuleResponseSerializer(serializers.Serializer):
@@ -490,4 +490,5 @@ class BaseApiResponseSerializer(serializers.Serializer):
     total = serializers.IntegerField()
     pageNum = serializers.IntegerField()
     success = serializers.BooleanField()
+    records = serializers.ListField()
     msg = serializers.CharField(max_length=200)

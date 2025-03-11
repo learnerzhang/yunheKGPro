@@ -27,7 +27,7 @@ from rest_framework.parsers import (
     MultiPartParser
 )
 
-from yaapp.serializer import BaseApiResponseSerializer
+from apiapp.serializers import BaseApiResponseSerializer
 from yunheKGPro import CsrfExemptSessionAuthentication
 # Create your views here.
 
@@ -89,7 +89,7 @@ class KgModelList(mixins.ListModelMixin,
         if function:
             querySet = querySet.filter(function=function)
 
-        querySet = querySet.all().order_by('-update_time')
+        querySet = querySet.all().order_by('-updated_at')
 
         data['total'] = len(querySet)
         data['page'] = page
@@ -282,8 +282,8 @@ class ModelAddApiView(generics.GenericAPIView):
             if tmpbool:
                 tmpno = len(KgModel.objects.all())
                 tmpModel.desc = desc
-                tmpModel.create_time = datetime.now()
-                tmpModel.update_time = datetime.now()
+                tmpModel.created_at = datetime.now()
+                tmpModel.updated_at = datetime.now()
                 tmpModel.function = function
                 tmpModel.url = url
                 tmpModel.no = tmpno
@@ -423,7 +423,7 @@ class ModelUpdateApiView(generics.GenericAPIView):
             tmpModel.req_type = req_type
         tmpModel.kg_user_id = tmpuser
 
-        tmpModel.update_time = datetime.now()
+        tmpModel.updated_at = datetime.now()
         tmpModel.save()
         data = {"code": 200, "msg": "模型更新成功" }
         serializers = KgModelResponseSerializer(data=data, many=False)
@@ -719,8 +719,8 @@ class ModelParamAddApiView(generics.GenericAPIView):
                 tmpModelParma.necessary = necessary
                 tmpModelParma.activate = 0
                 tmpModelParma.default = default
-                tmpModelParma.create_time = datetime.now()
-                tmpModelParma.update_time = datetime.now()
+                tmpModelParma.created_at = datetime.now()
+                tmpModelParma.updated_at = datetime.now()
                 # tmpModelParma.kg_model_id = tmpmodel
                 tmpModelParma.save()
                 data = {"code": 200, "msg": "参数创建成功" }
@@ -800,8 +800,8 @@ class ModelParamBatchAddApiView(generics.GenericAPIView):
                     tmpModelParma.necessary = necessary
                     tmpModelParma.activate = 0
                     tmpModelParma.default = default
-                    tmpModelParma.create_time = datetime.now()
-                    tmpModelParma.update_time = datetime.now()
+                    tmpModelParma.created_at = datetime.now()
+                    tmpModelParma.updated_at = datetime.now()
                     # tmpModelParma.kg_model_id = tmpmodel
                     tmpModelParma.save()
                     succes_cnt+= 1
@@ -913,7 +913,7 @@ class ModelParamUpdateApiView(generics.GenericAPIView):
                     tmpModelParma.kg_model_id = tmpmodel
                 if necessary:
                     tmpModelParma.necessary = necessary
-                tmpModelParma.update_time = datetime.now()
+                tmpModelParma.updated_at = datetime.now()
                 tmpModelParma.save()
                 data = {"code": 200, "msg": "参数创建成功" }
             except:
@@ -1013,8 +1013,8 @@ class ModelParamBatchUpdateApiView(generics.GenericAPIView):
                     tmpModelParma.desc = desc
                     tmpModelParma.necessary = necessary
                     tmpModelParma.activate = 0
-                    tmpModelParma.create_time = datetime.now()
-                    tmpModelParma.update_time = datetime.now()
+                    tmpModelParma.created_at = datetime.now()
+                    tmpModelParma.updated_at = datetime.now()
                     tmpModelParma.kg_model_id = tmpmodel
                     tmpModelParma.save()
                     add_succes_cnt+= 1

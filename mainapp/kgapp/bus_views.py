@@ -27,7 +27,7 @@ from rest_framework.parsers import (
     MultiPartParser
 )
 
-from yaapp.serializer import BaseApiResponseSerializer
+from apiapp.serializers import BaseApiResponseSerializer
 from yunheKGPro import CsrfExemptSessionAuthentication
 # Create your views here.
 
@@ -74,10 +74,10 @@ class KgTempList(mixins.ListModelMixin,
         if keyword is not None and len(keyword) > 0:
             querySet = querySet.filter(name__contains="{}".format(keyword))
         if start_time:
-            querySet = querySet.filter(create_time__gt="{}".format(start_time))
+            querySet = querySet.filter(created_at__gt="{}".format(start_time))
         if end_time:
-            querySet = querySet.filter(create_time__lt="{}".format(end_time))
-        querySet = querySet.all().order_by('-update_time')
+            querySet = querySet.filter(created_at__lt="{}".format(end_time))
+        querySet = querySet.all().order_by('-updated_at')
         # querySet = KgDoc.objects.all()
         data['total'] = len(querySet)
         data['page'] = page
@@ -269,11 +269,11 @@ class KgTempAddApiView(generics.GenericAPIView):
                 tmp.desc = desc
             
             if create_date:
-                tmp.create_time = create_date
+                tmp.created_at = create_date
             else:
-                tmp.create_time = datetime.now()
+                tmp.created_at = datetime.now()
             tmp.version = version
-            tmp.update_time = datetime.now()
+            tmp.updated_at = datetime.now()
             tmp.path = filepath
             tmp.kg_user_id = tmpuser
             tmp.save()
@@ -419,14 +419,14 @@ class KgTempUpdateApiView(generics.GenericAPIView):
         if desc:
             tmp.desc = desc
         if create_date:
-            tmp.create_time = create_date
+            tmp.created_at = create_date
         if version:
             tmp.version = version
         if name:
             tmp.name = name
         tmp.kg_user_id = tmpuser
         tmp.kg_business_id = tmpbus
-        tmp.update_time = datetime.now()
+        tmp.updated_at = datetime.now()
         tmp.save()
         data = {"code": 200, "msg": "模板更新成功" }
         serializers = KgTempResponseSerializer(data=data, many=False)
@@ -516,9 +516,9 @@ class KgBusList(mixins.ListModelMixin,
         page = request.GET.get("page", 1)
         pageSize = request.GET.get("pageSize", 10)
         if keyword:
-            values = KgBusiness.objects.filter(name__icontains=keyword).all().order_by('-update_time')
+            values = KgBusiness.objects.filter(name__icontains=keyword).all().order_by('-updated_at')
         else:
-            values = KgBusiness.objects.all().order_by('-update_time')
+            values = KgBusiness.objects.all().order_by('-updated_at')
 
         data['total'] = len(values)
         data['page'] = page
@@ -569,8 +569,8 @@ class BusAddApiView(mixins.ListModelMixin,
             try:
                 tmpbus, tmpbool = KgBusiness.objects.get_or_create(name=name)
                 if tmpbool:
-                    tmpbus.create_time = datetime.now()
-                    tmpbus.update_time = datetime.now()
+                    tmpbus.created_at = datetime.now()
+                    tmpbus.updated_at = datetime.now()
                     tmpbus.kg_user_id = tmpuser
                     tmpbus.save()
                     serializers = KgBusResponseSerializer(data={"code": 200, "msg": "新建业务成功"}, many=False)
@@ -714,7 +714,7 @@ class KgTabCTTList(mixins.ListModelMixin,
             return tree
         
         data = {"code": 200 }
-        ctts = KgTempTableContent.objects.all().order_by('-update_time')
+        ctts = KgTempTableContent.objects.all().order_by('-updated_at')
 
         tmpctts = [model_to_dict(ctt) for ctt in ctts]
         data['tabctt'] = arr2tree(tmpctts, 0)
@@ -935,9 +935,9 @@ class KgTempByCttList(mixins.ListModelMixin,
         if keyword is not None and len(keyword) > 0:
             querySet = querySet.filter(title__contains="{}".format(keyword))
         if start_time:
-            querySet = querySet.filter(create_time__gt="{}".format(start_time))
+            querySet = querySet.filter(created_at__gt="{}".format(start_time))
         if end_time:
-            querySet = querySet.filter(create_time__lt="{}".format(end_time))
+            querySet = querySet.filter(created_at__lt="{}".format(end_time))
         querySet = querySet.all()
         # querySet = KgDoc.objects.all()
         data['total'] = len(querySet)

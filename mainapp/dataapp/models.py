@@ -21,8 +21,8 @@ class DataModel(models.Model):
     activate = models.IntegerField(max_length=1, verbose_name="激活状态", help_text="激活状态", unique=False, null=True)
     kg_user_data_id = models.ForeignKey(User, verbose_name="创建作者", help_text="创建作者", blank=True,
                                    on_delete=models.CASCADE, null=True)
-    update_time = models.DateTimeField(verbose_name="更新时间", null=True)
-    create_time = models.DateTimeField(verbose_name="创建时间", null=True)
+    updated_at = models.DateTimeField(verbose_name="更新时间", null=True)
+    created_at = models.DateTimeField(verbose_name="创建时间", null=True)
 
     def __str__(self):
         return str(self.id) + " #@ " + str(self.name)
@@ -63,8 +63,8 @@ class DataModelParam(models.Model):
     activate = models.IntegerField(max_length=1, verbose_name="激活状态", help_text="激活状态", unique=False, null=True)
     kg_model_id = models.ForeignKey(DataModel, verbose_name="关联模型", help_text="关联模型", blank=True,
                                     on_delete=models.CASCADE, null=True)
-    update_time = models.DateTimeField(verbose_name="更新时间", null=True)
-    create_time = models.DateTimeField(verbose_name="创建时间", null=True)
+    updated_at = models.DateTimeField(verbose_name="更新时间", null=True)
+    created_at = models.DateTimeField(verbose_name="创建时间", null=True)
 
     def __str__(self):
         return str(self.id) + " #@ " + str(self.name) + " #@ " + str(self.type)
@@ -92,8 +92,8 @@ class AppAPIModel(models.Model):
     tip_ctt = models.CharField(max_length=200, verbose_name="提示词内容", help_text="提示词内容", unique=False, null=True)
 
     toolapis = models.ManyToManyField(DataModel, verbose_name="工具集接口", help_text="工具集接口", blank=True)
-    update_time = models.DateTimeField(verbose_name="更新时间", null=True)
-    create_time = models.DateTimeField(verbose_name="创建时间", null=True)
+    updated_at = models.DateTimeField(verbose_name="更新时间", null=True)
+    created_at = models.DateTimeField(verbose_name="创建时间", null=True)
 
     def __str__(self):
         return str(self.id) + " #@ " + str(self.appname)

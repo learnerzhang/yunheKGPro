@@ -459,7 +459,7 @@ class PlanFactory:
                 # keys = list(record.keys())
                 if "流量" not in keys:
                     continue
-                lldata = record#list(record["流量"])
+                lldata = record  #list(record["流量"])
                 max_ll = max(lldata)
                 max_idx = lldata.index(max_ll)
                 max_date = date_list[max_idx]

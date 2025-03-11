@@ -77,10 +77,10 @@ class KgRelationSchemeList(mixins.ListModelMixin,
         if keyword is not None and len(keyword) > 0:
             querySet = querySet.filter(name__contains="{}".format(keyword))
         if start_time:
-            querySet = querySet.filter(create_time__gt="{}".format(start_time))
+            querySet = querySet.filter(created_at__gt="{}".format(start_time))
         if end_time:
-            querySet = querySet.filter(create_time__lt="{}".format(end_time))
-        querySet = querySet.all().order_by('-update_time')
+            querySet = querySet.filter(created_at__lt="{}".format(end_time))
+        querySet = querySet.all().order_by('-updated_at')
 
         data['total'] = len(querySet)
         data['page'] = page
@@ -130,8 +130,8 @@ class KgRelationSchemeAddApiView(generics.GenericAPIView):
             tmprel, tmpbool = KgRelationScheme.objects.get_or_create(name=name)
             if tmpbool:
                 tmprel.desc = desc
-                tmprel.create_time = datetime.now()
-                tmprel.update_time = datetime.now()
+                tmprel.created_at = datetime.now()
+                tmprel.updated_at = datetime.now()
                 tmprel.save()
                 data = {"code": 200, "msg": "新建关系成功"}
             else:
@@ -304,9 +304,9 @@ class KgEntitySchemeList(mixins.ListModelMixin,
         if keyword is not None and len(keyword) > 0:
             querySet = querySet.filter(name__contains="{}".format(keyword))
         if start_time:
-            querySet = querySet.filter(create_time__gt="{}".format(start_time))
+            querySet = querySet.filter(created_at__gt="{}".format(start_time))
         if end_time:
-            querySet = querySet.filter(create_time__lt="{}".format(end_time))
+            querySet = querySet.filter(created_at__lt="{}".format(end_time))
         if taskId is not None:
             try:
                 tmpTask = KgProductTask.objects.get(id=taskId)
@@ -319,7 +319,7 @@ class KgEntitySchemeList(mixins.ListModelMixin,
                 serializers.is_valid()
                 return Response(serializers.data, status=status.HTTP_200_OK)
 
-        querySet = querySet.all().order_by('-update_time')
+        querySet = querySet.all().order_by('-updated_at')
         data['total'] = len(querySet)
         data['page'] = page
         data['pageSize'] = pageSize
@@ -384,7 +384,7 @@ class KgEntitySchemeUpdateApiView(generics.GenericAPIView):
 
         if size is not None:
             tmpent.size = size
-        tmpent.update_time = datetime.now()
+        tmpent.updated_at = datetime.now()
         tmpent.save()
         data = {"code": 200, "msg": "实体属性更新成功"}
 
@@ -456,8 +456,8 @@ class KgEntitySchemeAddApiView(generics.GenericAPIView):
         if name is not None:
             tmpent, tmpbool = KgEntityScheme.objects.get_or_create(name=name)
             if tmpbool:
-                tmpent.create_time = datetime.now()
-                tmpent.update_time = datetime.now()
+                tmpent.created_at = datetime.now()
+                tmpent.updated_at = datetime.now()
                 tmpent.save()
                 data = {"code": 200, "msg": "新建实体成功"}
             else:
@@ -556,8 +556,8 @@ class KgEntitySchemeAddAttrApiView(generics.GenericAPIView):
             tmpentAttr.attmulti = multi_flag
             tmpentAttr.atttype = type
             tmpentAttr.attdesc = desc
-            tmpentAttr.create_time = datetime.now()
-            tmpentAttr.update_time = datetime.now()
+            tmpentAttr.created_at = datetime.now()
+            tmpentAttr.updated_at = datetime.now()
             tmpentAttr.save()
             tmpent.attrs.add(tmpentAttr)
             # tmpent.attrs.remove(tmpentAttr)
@@ -632,7 +632,7 @@ class KgEntitySchemeUpdateAttrApiView(generics.GenericAPIView):
         if multi_flag is not None:
             tmpattent.attmulti = int(multi_flag)
 
-        tmpattent.update_time = datetime.now()
+        tmpattent.updated_at = datetime.now()
         tmpattent.save()
         tmpent.attrs.add(tmpattent)
         tmpent.save()
@@ -734,11 +734,11 @@ class KgEntityByTypeList(mixins.ListModelMixin,
         if keyword is not None and len(keyword) > 0:
             querySet = querySet.filter(name__contains="{}".format(keyword))
         if start_time:
-            querySet = querySet.filter(create_time__gt="{}".format(start_time))
+            querySet = querySet.filter(created_at__gt="{}".format(start_time))
         if end_time:
-            querySet = querySet.filter(create_time__lt="{}".format(end_time))
+            querySet = querySet.filter(created_at__lt="{}".format(end_time))
 
-        querySet = querySet.all().order_by('-update_time')
+        querySet = querySet.all().order_by('-updated_at')
         data['total'] = len(querySet)
         data['page'] = page
         data['pageSize'] = pageSize
@@ -894,11 +894,11 @@ class KgEntityUpdateApiView(generics.GenericAPIView):
             for attK, attV in dict(attrs).items():
                 tka, tkb = KgEntityAtt.objects.get_or_create(attname=attK, atttvalue=attV)
                 if tkb:
-                    tka.update_time = datetime.now()
-                    tka.create_time = datetime.now()
+                    tka.updated_at = datetime.now()
+                    tka.created_at = datetime.now()
                     tka.save()
                 tmpent.atts.add(tka)
-        tmpent.update_time = datetime.now()
+        tmpent.updated_at = datetime.now()
         tmpent.save()
         data = {"code": 200, "msg": "实体更新成功!"}
         serializers = KgEntityDetailResponseSerializer(data=data, many=False)
@@ -1010,7 +1010,7 @@ class KgEntityUpdateAttrApiView(generics.GenericAPIView):
             except:
                 print("Neo4j 操作异常")
 
-        tmpent.update_time = datetime.now()
+        tmpent.updated_at = datetime.now()
         tmpent.save()
 
         cnt = 0
@@ -1024,7 +1024,7 @@ class KgEntityUpdateAttrApiView(generics.GenericAPIView):
                     tmpatt.atttvalue = val
                 if val is not None:
                     tmpatt.attname = name
-                tmpatt.update_time = datetime.now()
+                tmpatt.updated_at = datetime.now()
                 tmpatt.save()
                 cnt += 1
             except:

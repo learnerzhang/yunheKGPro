@@ -208,3 +208,29 @@ xadmin.site.register(KgText2SQL, TsqkAdmin)
 xadmin.site.register(Business, BusinessAdmin)
 xadmin.site.register(QuestionCategory, QuestionCategoryAdmin)
 xadmin.site.register(DisplayQuestion, DisplayQuestionAdmin)
+
+
+class KgKnowledgeAdmin(object):
+    list_display = ("id", "hashid", "name")
+    list_display_links = ("id", "hashid", "name")
+    search_fields = ("id", "hashid", "name")
+    list_filter = ("id", "hashid", "name")
+    model_icon = 'fa fa-square'
+
+class KgFragTagAdmin(object):
+    list_display = ("id", "name", "weight")
+    list_display_links = ("id", "name", "weight")
+    search_fields = ("id", "name", "weight")
+    model_icon = 'fa fa-tags'
+
+
+class KgDocFragmentationAdmin(object):
+    list_display = ("id", "content", "kg_knowledge_id", "recall_cnt")
+    list_display_links = ("id", "content", "kg_knowledge_id", "recall_cnt")
+    search_fields = ("id", "content", "kg_knowledge_id", "recall_cnt")
+    list_filter = ("id", "content", "kg_knowledge_id", "recall_cnt")
+    model_icon = 'fa fa-file-text-o'
+
+xadmin.site.register(Knowledge, KgKnowledgeAdmin)
+xadmin.site.register(KgDocCttTag, KgFragTagAdmin)
+xadmin.site.register(KgDocFragmentation, KgDocFragmentationAdmin)

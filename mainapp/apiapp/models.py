@@ -12,8 +12,8 @@ class DDPlan(models.Model):
 
     id = models.AutoField(auto_created=True, primary_key=True, serialize=False)
     name = models.CharField(max_length=512, verbose_name="调度方案名称", help_text="调度方案名称", unique=False)
-    update_time = models.DateTimeField(verbose_name="更新时间", null=True, default=datetime.datetime.now())
-    create_time = models.DateTimeField(verbose_name="创建时间", null=True, default=datetime.datetime.now())
+    updated_at = models.DateTimeField(verbose_name="更新时间", null=True, default=datetime.datetime.now())
+    created_at = models.DateTimeField(verbose_name="创建时间", null=True, default=datetime.datetime.now())
 
     def __str__(self):
         return str(self.id) + " @# " + str(self.name)
@@ -42,6 +42,6 @@ class WaterRecord(models.Model):
 
     dt = models.DateField(verbose_name="监测时间", null=True, blank=True)
 
-    update_time = models.DateTimeField(verbose_name="更新时间", null=True, default=datetime.datetime.now())
-    create_time = models.DateTimeField(verbose_name="创建时间", null=True, default=datetime.datetime.now())
+    updated_at = models.DateTimeField(verbose_name="更新时间", null=True, default=datetime.datetime.now())
+    created_at = models.DateTimeField(verbose_name="创建时间", null=True, default=datetime.datetime.now())
 

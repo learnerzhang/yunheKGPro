@@ -18,6 +18,8 @@
 ## 异步任务
 # celery flower -A yunheKGPro --address=127.0.0.1 --port=5555
 
+# celery -A yunheKGPro worker -l info --pool=solo
+
 ## 异步任务
 
 # redis

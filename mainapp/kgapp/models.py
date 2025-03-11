@@ -20,8 +20,8 @@ class KgTableContent(models.Model):
     order_no = models.IntegerField(verbose_name="顺序编号", help_text="顺序编号", unique=False, null=True)
     kg_user_id = models.ForeignKey(User, verbose_name="创建作者", help_text="创建作者", blank=True, on_delete=models.CASCADE,
                                    null=True)
-    update_time = models.DateTimeField(verbose_name="更新时间", null=True)
-    create_time = models.DateTimeField(verbose_name="创建时间", null=True)
+    updated_at = models.DateTimeField(verbose_name="更新时间", null=True)
+    created_at = models.DateTimeField(verbose_name="创建时间", null=True)
 
     def __str__(self):
         return str(self.id) + " #@ " + str(self.name)
@@ -39,8 +39,8 @@ class KgTempTableContent(models.Model):
     order_no = models.IntegerField(verbose_name="顺序编号", help_text="顺序编号", unique=False, null=True)
     kg_user_id = models.ForeignKey(User, verbose_name="创建作者", help_text="创建作者", blank=True, on_delete=models.CASCADE,
                                    null=True)
-    update_time = models.DateTimeField(verbose_name="更新时间", null=True)
-    create_time = models.DateTimeField(verbose_name="创建时间", null=True)
+    updated_at = models.DateTimeField(verbose_name="更新时间", null=True)
+    created_at = models.DateTimeField(verbose_name="创建时间", null=True)
 
     def __str__(self):
         return str(self.id) + " #@ " + str(self.name)
@@ -54,15 +54,15 @@ class KgTag(models.Model):
     id = models.AutoField(auto_created=True, primary_key=True, serialize=False)
     name = models.CharField(max_length=200, verbose_name="标签名称", help_text="标签名称", unique=True)
     desc = models.CharField(max_length=512, verbose_name="标签描述", help_text="标签描述", unique=False)
-    update_time = models.DateTimeField(verbose_name="更新时间", null=True)
-    create_time = models.DateTimeField(verbose_name="创建时间", null=True)
+    updated_at = models.DateTimeField(verbose_name="更新时间", null=True)
+    created_at = models.DateTimeField(verbose_name="创建时间", null=True)
 
     def __str__(self):
         return str(self.id) + " #@ " + str(self.name)
 
     def toJson(self):
-        return {"id": self.id, "name": self.name, "desc": self.desc, "update_time": self.update_time,
-                "create_time": self.create_time}
+        return {"id": self.id, "name": self.name, "desc": self.desc, "updated_at": self.updated_at,
+                "created_at": self.created_at}
 
     @property
     def tabctt(self):
@@ -76,8 +76,8 @@ class KgTabTag(models.Model):
 
     id = models.AutoField(auto_created=True, primary_key=True, serialize=False)
     name = models.CharField(max_length=200, verbose_name="一级标签名称", help_text="一级标签名称", unique=False)
-    update_time = models.DateTimeField(verbose_name="更新时间", null=True)
-    create_time = models.DateTimeField(verbose_name="创建时间", null=True)
+    updated_at = models.DateTimeField(verbose_name="更新时间", null=True)
+    created_at = models.DateTimeField(verbose_name="创建时间", null=True)
     tags = models.ManyToManyField(KgTag, verbose_name="关联标签", blank=True)
 
     def __str__(self):
@@ -88,14 +88,29 @@ class KgTabTag(models.Model):
         # 编写方法 直接将需要的数据格式返回
         tags = []
         for tag in self.tags.all():
-            tags.append({'id': tag.id, 'name': tag.name, "update_time": tag.update_time, "create_time": tag.create_time,
+            tags.append({'id': tag.id, 'name': tag.name, "updated_at": tag.updated_at, "created_at": tag.created_at,
                          "tabctt": self.name, "tabctt_id": self.id})
         return tags
 
     def toJson(self):
-        return {"id": self.id, "name": self.name, "tags": self.tag_list, "update_time": self.update_time,
-                "create_time": self.create_time}
+        return {"id": self.id, "name": self.name, "tags": self.tag_list, "updated_at": self.updated_at,
+                "created_at": self.created_at}
 
+class Knowledge(models.Model):
+    class Meta:
+        verbose_name_plural = '知识库'
+        db_table = 'kg_knowledge'
+
+    id = models.AutoField(auto_created=True, primary_key=True, serialize=False)
+    hashid = models.CharField(max_length=200, verbose_name="知识库ID", help_text="知识库ID", unique=False)
+    name = models.TextField(verbose_name="知识库名称", help_text="知识库名称", unique=False, null=True)
+    desc = models.TextField(verbose_name="知识库描述", help_text="知识库描述", unique=False, null=True)
+
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    def __str__(self):
+        return str(self.hashid) + " #@ " + str(self.name)
 
 class KgDoc(models.Model):
     class Meta:
@@ -109,19 +124,32 @@ class KgDoc(models.Model):
     desc = models.TextField(verbose_name="文件描述", help_text="文件描述", unique=False, null=True)
     path = models.FileField(upload_to='docs', verbose_name='关联文件')
     star = models.IntegerField(verbose_name="星指数", help_text="星指数", unique=False, null=True, default=0)
+    parseflag = models.IntegerField(verbose_name="解析状态", help_text="解析状态", null=True, default=0)
+    structflag = models.IntegerField(verbose_name="结构化标识", help_text="结构化标识", null=True, default=0)
     isdelete = models.IntegerField(verbose_name="是否删除", help_text="是否删除", unique=False, null=True)
     prodflag = models.IntegerField(verbose_name="生产状态", help_text="生产状态", null=True, default=0)
     kg_table_content_id = models.ForeignKey(KgTableContent, verbose_name="所属目录", help_text="所属目录", blank=True,
                                             on_delete=models.CASCADE, null=True)
+    
+    kg_knowledge_id = models.ForeignKey(Knowledge, verbose_name="知识库", help_text="知识库", blank=True, on_delete=models.CASCADE, null=True)
+    
     kg_user_id = models.ForeignKey(User, verbose_name="创建作者", help_text="创建作者", blank=True, on_delete=models.CASCADE,
                                    null=True)
     tags = models.ManyToManyField(KgTag, verbose_name="文档关联标签", blank=True)
-    update_time = models.DateTimeField(verbose_name="更新时间", null=True)
-    create_time = models.DateTimeField(verbose_name="创建时间", null=True)
+    updated_at = models.DateTimeField(verbose_name="更新时间", null=True)
+    created_at = models.DateTimeField(verbose_name="创建时间", null=True)
 
     def __str__(self):
         return str(self.id) + " #@ " + str(self.title) + " #@ " + str(self.type)
-
+    
+    
+    @property
+    def knowledge_name(self):
+        # 编写方法 直接将需要的数据格式返回
+        if self.kg_knowledge_id:
+            return self.kg_knowledge_id.name
+        else:
+            return None
     @property
     def tag_list(self):
         # 编写方法 直接将需要的数据格式返回
@@ -165,6 +193,48 @@ class KgDoc(models.Model):
             return None
 
 
+class KgDocCttTag(models.Model):
+    class Meta:
+        verbose_name_plural = '知识库文档标签'
+        db_table = 'kg_doc_ctt_tag'
+
+    id = models.AutoField(auto_created=True, primary_key=True, serialize=False)
+    name = models.CharField(max_length=200, verbose_name="分片ID", help_text="分片ID", unique=False)
+    weight = models.FloatField(verbose_name="权重", help_text="权重", unique=False, null=True)
+
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    def __str__(self):
+        return str(self.id) + " #@ " + str(self.name)
+    
+    
+class KgDocFragmentation(models.Model):
+    class Meta:
+        verbose_name_plural = '知识库文档分片'
+        db_table = 'kg_doc_fragmentation'
+
+    id = models.AutoField(auto_created=True, primary_key=True, serialize=False)
+    no = models.IntegerField(max_length=200, verbose_name="分片ID", help_text="分片ID", unique=False)
+    kg_doc_id = models.ForeignKey(KgDoc, verbose_name="关联文档", help_text="关联文档", blank=True, on_delete=models.CASCADE, null=True)
+    
+    kg_knowledge_id = models.ForeignKey(Knowledge, verbose_name="所属知识库", help_text="所属知识库", blank=True, on_delete=models.CASCADE, null=True)
+    
+    tags = models.ManyToManyField(KgDocCttTag, verbose_name="分片关键词", blank=True)
+    
+    content = models.TextField(verbose_name="分片内容", help_text="分片内容", unique=False, null=True)
+    ctt_size = models.IntegerField(max_length=200, verbose_name="分片大小", help_text="分片大小", unique=False, null=True)
+    
+    activate_flag = models.IntegerField(verbose_name="启用状态", help_text="启用状态", null=True, default=1)
+    recall_cnt = models.IntegerField(max_length=200, verbose_name="召回次数", help_text="召回次数", unique=False, null=True, default=0)
+    
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    def __str__(self):
+        return str(self.kg_knowledge_id.id) + " #@ " + str(self.content)
+    
+
 class KgBusiness(models.Model):
     class Meta:
         verbose_name_plural = '知识库业务表'
@@ -175,8 +245,8 @@ class KgBusiness(models.Model):
     kg_user_id = models.ForeignKey(User, verbose_name="创建作者", help_text="创建作者", blank=True, on_delete=models.CASCADE,
                                    null=True)
 
-    update_time = models.DateTimeField(verbose_name="更新时间", null=True)
-    create_time = models.DateTimeField(verbose_name="创建时间", null=True)
+    updated_at = models.DateTimeField(verbose_name="更新时间", null=True)
+    created_at = models.DateTimeField(verbose_name="创建时间", null=True)
 
     def __str__(self):
         return str(self.id) + " #@ " + str(self.name)
@@ -200,8 +270,8 @@ class KgTemplates(models.Model):
                                        on_delete=models.CASCADE, null=True)
     path = models.FileField(upload_to='temps', verbose_name='关联文件')
 
-    update_time = models.DateTimeField(verbose_name="更新时间", null=True)
-    create_time = models.DateTimeField(verbose_name="创建时间", null=True)
+    updated_at = models.DateTimeField(verbose_name="更新时间", null=True)
+    created_at = models.DateTimeField(verbose_name="创建时间", null=True)
 
     def __str__(self):
         return str(self.id) + " #@ " + str(self.name) + " #@ " + str(self.kg_business_id)
@@ -259,9 +329,9 @@ class KgProductTask(models.Model):
 
     task_status = models.IntegerField(max_length=1, verbose_name="任务执行状态", help_text="0|1|2|3", unique=False, null=True)
 
-    update_time = models.DateTimeField(verbose_name="更新时间", null=True)
+    updated_at = models.DateTimeField(verbose_name="更新时间", null=True)
 
-    create_time = models.DateTimeField(verbose_name="创建时间", null=True)
+    created_at = models.DateTimeField(verbose_name="创建时间", null=True)
 
     def __str__(self):
         return str(self.id) + " #@ " + str(self.name) + " #@ " + str(self.desc) + " #@ " + str(self.task_status)
@@ -306,8 +376,8 @@ class KgTask(models.Model):
     kg_prod_task_id = models.ForeignKey(KgProductTask, verbose_name="关联任务", help_text="关联任务", blank=True,
                                         on_delete=models.CASCADE, null=True)
     task_step = models.IntegerField(max_length=1, verbose_name="任务步骤", help_text="0|1", unique=False, null=True)
-    update_time = models.DateTimeField(verbose_name="更新时间", null=True)
-    create_time = models.DateTimeField(verbose_name="创建时间", null=True)
+    updated_at = models.DateTimeField(verbose_name="更新时间", null=True)
+    created_at = models.DateTimeField(verbose_name="创建时间", null=True)
 
     def __str__(self):
         return str(self.id) + " #@ " + str(self.kg_prod_task_id) + " #@ " + str(self.celery_id)
@@ -327,8 +397,8 @@ class KgQA(models.Model):
                                    null=True)
     question = models.CharField(max_length=200, verbose_name="问题", help_text="问题", unique=False)
     answer = models.CharField(max_length=512, verbose_name="答案", help_text="答案", unique=False)
-    update_time = models.DateTimeField(verbose_name="更新时间", null=True)
-    create_time = models.DateTimeField(verbose_name="创建时间", null=True)
+    updated_at = models.DateTimeField(verbose_name="更新时间", null=True)
+    created_at = models.DateTimeField(verbose_name="创建时间", null=True)
 
     def __str__(self):
         return str(self.id) + " #@ " + str(self.question)
@@ -355,8 +425,8 @@ class KgTmpQA(models.Model):
                                null=True)
     question = models.CharField(max_length=200, verbose_name="问题", help_text="问题", unique=False)
     answer = models.CharField(max_length=512, verbose_name="答案", help_text="答案", unique=False)
-    update_time = models.DateTimeField(verbose_name="更新时间", null=True)
-    create_time = models.DateTimeField(verbose_name="创建时间", null=True)
+    updated_at = models.DateTimeField(verbose_name="更新时间", null=True)
+    created_at = models.DateTimeField(verbose_name="创建时间", null=True)
 
     def __str__(self):
         return str(self.id) + " #@ " + str(self.question)
@@ -378,8 +448,8 @@ class KgUpLoadTemplate(models.Model):
     id = models.AutoField(auto_created=True, primary_key=True, serialize=False)
     title = models.CharField(max_length=200, verbose_name="模版描述", help_text="模版描述", unique=False)
     path = models.FileField(upload_to='kguploadtemplates', verbose_name='关联文件')
-    update_time = models.DateTimeField(verbose_name="更新时间", null=True)
-    create_time = models.DateTimeField(verbose_name="创建时间", null=True)
+    updated_at = models.DateTimeField(verbose_name="更新时间", null=True)
+    created_at = models.DateTimeField(verbose_name="创建时间", null=True)
 
     @property
     def filepath(self):
@@ -401,8 +471,8 @@ class KgEntityAttrScheme(models.Model):
     atttype = models.CharField(max_length=200, verbose_name="实体属性类型", help_text="实体属性类型", unique=False)
     attmulti = models.IntegerField(max_length=1, verbose_name="单多值", help_text="0|1", unique=False, null=True)
     attdesc = models.CharField(max_length=512, verbose_name="实体属性描述", help_text="实体属性描述", unique=False, null=True)
-    update_time = models.DateTimeField(verbose_name="更新时间", null=True)
-    create_time = models.DateTimeField(verbose_name="创建时间", null=True)
+    updated_at = models.DateTimeField(verbose_name="更新时间", null=True)
+    created_at = models.DateTimeField(verbose_name="创建时间", null=True)
 
     def __str__(self):
         return str(self.id) + " #@ " + str(self.attname) + " #@ " + str(self.atttype) + " #@ " + str(
@@ -420,8 +490,8 @@ class KgEntityScheme(models.Model):
     attrs = models.ManyToManyField(KgEntityAttrScheme, verbose_name="属性列表", blank=True)
     color = models.CharField(max_length=200, verbose_name="实体展示颜色", help_text="实体展示颜色", unique=False, default='#9AA1AC')
     size = models.IntegerField(verbose_name="实体展示大小", help_text="实体展示大小", unique=False, default=60)
-    update_time = models.DateTimeField(verbose_name="更新时间", null=True)
-    create_time = models.DateTimeField(verbose_name="创建时间", null=True)
+    updated_at = models.DateTimeField(verbose_name="更新时间", null=True)
+    created_at = models.DateTimeField(verbose_name="创建时间", null=True)
 
     def __str__(self):
         return str(self.id) + " #@ " + str(self.name)
@@ -444,8 +514,8 @@ class KgRelationScheme(models.Model):
     id = models.AutoField(auto_created=True, primary_key=True, serialize=False)
     name = models.CharField(max_length=200, verbose_name="关系名称", help_text="关系名称", unique=False)
     desc = models.CharField(max_length=512, verbose_name="关系描述", help_text="关系描述", unique=False)
-    update_time = models.DateTimeField(verbose_name="更新时间", null=True)
-    create_time = models.DateTimeField(verbose_name="创建时间", null=True)
+    updated_at = models.DateTimeField(verbose_name="更新时间", null=True)
+    created_at = models.DateTimeField(verbose_name="创建时间", null=True)
 
     def __str__(self):
         return str(self.id) + " #@ " + str(self.name)
@@ -460,8 +530,8 @@ class KgEntityAtt(models.Model):
     id = models.AutoField(auto_created=True, primary_key=True, serialize=False)
     attname = models.CharField(max_length=200, verbose_name="实体属性名称", help_text="实体属性名称", unique=False)
     atttvalue = models.CharField(max_length=512, verbose_name="实体属性值", help_text="实体属性值", unique=False)
-    update_time = models.DateTimeField(verbose_name="更新时间", null=True)
-    create_time = models.DateTimeField(verbose_name="创建时间", null=True)
+    updated_at = models.DateTimeField(verbose_name="更新时间", null=True)
+    created_at = models.DateTimeField(verbose_name="创建时间", null=True)
 
     def __str__(self):
         return str(self.id) + " #@ " + str(self.attname) + " #@ " + str(self.atttvalue)
@@ -478,8 +548,8 @@ class KgEntity(models.Model):
     type = models.CharField(max_length=200, verbose_name="实体类型", help_text="实体类型", unique=False)
     tags = models.ManyToManyField(KgTag, verbose_name="实体标签", blank=True)
     atts = models.ManyToManyField(KgEntityAtt, verbose_name="属性列表", blank=True)
-    update_time = models.DateTimeField(verbose_name="更新时间", null=True)
-    create_time = models.DateTimeField(verbose_name="创建时间", null=True)
+    updated_at = models.DateTimeField(verbose_name="更新时间", null=True)
+    created_at = models.DateTimeField(verbose_name="创建时间", null=True)
     task = models.ForeignKey(KgProductTask, verbose_name="关联任务", help_text="关联任务", blank=True, on_delete=models.CASCADE,
                              null=True)
 
@@ -551,8 +621,8 @@ class KgRelation(models.Model):
     to_nodeid = models.IntegerField(verbose_name="to node", unique=False, null=True)
     task = models.ForeignKey(KgProductTask, verbose_name="关联任务", help_text="关联任务", blank=True, on_delete=models.CASCADE,
                              null=True)
-    update_time = models.DateTimeField(verbose_name="更新时间", null=True)
-    create_time = models.DateTimeField(verbose_name="创建时间", null=True)
+    updated_at = models.DateTimeField(verbose_name="更新时间", null=True)
+    created_at = models.DateTimeField(verbose_name="创建时间", null=True)
 
     def __str__(self):
         try:
@@ -571,8 +641,8 @@ class KgRelation(models.Model):
 #     id = models.AutoField(auto_created=True, primary_key=True, serialize=False)
 #     name = models.CharField(max_length=200, verbose_name="目标名称", help_text="目标名称", unique=False)
 #     kg_user_id = models.ForeignKey(User, verbose_name="创建作者", help_text="创建作者", blank=True, on_delete=models.CASCADE, null=True)
-#     update_time = models.DateTimeField(verbose_name="更新时间", null=True)
-#     create_time = models.DateTimeField(verbose_name="创建时间", null=True)
+#     updated_at = models.DateTimeField(verbose_name="更新时间", null=True)
+#     created_at = models.DateTimeField(verbose_name="创建时间", null=True)
 
 #     def __str__(self):
 #       return str(self.id) + " #@ " + str(self.name)
@@ -599,9 +669,9 @@ class KgDDRuleAttribute(models.Model):
 
     valueType = models.CharField(max_length=200, verbose_name="值类型", help_text="值类型", unique=False)
 
-    update_time = models.DateTimeField(verbose_name="更新时间", null=True)
+    updated_at = models.DateTimeField(verbose_name="更新时间", null=True)
 
-    create_time = models.DateTimeField(verbose_name="创建时间", null=True)
+    created_at = models.DateTimeField(verbose_name="创建时间", null=True)
 
     def __str__(self):
         return str(self.id) + " #@ " + str(self.name)
@@ -634,9 +704,9 @@ class KgDDRule(models.Model):
     content = models.TextField(max_length=1024, verbose_name="规则详情", help_text="规则详情", unique=False, null=False,
                                default=0)
 
-    update_time = models.DateTimeField(verbose_name="更新时间", null=True)
+    updated_at = models.DateTimeField(verbose_name="更新时间", null=True)
 
-    create_time = models.DateTimeField(verbose_name="创建时间", null=True)
+    created_at = models.DateTimeField(verbose_name="创建时间", null=True)
 
     def __str__(self):
         return str(self.id) + " #@ " + str(self.name) + " #@ " + str(self.desc)
@@ -684,9 +754,9 @@ class KgDataIndex(models.Model):
     span_value = models.CharField(max_length=20, verbose_name="下标间歇值", help_text="下标间歇值", unique=False, null=True,
                                   default="")
 
-    update_time = models.DateTimeField(verbose_name="更新时间", null=True)
+    updated_at = models.DateTimeField(verbose_name="更新时间", null=True)
 
-    create_time = models.DateTimeField(verbose_name="创建时间", null=True)
+    created_at = models.DateTimeField(verbose_name="创建时间", null=True)
 
     def __str__(self):
         return str(self.id) + " @# " + str(self.span_type) + " @# " + str(self.span_value)
@@ -701,8 +771,8 @@ class KgText2SQL(models.Model):
     query = models.CharField(max_length=512, verbose_name="查询语句", help_text="查询语句", unique=False)
     sql_ctt = models.CharField(max_length=512, verbose_name="SQL内容", help_text="SQL内容", unique=False)
     activate = models.IntegerField(choices=((0, '错误'), (1, '正确')), verbose_name='转换状态', default=1)
-    update_time = models.DateTimeField(verbose_name="更新时间", null=True)
-    create_time = models.DateTimeField(verbose_name="创建时间", null=True)
+    updated_at = models.DateTimeField(verbose_name="更新时间", null=True)
+    created_at = models.DateTimeField(verbose_name="创建时间", null=True)
 
     def __str__(self):
         return str(self.id) + " @# " + str(self.query) + " @# " + str(self.sql_ctt)
@@ -719,8 +789,8 @@ class Business(models.Model):
     name = models.CharField(max_length=200, verbose_name="业务名称", help_text="业务名称", unique=False)
     code = models.CharField(max_length=10, verbose_name="业务代号", help_text="业务代号", unique=False)
     desc = models.CharField(max_length=512, verbose_name="业务描述", help_text="业务描述", unique=False, null=True, blank=True)
-    update_time = models.DateTimeField(verbose_name="更新时间", null=True)
-    create_time = models.DateTimeField(verbose_name="创建时间", null=True)
+    updated_at = models.DateTimeField(verbose_name="更新时间", null=True)
+    created_at = models.DateTimeField(verbose_name="创建时间", null=True)
 
     def __str__(self):
         return str(self.name)
@@ -734,8 +804,8 @@ class QuestionCategory(models.Model):
     id = models.AutoField(auto_created=True, primary_key=True, serialize=False)
     name = models.CharField(max_length=200, verbose_name="分类名称", help_text="分类名称", unique=False)
     desc = models.CharField(max_length=512, verbose_name="分类描述", help_text="分类描述", unique=False, null=True, blank=True)
-    update_time = models.DateTimeField(verbose_name="更新时间", null=True)
-    create_time = models.DateTimeField(verbose_name="创建时间", null=True)
+    updated_at = models.DateTimeField(verbose_name="更新时间", null=True)
+    created_at = models.DateTimeField(verbose_name="创建时间", null=True)
 
     def __str__(self):
         return str(self.name)
@@ -750,8 +820,8 @@ class DisplayQuestion(models.Model):
     question = models.CharField(max_length=512, verbose_name="问题", help_text="问题", unique=False)
     business = models.ForeignKey(Business, on_delete=models.CASCADE, verbose_name="业务", help_text="业务", null=True, blank=True)
     category = models.ForeignKey(QuestionCategory, on_delete=models.CASCADE, verbose_name="分类", help_text="分类", null=True)
-    update_time = models.DateTimeField(verbose_name="更新时间", null=True)
-    create_time = models.DateTimeField(verbose_name="创建时间", null=True)
+    updated_at = models.DateTimeField(verbose_name="更新时间", null=True)
+    created_at = models.DateTimeField(verbose_name="创建时间", null=True)
 
     def __str__(self):
         return str(self.question)

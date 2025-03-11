@@ -71,7 +71,7 @@ class KgTmpQAList(mixins.ListModelMixin,
         
         page = request.GET.get("page", 1)
         pageSize = request.GET.get("pageSize", 10)
-        # querySet = KgTmpQA.objects.filter(task_id=taskId, doc_id=docId).all().order_by('-update_time')
+        # querySet = KgTmpQA.objects.filter(task_id=taskId, doc_id=docId).all().order_by('-updated_at')
         
 
         datatask = KgTask.objects.filter(kg_prod_task_id=tmptask, task_step=0).first()
@@ -209,7 +209,7 @@ class KgProdTaskList(mixins.ListModelMixin,
         if tkstatus:
             querySet = querySet.filter(task_status=tkstatus)
 
-        querySet = querySet.all().order_by('-update_time')
+        querySet = querySet.all().order_by('-updated_at')
         data['total'] = len(querySet)
         data['page'] = page
         data['pageSize'] = pageSize
@@ -455,8 +455,8 @@ class ProdTaskAddApiView(generics.GenericAPIView):
                 return Response(serializers.data, status=status.HTTP_200_OK)
             
             tmptask = KgProductTask()
-            tmptask.create_time = datetime.now()
-            tmptask.update_time = datetime.now()
+            tmptask.created_at = datetime.now()
+            tmptask.updated_at = datetime.now()
             tmptask.name = name
             tmptask.desc = desc
             tmptask.task_type = taskType
@@ -537,7 +537,7 @@ class ProdTaskUpdateApiView(generics.GenericAPIView):
                 return Response(serializers.data, status=status.HTTP_200_OK)
             
         
-        tmptask.update_time = datetime.now()
+        tmptask.updated_at = datetime.now()
         tmptask.name = name
         if desc is not None:
             tmptask.desc = desc
@@ -1030,8 +1030,8 @@ class TaskLoadDoneApiView(mixins.ListModelMixin,
             del ent['doc']
             del ent['simqas']
             ent['task_id'] = tmptask
-            ent['update_time'] = datetime.now()
-            ent['create_time'] = datetime.now()
+            ent['updated_at'] = datetime.now()
+            ent['created_at'] = datetime.now()
             # ent['kg_user_id'] = User.objects.get(id=tmptask.kg_user_id)
             ent['kg_user_id'] = tmptask.kg_user_id
             ent['doc_id'] = KgDoc.objects.get(id=ent['doc_id'])
@@ -1170,7 +1170,7 @@ class TaskFullDoneApiView(mixins.ListModelMixin,
             tmpdocdesc = ent['desc']
             doc = KgDoc.objects.get(id=tmpdocid)
             doc.desc = tmpdocdesc
-            doc.update_time = datetime.now()
+            doc.updated_at = datetime.now()
             doc.prodflag = 1
             doc.save()
         tmptask.task_status = 5
@@ -1277,7 +1277,7 @@ class kgFullProdList(mixins.ListModelMixin,
         
         page = request.GET.get("page", 1)
         pageSize = request.GET.get("pageSize", 10)
-        # querySet = KgTmpQA.objects.filter(task_id=taskId, doc_id=docId).all().order_by('-update_time')
+        # querySet = KgTmpQA.objects.filter(task_id=taskId, doc_id=docId).all().order_by('-updated_at')
         
 
         datatask = KgTask.objects.filter(kg_prod_task_id=tmptask, task_step=0).first()

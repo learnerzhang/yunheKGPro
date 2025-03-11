@@ -16,8 +16,8 @@ class KgModel(models.Model):
     req_type = models.IntegerField(max_length=1, verbose_name="请求方式", help_text="请求方式", unique=False, null=True)
     activate = models.IntegerField(max_length=1, verbose_name="激活状态", help_text="激活状态", unique=False, null=True)
     kg_user_id = models.ForeignKey(User, verbose_name="创建作者", help_text="创建作者", blank=True, on_delete=models.CASCADE, null=True)
-    update_time = models.DateTimeField(verbose_name="更新时间", null=True)
-    create_time = models.DateTimeField(verbose_name="创建时间", null=True)
+    updated_at = models.DateTimeField(verbose_name="更新时间", null=True)
+    created_at = models.DateTimeField(verbose_name="创建时间", null=True)
 
     def __str__(self):
         return str(self.id) + " #@ " + str(self.name)
@@ -54,8 +54,8 @@ class KgModelParam(models.Model):
     necessary = models.IntegerField(max_length=1, verbose_name="必须参数", help_text="必须参数", unique=False, null=True)
     activate = models.IntegerField(max_length=1, verbose_name="激活状态", help_text="激活状态", unique=False, null=True)
     kg_model_id = models.ForeignKey(KgModel, verbose_name="关联模型", help_text="关联模型", blank=True, on_delete=models.CASCADE, null=True)
-    update_time = models.DateTimeField(verbose_name="更新时间", null=True)
-    create_time = models.DateTimeField(verbose_name="创建时间", null=True)
+    updated_at = models.DateTimeField(verbose_name="更新时间", null=True)
+    created_at = models.DateTimeField(verbose_name="创建时间", null=True)
 
     def __str__(self):
         return str(self.id) + " #@ " + str(self.name) + " #@ " + str(self.type)

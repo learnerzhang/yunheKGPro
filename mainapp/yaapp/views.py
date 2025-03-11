@@ -50,9 +50,10 @@ from yaapp import getYuAnName, getYuAnParamPath
 from yaapp.api_yuan import map_input_to_template, recommend_plan
 from yaapp.models import PlanByUser, PlanByUserDocument, PlanTemplate, PtBusiness, TemplateNode
 from yaapp.plan import PlanFactory
-from yaapp.serializer import BaseApiResponseSerializer
 from yaapp.wordutils import set_landscape, writeParagraphs2Word, writeTitle2Word
 from yunheKGPro import CsrfExemptSessionAuthentication
+
+from apiapp.serializers import BaseApiResponseSerializer
 
 
 class PTBusinessList(mixins.ListModelMixin,
@@ -1361,8 +1362,8 @@ class LLMYuAnTaskApiView(generics.GenericAPIView):
             
 
             tmptask = KgProductTask()
-            tmptask.create_time = datetime.now()
-            tmptask.update_time = datetime.now()
+            tmptask.created_at = datetime.now()
+            tmptask.updated_at = datetime.now()
             tmptask.name = name
             tmptask.desc = desc
             tmptask.task_type = taskType

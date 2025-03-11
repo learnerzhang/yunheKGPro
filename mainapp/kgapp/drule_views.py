@@ -73,10 +73,10 @@ import requests
 #         if keyword is not None and len(keyword) > 0:
 #             querySet = querySet.filter(name__contains="{}".format(keyword))
 #         if start_time:
-#             querySet = querySet.filter(create_time__gt="{}".format(start_time))
+#             querySet = querySet.filter(created_at__gt="{}".format(start_time))
 #         if end_time:
-#             querySet = querySet.filter(create_time__lt="{}".format(end_time))
-#         querySet = querySet.all().order_by('-update_time')
+#             querySet = querySet.filter(created_at__lt="{}".format(end_time))
+#         querySet = querySet.all().order_by('-updated_at')
 
 #         data['total'] = len(querySet)
 #         data['page'] = page
@@ -139,8 +139,8 @@ import requests
 #             tmpent, tmpbool = KgDDAction.objects.get_or_create(name=name)
 #             if tmpbool:
 #                 tmpent.kg_user_id = tmpuser
-#                 tmpent.create_time = datetime.now()
-#                 tmpent.update_time = datetime.now()
+#                 tmpent.created_at = datetime.now()
+#                 tmpent.updated_at = datetime.now()
 #                 tmpent.save()
 #                 data = {"code": 200, "msg": "新建目标成功"}
 #                 data['data'] = model_to_dict(tmpent, exclude=['kg_user_id'])
@@ -254,10 +254,10 @@ class KgDDRuleAttributeList(mixins.ListModelMixin,
         if keyword is not None and len(keyword) > 0:
             querySet = querySet.filter(zhName__contains="{}".format(keyword))
         if start_time:
-            querySet = querySet.filter(create_time__gt="{}".format(start_time))
+            querySet = querySet.filter(created_at__gt="{}".format(start_time))
         if end_time:
-            querySet = querySet.filter(create_time__lt="{}".format(end_time))
-        querySet = querySet.all().order_by('-update_time')
+            querySet = querySet.filter(created_at__lt="{}".format(end_time))
+        querySet = querySet.all().order_by('-updated_at')
 
         data['total'] = len(querySet)
         data['page'] = page
@@ -320,8 +320,8 @@ class KgDDRuleAttributeSaveApiView(mixins.ListModelMixin,
                 else:
                     tmpent.name = ""
 
-                tmpent.create_time = datetime.now()
-                tmpent.update_time = datetime.now()
+                tmpent.created_at = datetime.now()
+                tmpent.updated_at = datetime.now()
                 tmpent.save()
                 data = {"code": 200, "msg": "新建指标成功"}
                 data['data'] = model_to_dict(tmpent, exclude=[''])
@@ -348,7 +348,7 @@ class KgDDRuleAttributeSaveApiView(mixins.ListModelMixin,
                         if valueType:
                             tmpatt.valueType = valueType
                         
-                        tmpatt.update_time = datetime.now()
+                        tmpatt.updated_at = datetime.now()
                         tmpatt.save()
                         data = {"code": 200, "msg": "更新属性成功"}
                         data['data'] = model_to_dict(tmpatt, exclude=[''])
@@ -440,10 +440,10 @@ class KgDDRuleList(mixins.ListModelMixin,
         if keyword is not None and len(keyword) > 0:
             querySet = querySet.filter(name__contains="{}".format(keyword))
         if start_time:
-            querySet = querySet.filter(create_time__gt="{}".format(start_time))
+            querySet = querySet.filter(created_at__gt="{}".format(start_time))
         if end_time:
-            querySet = querySet.filter(create_time__lt="{}".format(end_time))
-        querySet = querySet.all().order_by('-update_time')
+            querySet = querySet.filter(created_at__lt="{}".format(end_time))
+        querySet = querySet.all().order_by('-updated_at')
 
         data['total'] = len(querySet)
         data['page'] = page
@@ -594,8 +594,8 @@ class KgDDRuleSaveApiView(mixins.ListModelMixin,
                 info = KgDDRule()
                 info.name = name
                 info.desc = desc if desc and len(desc) > 0 else ""
-                info.create_time = datetime.now()
-                info.update_time = datetime.now()
+                info.created_at = datetime.now()
+                info.updated_at = datetime.now()
                 info.type = 1
                 info.order = 0
                 info.action_id = action_id
@@ -636,7 +636,7 @@ class KgDDRuleSaveApiView(mixins.ListModelMixin,
             try:
                 info.name = name
                 info.desc = desc if desc and len(desc) > 0 else ""
-                info.update_time = datetime.now()
+                info.updated_at = datetime.now()
                 info.type = 1
                 info.order = 0
                 if action_id is not None:

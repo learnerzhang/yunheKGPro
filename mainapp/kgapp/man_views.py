@@ -79,10 +79,10 @@ class KgQAList(mixins.ListModelMixin,
         if keyword is not None and len(keyword) > 0:
             querySet = querySet.filter(question__contains="{}".format(keyword))
         if start_time:
-            querySet = querySet.filter(create_time__gt="{}".format(start_time))
+            querySet = querySet.filter(created_at__gt="{}".format(start_time))
         if end_time:
-            querySet = querySet.filter(create_time__lt="{}".format(end_time))
-        querySet = querySet.all().order_by('-update_time')
+            querySet = querySet.filter(created_at__lt="{}".format(end_time))
+        querySet = querySet.all().order_by('-updated_at')
 
         data['total'] = len(querySet)
         data['page'] = page

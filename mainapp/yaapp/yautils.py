@@ -11,8 +11,9 @@ import json
 from collections import defaultdict
 from pyecharts.charts import Line
 from pyecharts import options as opts
-from . import rule
-#import rule
+
+#from . import rule
+from yaapp import rule
 idx_list = ['水位', '入库', '出库', '蓄量', "流量"]
 sknames = { '三门峡', '小浪底',  '陆浑', '故县', '河口村', '西霞院', '万家寨', '龙口'}
 swznames = { '花园口', '小花间',"潼关"}

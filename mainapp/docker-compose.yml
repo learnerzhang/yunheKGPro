@@ -6,6 +6,7 @@ services:
     command: python manage.py runserver 0.0.0.0:8000
     volumes:
       - .:/app
+      - /dev/sda3/data:/data
     ports:
       - "8000:8000"
     environment:
