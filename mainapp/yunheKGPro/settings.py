@@ -238,9 +238,9 @@ elif sys.platform.startswith('win'):
     DATABASES = {
         'default': {
             'ENGINE': 'django.db.backends.mysql',
-            'NAME': 'test_kgproj',
+            'NAME': 'kgproj',
             'USER': 'root',
-            'PASSWORD': 'root',#'123456',
+            'PASSWORD': '123456', #'123456',
             'HOST': '127.0.0.1',
             'PORT': '3306',
         }

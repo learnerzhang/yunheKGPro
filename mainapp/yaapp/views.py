@@ -50,9 +50,10 @@ from yaapp import getYuAnName, getYuAnParamPath
 from yaapp.api_yuan import map_input_to_template, recommend_plan
 from yaapp.models import PlanByUser, PlanByUserDocument, PlanTemplate, PtBusiness, TemplateNode
 from yaapp.plan import PlanFactory
-from yaapp.serializer import BaseApiResponseSerializer
 from yaapp.wordutils import set_landscape, writeParagraphs2Word, writeTitle2Word
 from yunheKGPro import CsrfExemptSessionAuthentication
+
+from apiapp.serializers import BaseApiResponseSerializer
 
 
 class PTBusinessList(mixins.ListModelMixin,

@@ -30,7 +30,7 @@ from rest_framework.parsers import (
     MultiPartParser
 )
 
-from yaapp.serializer import BaseApiResponseSerializer
+from apiapp.serializers import BaseApiResponseSerializer
 from yunheKGPro import CsrfExemptSessionAuthentication
 
 
