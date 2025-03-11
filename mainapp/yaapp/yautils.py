@@ -11,8 +11,8 @@ import json
 from collections import defaultdict
 from pyecharts.charts import Line
 from pyecharts import options as opts
-#from . import rule
-import rule
+from . import rule
+#import rule
 idx_list = ['水位', '入库', '出库', '蓄量', "流量"]
 sknames = { '三门峡', '小浪底',  '陆浑', '故县', '河口村', '西霞院', '万家寨', '龙口'}
 swznames = { '花园口', '小花间',"潼关"}
@@ -401,11 +401,102 @@ def skddjy(filepath):
         ddjy = rule.hkc_sk(skMapData["河口村"]["水位"][i],swMapData["花园口"][i])
         hkc_ddjy.append(ddjy["result"])
     return smx_ddjy,xld_ddjy,lh_ddjy,gx_ddjy,hkc_ddjy
+smx_ddgz = (
+    "三门峡水库调度规则：根据花园口水文站的流量（hyk_liuliang），三门峡水库的调度方案如下：\n"
+            "如果花园口流量 ≤ 4500 m³/s，三门峡水库视潼关站来水来沙情况，原则上按敞泄运用。\n"
+            "如果花园口流量 ≤ 8000 m³/s，三门峡水库视潼关站来水来沙情况，原则上按敞泄运用。\n"
+            "如果花园口流量 ≤ 10000 m³/s，三门峡水库视潼关站来水来沙情况，原则上按敞泄运用。\n"
+            "如果花园口流量 ≤ 22000 m³/s，三门峡水库原则上敞泄运用，视水库蓄水及来水情况适时控泄。"
+)
+xld_ddgz =(
+    "小浪底水库调度规则：根据花园口水文站的流量（hyk_liuliang）和潼关站的流量（tongguan_liuliang），小浪底水库的调度方案如下：\n"
+           "如果花园口流量 ≤ 4500 m³/s，小浪底水库按控制花园口流量不大于4500 m³/s的原则泄洪，西霞院水库配合泄洪排沙。\n"
+           "如果花园口流量 ≤ 8000 m³/s，小浪底水库原则上按控制花园口流量4500 m³/s方式运用，若洪水主要来源于三门峡以上，视来水来沙及水库淤积情况，适时按进出库平衡方式运用，控制水库最高运用水位不超过254m。\n"
+           "如果花园口流量 ≤ 10000 m³/s，且潼关流量占比大于60%，小浪底水库按进出库平衡方式运用；否则，视下游汛情，适时按控制花园口流量不大于8000 m³/s的方式运用。\n"
+           "如果花园口流量 ≤ 22000 m³/s，且潼关流量占比大于60%，小浪底水库按控制花园口流量10000 m³/s方式运用；否则，若花园口流量减去潼关流量小于9000 m³/s，按控制花园口流量10000 m³/s方式运用；否则，按不大于1000 m³/s（发电流量）下泄。\n"
+           "如果花园口流量 > 22000 m³/s，且潼关流量占比大于60%，若小浪底水位 < 273.5m，按控制花园口流量10000 m³/s方式运用；否则，按进出库平衡或敞泄运用。"
+)
+lh_ddgz = (
+    "陆浑水库调度规则：根据花园口水文站的流量（hyk_liuliang）和陆浑水库的水位（lh_sw），陆浑水库的调度方案如下：\n"
+    "如果花园口流量 ≤ 4500 m³/s，且陆浑水位 < 321.5m，按控制下泄流量不大于1000 m³/s方式运用；否则，按进出库平衡或敞泄运用。\n"
+    "如果花园口流量 ≤ 8000 m³/s，且陆浑水位 < 321.5m，按控制下泄流量不大于1000 m³/s方式运用；否则，按进出库平衡或敞泄运用。\n"
+    "如果花园口流量 ≤ 10000 m³/s，且陆浑水位 < 321.5m，按控制下泄流量不大于1000 m³/s方式运用；否则，按进出库平衡或敞泄运用。\n"
+    "如果花园口流量 ≤ 22000 m³/s，且花园口流量 ≤ 12000 m³/s，若陆浑水位 < 321.5m，按控制下泄流量不大于1000 m³/s方式运用；否则，按进出库平衡或敞泄运用；若花园口流量 > 12000 m³/s，且陆浑水位 < 323m，按不超过发电流量控泄；否则，按进出库平衡或敞泄运用。\n"
+    "如果花园口流量 > 22000 m³/s，且陆浑水位 < 323m，按不超过发电流量控泄；否则，按进出库平衡或敞泄运用。"
+)
 
+gx_ddgz = (
+    "故县水库调度规则：根据花园口水文站的流量（hyk_liuliang）和故县水库的水位（gx_sw），故县水库的调度方案如下：\n"
+    "如果花园口流量 ≤ 4500 m³/s，且故县水位 < 542.04m，按控制下泄流量不大于1000 m³/s方式运用；否则，按进出库平衡或敞泄运用。\n"
+    "如果花园口流量 ≤ 8000 m³/s，且故县水位 < 542.04m，按控制下泄流量不大于1000 m³/s方式运用；否则，按进出库平衡或敞泄运用。\n"
+    "如果花园口流量 ≤ 10000 m³/s，且故县水位 < 542.04m，按控制下泄流量不大于1000 m³/s方式运用；否则，按进出库平衡或敞泄运用。\n"
+    "如果花园口流量 ≤ 22000 m³/s，且花园口流量 ≤ 12000 m³/s，若故县水位 < 542.04m，按控制下泄流量不大于1000 m³/s方式运用；否则，按进出库平衡或敞泄运用；若花园口流量 > 12000 m³/s，且故县水位 < 546.84m，按不超过发电流量控泄；否则，按进出库平衡或敞泄运用。\n"
+    "如果花园口流量 > 22000 m³/s，且故县水位 < 546.84m，按不超过发电流量控泄；否则，按进出库平衡或敞泄运用。"
+)
+
+hkc_ddgz = (
+    "河口村水库调度规则：根据花园口水文站的流量（hyk_liuliang）和河口村水库的水位（hkc_sw），河口村水库的调度方案如下：\n"
+    "如果花园口流量 ≤ 4500 m³/s，且河口村水位 < 254.5m，按控制武陟不大于2000 m³/s方式运用；若水位 < 285.43m，按控制武陟不大于4000 m³/s方式运用；否则，按进出库平衡方式运用。\n"
+    "如果花园口流量 ≤ 8000 m³/s，且河口村水位 < 254.5m，按控制武陟不大于2000 m³/s方式运用；若水位 < 285.43m，按控制武陟不大于4000 m³/s方式运用；否则，按进出库平衡方式运用。\n"
+    "如果花园口流量 ≤ 10000 m³/s，且河口村水位 < 254.5m，按控制武陟不大于2000 m³/s方式运用；若水位 < 285.43m，按控制武陟不大于4000 m³/s方式运用；否则，按进出库平衡方式运用。\n"
+    "如果花园口流量 ≤ 22000 m³/s，且花园口流量 ≤ 12000 m³/s，若河口村水位 < 254.5m，按控制武陟不大于2000 m³/s方式运用；若水位 < 285.43m，按控制武陟不大于4000 m³/s方式运用；否则，按进出库平衡方式运用；\n"
+    "若花园口流量 > 12000 m³/s，且河口村水位 < 254.5m，关闭所有泄流设施；若水位 < 285.43m，尽可能按控制武陟不大于4000 m³/s方式运用；否则，按进出库平衡方式运用。\n"
+    "如果花园口流量 > 22000 m³/s，且河口村水位 < 254.5m，关闭所有泄流设施；若水位 < 285.43m，尽可能按控制武陟不大于4000 m³/s方式运用；否则，按进出库平衡方式运用。"
+)
+reference = "小浪底和西霞院水库联合调度，6月23日开始按控制花园口水文站2600m3/s泄放4个小时、3000m3/s泄放8个小时、4000m3/s泄放12个小时，24日8时下泄流量加大至4200m3/s，25日8时起按4400m3/s泄放，26日8时起按4200m3/s泄放，29日8时起按3500m3/s泄放，29日20时起按3000m3/s泄放，之后视情实时调整下泄流量，7月1日20时前库水位降至汛限水位235m，结束应急抗旱调度过程。三门峡水库6月23日8时起按1500m3/s下泄，之后视情实时调整下泄流量，7月1日前库水位降至汛限水位305m以下，而后进出库平衡运用。"
+reference_sk="三门峡水库XX月XX日X时起按XXXXm3/s下泄，之后视情实时调整下泄流量，X月X日前库水位降至汛限水位XXXXm以下，而后进出库平衡运用。"
+from langchain.llms import Ollama
+def get_access_token():
+    """
+    使用 API Key，Secret Key 获取access_token，替换下列示例中的应用API Key、应用Secret Key
+    """
+    #文 心千帆模型调用
+    API_KEY = "cP3fnwcnK9MzGsWGfGEPeUkP"
+    SECRET_KEY = "AfeuE0n4ZY5eCYG21QqSXG6WkBGltcxM"
+    # url = "https://aip.baidubce.com/oauth/2.0/token?grant_type=client_credentials&client_id=[应用API Key]&client_secret=[应用Secret Key]"
+    #水利法规问答模型，（微淘之后）
+    # API_KEY = "7uad3xLbT4tB4vy6i74EILqL"
+    # SECRET_KEY = "BxJ9oUQha5drTM5SJISnib0lDfKpATPF"
+    #  水利法规知识库
+    # API_KEY = "5UMcxwqv1XLBAlq2pSSdyvjq"
+    # SECRET_KEY = "PwLDquDp5CcbPW9uMHD4qJPnHGUOPs6D"
+    url = f"https://aip.baidubce.com/oauth/2.0/token?grant_type=client_credentials&client_id={API_KEY}&client_secret={SECRET_KEY}"
+    payload = json.dumps("")
+    headers = {
+        'Content-Type': 'application/json',
+        'Accept': 'application/json'
+    }
+    response = requests.request("POST", url, headers=headers, data=payload)
+    return response.json().get("access_token")
+
+#注意：翻墙的时候无法调用百度  api  接口
+def query_question(text):
+    url = "https://aip.baidubce.com/rpc/2.0/ai_custom/v1/wenxinworkshop/chat/eb-instant?access_token=" + get_access_token()
+    #s = input()
+    # 注意message必须是奇数条
+    payload = json.dumps({
+        "messages": [
+            {
+                "role": "user",
+                "content": text
+            }
+        ],
+    })
+    headers = {
+        'Content-Type': 'application/json'
+    }
+
+    res = requests.request("POST", url, headers=headers, data=payload).json()
+    return res['result']
+
+def query_question(text):
+    llm = Ollama(model="deepseek-r1:14b")
+    res = llm(text)
+    return res
 import pprint
 if __name__ == "__main__":
     #pass
-    skddjy("../../mainapp/media/ddfa/2025-02-08.xlsx")
+    #skddjy("../../mainapp/media/ddfa/2025-02-08.xlsx")
     # for file in os.listdir("data/ddfa"):
     #     file_path = f"data/ddfa/{file}"
     #     # df = pd.read_excel(file_path, sheet_name='Sheet1')
@@ -431,22 +522,43 @@ if __name__ == "__main__":
 
 
 
-    r = excel_to_dict("../../mainapp/media/ddfa/2025-02-08.xlsx")
+    r = excel_to_dict("../../mainapp/media/ddfa/3/2025-02-08.xlsx")
     #pprint.pprint(r)
     if r:
         skMapData, swMapData, date_list = r
-
-        # 打印 skMapData
-        print("SK Map Data:")
-        print(skMapData["故县"]["水位"])
-        print(len(skMapData["故县"]["水位"]))
-        # 打印 SW Map Data
-        print("\nSW Map Data:")
-        print(swMapData)
-
-        # 打印日期列表
-        print("\nDate List:")
-        print(date_list)
-    else:
-        print("数据提取失败。")
-    pass
+        prompt = (
+            "根据以下水库调度规则和水文数据，分析并生成三门峡水库的调度方案：\n\n"
+            "### 水库调度规则：\n"
+            f"{smx_ddgz}\n\n"
+            "### 水库数据：\n"
+            f"三门峡水库水位: {skMapData['三门峡']['水位']}\n"
+            f"三门峡水库入库流量: {skMapData['三门峡'].get('入库流量', '数据缺失')}\n"
+            f"三门峡水库出库流量: {skMapData['三门峡'].get('出库流量', '数据缺失')}\n\n"
+            "### 水文站数据：\n"
+            f"花园口流量: {swMapData['花园口']}\n"
+            f"潼关流量: {swMapData.get('潼关', ['数据缺失'])}\n\n"
+            "### 时间信息：\n"
+            f"{date_list}\n\n"
+            "### 任务要求：\n"
+            "根据水库调度规则和数据，生成三门峡水库的调度方案，包括下泄流量和水位控制要求。\n"
+            "### 参考格式：\n"
+            f"{reference_sk}\n\n"
+            "请直接生成调度方案文本，不要包含其他描述性语句。"
+        )
+        print("prompt:",prompt)
+        res = query_question(prompt)
+        print(res)
+    #     # 打印 skMapData
+    #     print("SK Map Data:")
+    #     print(skMapData["故县"]["水位"])
+    #     print(len(skMapData["故县"]["水位"]))
+    #     # 打印 SW Map Data
+    #     print("\nSW Map Data:")
+    #     print(swMapData)
+    #
+    #     # 打印日期列表
+    #     print("\nDate List:")
+    #     print(date_list)
+    # else:
+    #     print("数据提取失败。")
+    # pass

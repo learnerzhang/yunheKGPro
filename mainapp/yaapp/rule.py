@@ -47,10 +47,8 @@ def smx_sk(smx_sw: int = None, hyk_liuliang: int = None):
     smx_sw = smx_sw if smx_sw is not None else 0
     hyk_liuliang = hyk_liuliang if hyk_liuliang is not None else 0
 
-    #print("三门峡SK", hyk_liuliang, smx_sw)
     """
-    三门峡
-    :return:
+    三门峡水库调度方案
     """
     result = "适时控制运用"
     if hyk_liuliang <= 4500:
@@ -73,8 +71,7 @@ def xld_sk(xld_sw: int = None, hyk_liuliang: int = None, tongguan_liuliang: int 
     rate_p = float(tongguan_liuliang) / (float(hyk_liuliang) + 0.001)
     #print("小浪底SK", hyk_liuliang, tongguan_liuliang, xld_sw)
     """
-    小浪底库
-    :return: dict
+    小浪底库调度方案
     """
     result = {}
 
@@ -109,8 +106,7 @@ def xld_sk(xld_sw: int = None, hyk_liuliang: int = None, tongguan_liuliang: int 
 
 def lh_sk(lh_sw: int = None, hyk_liuliang: int = None):
     """
-    陆浑水库
-    :return: dict
+    陆浑水库调度方案
     """
     lh_sw = lh_sw if lh_sw is not None else 0
     hyk_liuliang = hyk_liuliang if hyk_liuliang is not None else 0
@@ -155,8 +151,7 @@ def lh_sk(lh_sw: int = None, hyk_liuliang: int = None):
 
 def gx_sk(gx_sw: int = None, hyk_liuliang: int = None):
     """
-    故县水库
-    :return: dict
+    故县水库调度方案
     """
     gx_sw = gx_sw if gx_sw is not None else 0
     hyk_liuliang = hyk_liuliang if hyk_liuliang is not None else 0
@@ -201,8 +196,7 @@ def gx_sk(gx_sw: int = None, hyk_liuliang: int = None):
 
 def hkc_sk(hkc_sw: int = None, hyk_liuliang: int = None):
     """
-    河口村水库
-    :return: dict
+    河口村水库调度方案
     """
     hkc_sw = hkc_sw if hkc_sw is not None else 0
     hyk_liuliang = hyk_liuliang if hyk_liuliang is not None else 0

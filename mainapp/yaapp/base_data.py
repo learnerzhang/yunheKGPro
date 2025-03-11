@@ -107,7 +107,7 @@ class BaseDataFactory():
         elif self.dataType ==2:
             jsonFileName = f"data/plans/XLDTSTS_api_data_{self.date}.json"
         elif self.dataType ==3:
-            jsonFileName = f"../data/plans/SHJ_api_data_{self.date}.json"
+            jsonFileName = f"../data/plans/HHXQ_api_data_{self.date}.json"
 
         with codecs.open(jsonFileName, "w", "utf-8") as f:
             json.dump(self.dataJsonPool, f, ensure_ascii=False, indent=4)

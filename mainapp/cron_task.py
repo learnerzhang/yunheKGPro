@@ -9,7 +9,7 @@ django.setup()
 from kgapp.models import KgDoc, KgEntity, KgProductTask, KgEntityAtt, KgRelation, KgQA, KgDataIndex, KgTemplates
 from apscheduler.schedulers.background import BackgroundScheduler
 from django_apscheduler.jobstores import DjangoJobStore, register_job, register_events
-
+from yaapp.api_hhxq_data import SHJDataFactory
 print('django-apscheduler starting')
 
 # 实例化调度器
@@ -111,6 +111,15 @@ def dataIndexByMonthJob():
     tmpDI.save()
     print('{} 任务运行成功！{}'.format(tmpDI, time.strftime("%Y-%m-%d %H:%M:%S")))
 
+
+@register_job(scheduler, "cron", day='*', hour="0", minute="0", id='buildJsonDataJob', replace_existing=True)
+def buildJsonDataJob():
+    try:
+        # 调用目标函数
+        SHJDataFactory(dataType=3).buildJsonData()
+        print('{} 任务运行成功！{}'.format("buildJsonDataJob", time.strftime("%Y-%m-%d %H:%M:%S")))
+    except Exception as e:
+        print('{} 任务运行失败：{}'.format("buildJsonDataJob", str(e)))
 
 # def demo(name):
 #     # 具体要执行的代码

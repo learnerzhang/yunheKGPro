@@ -289,11 +289,12 @@ class PlanFactory:
             #TODO
             return ""
         elif self.context['type'] == 3:
-            # 三花间
+            # 黄河汛情及水库调度方案单
             import pandas as pd
             import time
             yadate = self.context['plan']['yadate']
             ddfa_excel = os.path.join("media", "ddfa", str(self.context['plan']['ctype']), f"{yadate}.xlsx")
+            #print(ddfa_excel)
             if not os.path.exists(ddfa_excel):
                 raise Exception("调度方案单不存在")
             #ddjy = generate_ddjy(ddfa_excel)

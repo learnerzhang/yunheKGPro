@@ -718,7 +718,7 @@ class DocAddApiView(generics.GenericAPIView):
                     tmpdoc.tags.add(tmptag)
             # tmpdoc.filename = filename
             tmpdoc.save()
-            data = {"code": 200, "msg": "文档保存成功"}
+            data = {"code": 200, "msg": "文档保存成功", "data": {"url":f"/media/docs/{new_filename}"}}
             serializers = KgDocResponseSerializer(data=data, many=False)
             serializers.is_valid()
             return Response(serializers.data, status=status.HTTP_200_OK)
