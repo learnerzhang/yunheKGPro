@@ -104,10 +104,15 @@ def writeParagraphs2Word(i, node: dict, doc):
             doc.add_paragraph(para['content'])
         if para['ctype'] == 2:
             imgdata = base64.b64decode(para['content']) 
-            img_stream = BytesIO(imgdata)  
+            img_stream = BytesIO(imgdata)
+            # 添加段落用于存放图片
+            paragraph = doc.add_paragraph()
+            paragraph.alignment = WD_ALIGN_PARAGRAPH.CENTER  # 图片居中
+            run = paragraph.add_run()
+            run.add_picture(img_stream, width=Inches(5.0))
             # 将图片添加到Word文档  
             # 注意：add_picture 方法通常期望一个文件路径，但在这里我们使用BytesIO对象作为文件流  
-            doc.add_picture(img_stream, width=Inches(5.0))
+            #doc.add_picture(img_stream, width=Inches(5.0))
         if para['ctype'] == 3:
             # 表格
             json_str = json.loads(para['content'])
