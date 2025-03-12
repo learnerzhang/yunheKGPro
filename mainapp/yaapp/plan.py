@@ -36,7 +36,7 @@ class PlanFactory:
             self.node.wordParagraphs.add(wp)
             return tmp
             # return ""
-        elif self.context['type'] == 1:
+        elif self.context['type'] == 1 or self.context['type'] == 2:
             # 小浪底河道水情
             #TODO
             #tmp = huanghe_yuqing_generate(self.params)
@@ -378,20 +378,20 @@ class PlanFactory:
             tmpjson = huanghe_diaodu_plan_jianyi_ctx(ddjy)
             wp = WordParagraph.objects.create(title="调度方案单", content=json.dumps(tmpjson), ctype=3)
             self.node.wordParagraphs.add(wp)
-            wp = WordParagraph.objects.create(title="调度结果", content="水库", ctype=1)
+            wp = WordParagraph.objects.create(title="调度结果", content="水库调度过程线", ctype=1)
             self.node.wordParagraphs.add(wp)
 
             for skname, ddcimg in sk2image.items():
                 wp = WordParagraph.objects.create(title=f"{skname}过程曲线", content=ddcimg, ctype=2)
                 self.node.wordParagraphs.add(wp)
 
-            wp = WordParagraph.objects.create(title="调度结果", content="河道", ctype=1)
+            wp = WordParagraph.objects.create(title="调度结果", content="水文站调度过程线", ctype=1)
             self.node.wordParagraphs.add(wp)
             for swname, imgpath in sw2image.items():
                 wp = WordParagraph.objects.create(title=f"{swname}过程曲线", content=imgpath, ctype=2)
                 self.node.wordParagraphs.add(wp)
             #TODO
-            return huanghe_diaodu_plan_jianyi_html(ddjy)+ "1) 水库 \n"+ f"{skddresult}\n"+ "2) 河道\n" + f"{hd_result}\n"
+            return huanghe_diaodu_plan_jianyi_html(ddjy)+ "1) 水库调度过程线 \n"+ f"{skddresult}\n"+ "2) 水文站调度过程线\n" + f"{hd_result}\n"
     def get_ddjg(self):
         """
         获取调度方案

@@ -789,7 +789,11 @@ def process_outflow(data, timestamps):
         # 计算具体的小时数
         hours = duration * 2
         start_time = timestamps[unique_indices[i]]
-        output.append(f"{start_time}起按{unique_values[i]}m³/s泄放 {hours}个小时")
+        if i < len(unique_indices) - 1:
+            end_time = timestamps[unique_indices[i + 1]]
+        else:
+            end_time = timestamps[-1]  # 最后一个值的结束时间为 timestamps 的最后一个元素
+        output.append(f"{start_time}起按{unique_values[i]}m³/s泄放 {hours}个小时,至{end_time}结束")
     res = "，".join(output) + "。"
     return res
 

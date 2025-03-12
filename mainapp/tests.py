@@ -250,32 +250,32 @@ def smx_sk(smx_sw: int = None, hyk_liuliang: int = None):
 
     return {"result": result}
 
-import pandas as pd
-df = pd.read_excel('media/ddfa/1-20.xlsx')
-df2markdown = df.to_markdown()
-def smx_skyyfs(df2markdown):
-    skyyfs = (
-        "1. 花园口流量 < 4500m³/s：三门峡水库调用方式为：视潼关站来水来沙情况，原则上按敞泄运用。\n"
-        "2. 4500m³/s ≤ 花园口流量 < 8000m³/s：三门峡水库调用方式为：视潼关站来水来沙情况，原则上按敞泄运用。\n"
-        "3. 8000m³/s ≤ 花园口流量 < 10000m³/s：三门峡水库调用方式为：视潼关站来水来沙情况，原则上按敞泄运用。\n"
-        "4. 10000m³/s ≤ 花园口流量 < 22000m³/s：三门峡水库调用方式为：三门峡水库原则上敞泄运用，视水库蓄水及来水情况适时控泄。"
-    )
-    smx_shuiku = (
-        "三门峡水库7月4日8时按1000m³/s泄放，之后视情况实时调整下泄流量，7月10日前降至汛限水位305m以下后进出库平衡运用。"
-    )
-    prompt = (
-        f"根据以下三门峡水库运用规则：\n{skyyfs}\n\n"
-        f"以及当前调度方案数据（包含三门峡、小浪底、河口村、陆浑、故县水库的水位及进出库流量，以及潼关和花园口水文站的预报流量）：\n{df2markdown}\n\n"
-        f"参考描述：{smx_shuiku}\n\n"
-        f"请根据调度方案数据，结合三门峡水库的运用规则，直接生成三门峡水库的调度方案。要求：\n"
-        f"1. 方案简洁明了，避免冗余描述。\n"
-        f"2. 结合花园口流量，明确水库的运用方式（敞泄或控泄）。\n"
-        f"3. 根据实时数据，明确下泄流量调整建议。"
-    )
-    res = query_question(prompt)
-    return res
-res = smx_skyyfs(df2markdown)
-print(res)
+# import pandas as pd
+# df = pd.read_excel('media/ddfa/1-20.xlsx')
+# df2markdown = df.to_markdown()
+# def smx_skyyfs(df2markdown):
+#     skyyfs = (
+#         "1. 花园口流量 < 4500m³/s：三门峡水库调用方式为：视潼关站来水来沙情况，原则上按敞泄运用。\n"
+#         "2. 4500m³/s ≤ 花园口流量 < 8000m³/s：三门峡水库调用方式为：视潼关站来水来沙情况，原则上按敞泄运用。\n"
+#         "3. 8000m³/s ≤ 花园口流量 < 10000m³/s：三门峡水库调用方式为：视潼关站来水来沙情况，原则上按敞泄运用。\n"
+#         "4. 10000m³/s ≤ 花园口流量 < 22000m³/s：三门峡水库调用方式为：三门峡水库原则上敞泄运用，视水库蓄水及来水情况适时控泄。"
+#     )
+#     smx_shuiku = (
+#         "三门峡水库7月4日8时按1000m³/s泄放，之后视情况实时调整下泄流量，7月10日前降至汛限水位305m以下后进出库平衡运用。"
+#     )
+#     prompt = (
+#         f"根据以下三门峡水库运用规则：\n{skyyfs}\n\n"
+#         f"以及当前调度方案数据（包含三门峡、小浪底、河口村、陆浑、故县水库的水位及进出库流量，以及潼关和花园口水文站的预报流量）：\n{df2markdown}\n\n"
+#         f"参考描述：{smx_shuiku}\n\n"
+#         f"请根据调度方案数据，结合三门峡水库的运用规则，直接生成三门峡水库的调度方案。要求：\n"
+#         f"1. 方案简洁明了，避免冗余描述。\n"
+#         f"2. 结合花园口流量，明确水库的运用方式（敞泄或控泄）。\n"
+#         f"3. 根据实时数据，明确下泄流量调整建议。"
+#     )
+#     res = query_question(prompt)
+#     return res
+# res = smx_skyyfs(df2markdown)
+# print(res)
 #print(df2markdown)
 
 
@@ -582,3 +582,116 @@ print(res)
 #     webbrowser.open(url)
 #
 # open_baidu()
+from reportlab.pdfgen import canvas
+from reportlab.lib.pagesizes import letter, A4
+from PyPDF2 import PdfReader, PdfWriter
+from reportlab.pdfbase import pdfmetrics
+from reportlab.pdfbase.ttfonts import TTFont
+import io
+import os
+
+
+def create_watermark(text):
+    # 注册中文字体
+    try:
+        # 先尝试注册宋体
+        font_paths = [
+            "C:/Windows/Fonts/simsun.ttc",  # Windows 常见路径
+            "C:/Windows/Fonts/simsun.ttf",
+            "C:/Windows/Fonts/SimSun.ttc",
+            "/System/Library/Fonts/STSong.ttc",  # macOS 常见路径
+            "/usr/share/fonts/chinese/simsun.ttc",  # Linux 常见路径
+            "./SimSun.ttc",  # 当前目录
+        ]
+
+        font_loaded = False
+        for font_path in font_paths:
+            if os.path.exists(font_path):
+                try:
+                    pdfmetrics.registerFont(TTFont('SimSun', font_path))
+                    font_loaded = True
+                    break
+                except:
+                    continue
+
+        if not font_loaded:
+            # 如果上述字体都无法加载，尝试使用内置的字体
+            from reportlab.pdfbase.cidfonts import UnicodeCIDFont
+            pdfmetrics.registerFont(UnicodeCIDFont('STSong-Light'))
+            font_name = 'STSong-Light'
+        else:
+            font_name = 'SimSun'
+
+    except Exception as e:
+        print(f"字体注册错误: {str(e)}")
+        # 使用默认字体
+        font_name = 'Helvetica'
+
+    # 创建水印
+    packet = io.BytesIO()
+    c = canvas.Canvas(packet, pagesize=A4)
+
+    # 设置字体和大小
+    c.setFont(font_name, 30)
+
+    # 设置透明度
+    c.setFillColorRGB(1, 0, 0, alpha=0.6)
+
+    # 获取页面尺寸
+    width, height = A4
+
+    # 在多个位置重复绘制水印以覆盖整个页面
+    for y in range(0, int(height), 120):
+        for x in range(0, int(width), 320):
+            c.saveState()
+            c.translate(x, y)
+            c.rotate(45)
+            # 使用中文编码确保正确显示
+            c.drawString(0, 0, text.encode('utf-8').decode('utf-8'))
+            c.restoreState()
+
+    c.save()
+    packet.seek(0)
+    return PdfReader(packet)
+
+
+def add_watermark(input_pdf, output_pdf, watermark_reader):
+    try:
+        with open(input_pdf, "rb") as file:
+            pdf_reader = PdfReader(file)
+            pdf_writer = PdfWriter()
+
+            # 处理每一页
+            for page in pdf_reader.pages:
+                # 合并水印
+                page.merge_page(watermark_reader.pages[0])
+                pdf_writer.add_page(page)
+
+            # 写入新文件
+            with open(output_pdf, "wb") as output_file:
+                pdf_writer.write(output_file)
+
+            return True
+    except Exception as e:
+        print(f"添加水印时发生错误: {str(e)}")
+        return False
+
+
+if __name__ == "__main__":
+    # 输入参数
+    input_pdf = "media/plans/黄河汛情及水库调度方案单.pdf"  # 输入PDF文件路径
+    output_pdf = "media/plans/黄河汛情及水库调度方案单_new.pdf"  # 输出PDF文件路径
+    watermark_text = "小浪底水利枢纽"  # 水印文本
+
+    try:
+        # 创建水印
+        watermark_reader = create_watermark(watermark_text)
+
+        # 添加水印
+        if add_watermark(input_pdf, output_pdf, watermark_reader):
+            print("水印添加成功！")
+        else:
+            print("水印添加失败！")
+
+    except Exception as e:
+        print(f"程序执行出错: {str(e)}")
