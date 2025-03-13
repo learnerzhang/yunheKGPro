@@ -11,9 +11,9 @@ import json
 from collections import defaultdict
 from pyecharts.charts import Line
 from pyecharts import options as opts
-
-#from . import rule
-from yaapp import rule
+#import rule
+from . import rule
+#from yaapp import rule
 idx_list = ['水位', '入库', '出库', '蓄量', "流量"]
 sknames = { '三门峡', '小浪底',  '陆浑', '故县', '河口村', '西霞院', '万家寨', '龙口'}
 swznames = { '花园口', '小花间',"潼关"}
@@ -402,6 +402,90 @@ def skddjy(filepath):
         ddjy = rule.hkc_sk(skMapData["河口村"]["水位"][i],swMapData["花园口"][i])
         hkc_ddjy.append(ddjy["result"])
     return smx_ddjy,xld_ddjy,lh_ddjy,gx_ddjy,hkc_ddjy
+
+def skddjy_new(filepath):
+    r = excel_to_dict(filepath)
+    skMapData, swMapData, date_list = r
+
+    # 定义结果字典
+    results = {}
+
+    # 获取比较短的长度
+    def valid_length(data):
+        return len([x for x in data if x is not None])
+
+        # 初始化 min_length 为很大的数
+
+        # 获取有效数据的最小长度
+
+    def valid_length(data):
+        # 仅计算存在真值的长度
+        return len([x for x in data if x])
+
+        # 初始化 min_length 为很大的数
+
+    min_length = float('inf')
+
+    # 检查有效数据的长度
+    lengths_to_check = [
+        date_list,
+        swMapData.get("花园口", []),
+        swMapData.get("潼关", [])
+    ]
+
+    # 遍历 skMapData 的水位字段
+    for key in skMapData.keys():
+        water_level_data = skMapData[key].get("水位", [])
+        if water_level_data:  # 仅在水位数据存在时添加
+            lengths_to_check.append(water_level_data)
+
+    # 计算最小有效长度
+    for data in lengths_to_check:
+        current_length = valid_length(data)
+        if current_length > 0:
+            min_length = min(min_length, current_length)
+    keys = skMapData.keys()
+    print("keys:",keys)
+    # 遍历 skMapData 的键
+    for key in skMapData.keys():
+        if key not in results:
+            results[key] = []
+
+        # 根据水库名称调用相应的调度规则
+        if key == "故县" and len(skMapData[key]["水位"]) > 0:
+            for i in range(min_length):
+                flower_yard_data = swMapData.get("花园口", [None] * min_length)[i]
+                ddjy = rule.gx_sk(skMapData["故县"]["水位"][i], flower_yard_data)
+                results[key].append(ddjy["result"])
+
+        elif key == "三门峡" and len(skMapData[key]["水位"]) > 0:
+            for i in range(min_length):
+                flower_yard_data = swMapData.get("花园口", [None] * min_length)[i]
+                ddjy = rule.smx_sk(flower_yard_data)
+                results[key].append(ddjy["result"])
+
+        elif key == "小浪底" and len(skMapData[key]["水位"]) > 0:
+            for i in range(min_length):
+                flower_yard_data = swMapData.get("花园口", [None] * min_length)[i]
+                if len(swMapData.get("潼关", [])) > i:
+                    ddjy = rule.xld_sk(skMapData["小浪底"]["水位"][i], flower_yard_data, swMapData["潼关"][i])
+                else:
+                    ddjy = rule.xld_sk(skMapData["小浪底"]["水位"][i], flower_yard_data, None)
+                results[key].append(ddjy["result"])
+
+        elif key == "河口村" and len(skMapData[key]["水位"]) > 0:
+            for i in range(min_length):
+                flower_yard_data = swMapData.get("花园口", [None] * min_length)[i]
+                ddjy = rule.hkc_sk(skMapData["河口村"]["水位"][i], flower_yard_data)
+                results[key].append(ddjy["result"])
+
+        elif key == "陆浑" and len(skMapData[key]["水位"]) > 0:
+            for i in range(min_length):
+                flower_yard_data = swMapData.get("花园口", [None] * min_length)[i]
+                ddjy = rule.lh_sk(skMapData["陆浑"]["水位"][i], flower_yard_data)
+                results[key].append(ddjy["result"])
+    results = {k: v for k, v in results.items() if v}
+    return results
 smx_ddgz = (
     "三门峡水库调度规则：根据花园口水文站的流量（hyk_liuliang），三门峡水库的调度方案如下：\n"
             "如果花园口流量 ≤ 4500 m³/s，三门峡水库视潼关站来水来沙情况，原则上按敞泄运用。\n"

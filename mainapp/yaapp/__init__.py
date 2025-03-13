@@ -1,7 +1,7 @@
 import pandas as pd
 import datetime
 from . import yautils
-
+#import yautils
 
 def getYuAnParamPath(ctype, mydate):
     """
@@ -27,7 +27,8 @@ def getYuAnName(ctype, mydate):
         format_name = f"{mydate}小浪底秋汛防汛调度预案"
     elif ctype == 2:
         format_name = f"{mydate}小浪底调水调沙防汛调度预案"
-
+    elif ctype == 3:
+        format_name = f"{mydate}黄河汛情及水库调度方案单"
     return format_name
 
 
@@ -901,6 +902,7 @@ def generate_ddjy(file_path):
     """
     # 读取 Excel 文件
     skMapData, swMapData, date_list = yautils.excel_to_dict(file_path)
+    print("skMapData:",skMapData)
     smx_ckll,xld_ckll,lh_ckll,gx_ckll,hkc_ckll = yautils.skddjy(file_path)
     smx_ddjy = process_outflow(smx_ckll,date_list)
     xld_ddjy = process_outflow(xld_ckll,date_list)
@@ -958,6 +960,7 @@ def yujingdengji(shuiku_shuiwei: dict, shuiwenzhan_liuliang: dict):
     print("""预警等级: 按照《黄河防汛抗旱应急预案》，当前无预警""")
     return """按照《黄河防汛抗旱应急预案》，当前无预警"""
 
-# if __name__ == '__main__':
-#     res = generate_ddjy("../../mainapp/media/ddfa/2025-02-08.xlsx")
-#     print(res)
+if __name__ == '__main__':
+    #res = generate_ddjy("../../mainapp/media/ddfa/3/2025-03-03.xlsx")
+    res = yautils.skddjy_new("../../mainapp/media/ddfa/3/2025-03-13.xlsx")
+    print(res)

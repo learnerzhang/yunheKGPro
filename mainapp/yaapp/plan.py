@@ -299,18 +299,22 @@ class PlanFactory:
                 raise Exception("调度方案单不存在")
             #ddjy = generate_ddjy(ddfa_excel)
             skMapData, swMapData, date_list = yautils.excel_to_dict(ddfa_excel)
-            smx_ckll, xld_ckll, lh_ckll, gx_ckll, hkc_ckll = yautils.skddjy(ddfa_excel)
-            smx_ddjy = process_outflow(smx_ckll, date_list)
-            xld_ddjy = process_outflow(xld_ckll, date_list)
-            lh_ddjy = process_outflow(lh_ckll, date_list)
-            gx_ddjy = process_outflow(gx_ckll, date_list)
-            hkc_ddjy = process_outflow(hkc_ckll, date_list)
-            ddjy = "三门峡水库：" + smx_ddjy + "\n小浪底水库：" + xld_ddjy + "\n陆浑水库：" + lh_ddjy + "\n故县水库：" + gx_ddjy + "\n河口村水库：" + hkc_ddjy
-            # smx_ddjy = process_outflow(skMapData["三门峡"]["出库"], date_list)
-            # xld_ddjy = process_outflow(skMapData["小浪底"]["出库"], date_list)
-            # lh_ddjy = process_outflow(skMapData["陆浑"]["出库"], date_list)
-            # gx_ddjy = process_outflow(skMapData["故县"]["出库"], date_list)
-            # hkc_ddjy = process_outflow(skMapData["河口村"]["出库"], date_list)
+            results = yautils.skddjy_new(ddfa_excel)
+            # 初始化调度建议字符串
+            ddjy_list = []
+            # 遍历返回的结果字典
+            for key, value in results.items():
+                # 处理每个水库的出流量
+                ckll = process_outflow(value, date_list)
+                ddjy_list.append(f"{key}水库：{ckll}")
+            # 将所有水库的调度建议合并为一个字符串
+            ddjy = "\n".join(ddjy_list)
+            # smx_ckll, xld_ckll, lh_ckll, gx_ckll, hkc_ckll = yautils.skddjy_new(ddfa_excel)
+            # smx_ddjy = process_outflow(smx_ckll, date_list)
+            # xld_ddjy = process_outflow(xld_ckll, date_list)
+            # lh_ddjy = process_outflow(lh_ckll, date_list)
+            # gx_ddjy = process_outflow(gx_ckll, date_list)
+            # hkc_ddjy = process_outflow(hkc_ckll, date_list)
             # ddjy = "三门峡水库：" + smx_ddjy + "\n小浪底水库：" + xld_ddjy + "\n陆浑水库：" + lh_ddjy + "\n故县水库：" + gx_ddjy + "\n河口村水库：" + hkc_ddjy
             skddresult = ""
             # funMap = {
