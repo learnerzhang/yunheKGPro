@@ -189,7 +189,7 @@ WSGI_APPLICATION = 'yunheKGPro.wsgi.application'
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.mysql',
-        'NAME': 'test_kgproj',
+        'NAME': 'kgproj',
         'USER': 'root',
         'PASSWORD': 'root',
         'HOST': '127.0.0.1',
@@ -232,15 +232,16 @@ if sys.platform.startswith('linux'):
 
     print('当前系统为 Linux')
 elif sys.platform.startswith('win'):
-    MODEL_PATH = "D:\\data\\models\\bge-large-zh-v1.5"
+    # D:\data\models\bge-large-zh
+    MODEL_PATH = "D:\\data\\models\\bge-large-zh"
     DATA_DIR_PATH = "D:\\data\\nmc\\"
     TTF_PATH = "arial.ttf"
     DATABASES = {
         'default': {
             'ENGINE': 'django.db.backends.mysql',
-            'NAME': 'test_kgproj',
+            'NAME': 'kgproj',
             'USER': 'root',
-            'PASSWORD': 'root', #'123456',
+            'PASSWORD': '123456', #'123456',
             'HOST': '127.0.0.1',
             'PORT': '3306',
         }

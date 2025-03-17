@@ -618,6 +618,63 @@ class LLMSingleNodePlan(generics.GenericAPIView):
         serializers = BaseApiResponseSerializer(data=data, many=False)
         serializers.is_valid()
         return Response(serializers.data, status=status.HTTP_200_OK)
+    
+
+class RagSingleNodePlan(generics.GenericAPIView):
+    authentication_classes = (CsrfExemptSessionAuthentication, BasicAuthentication)
+    serializer_class = BaseApiResponseSerializer
+
+    @swagger_auto_schema(
+        operation_summary='单章节节点预案生成',
+        operation_description='POST 单节点预案生成',
+        request_body=openapi.Schema(
+            type=openapi.TYPE_OBJECT,
+            required=['id'],
+            properties={
+                'ptid': openapi.Schema(type=openapi.TYPE_INTEGER, description="ptID 预案ID"),
+                'nodeid': openapi.Schema(type=openapi.TYPE_INTEGER, description="nodeID 章节ID"),
+            },
+        ),
+        responses={
+            200: BaseApiResponseSerializer(many=False),
+            400: "请求失败",
+        },
+        tags=['ya_api']
+    )
+    @csrf_exempt
+    def post(self, request, *args, **krgs):
+        print("params:", request.data)
+        nodeId = request.data.get("nodeid", None)
+        planId = request.data.get("ptid", None)
+
+        userYuAnPlan = PlanByUser.objects.get(id=planId)
+        node = TemplateNode.objects.get(id=nodeId)
+        print("planTemp:", userYuAnPlan, "\n", node)
+        # 通用生成方法
+        # node.result = qwty(node.description)
+        tmp_param_path = getYuAnParamPath(userYuAnPlan.ctype, userYuAnPlan.yadate)
+        if not os.path.exists(tmp_param_path):
+            data = {"code": 201, "data": {}, "msg": "参数文件不存在, 请先搜集参数"}
+            serializers = BaseApiResponseSerializer(data=data, many=False)
+            serializers.is_valid()
+            return Response(serializers.data, status=status.HTTP_200_OK)
+        
+        ctx = {
+            "type": userYuAnPlan.ctype,
+            "yadate": userYuAnPlan.yadate,
+            "plan": model_to_dict(userYuAnPlan, exclude=["html_data", "html_data", "created_at", "updated_at", "nodes"]),
+            "param_path": tmp_param_path
+        }
+        print("PlanFactory ctx:", ctx)
+        # 制作预案工厂类
+        pf = PlanFactory(context=ctx, node=node)
+        # 生成对应描述
+        pf.make_context()
+        data = {"code": 200, "data": model_to_dict(node, exclude=['parent', 'wordParagraphs']), "msg": "生成成功！"}
+        serializers = BaseApiResponseSerializer(data=data, many=False)
+        serializers.is_valid()
+        return Response(serializers.data, status=status.HTTP_200_OK)
+    
 
 class LLMNodePlan(generics.GenericAPIView):
     authentication_classes = (CsrfExemptSessionAuthentication, BasicAuthentication)
@@ -769,7 +826,6 @@ class UserTemplateDocumentList(mixins.ListModelMixin,
 
         results = []
         for tmp in ptList:
-            print("SS:", tmp)
             tmpdict = model_to_dict(tmp, exclude=["plan", "document"])
             tmpdict['created_at'] = tmp.created_at.strftime("%Y-%m-%d %H:%M:%S")
             tmpdict['file_path'] = tmp.document.url
@@ -904,6 +960,31 @@ class UpdateUserPlanDocument(generics.GenericAPIView):
     
 
 
+def deep_copy_model(instance:PlanTemplate, mydate: str):
+    # 获取模型类
+
+    new_instance = PlanByUser.objects.create(ctype=instance.ctype, 
+                                             yadate=mydate,
+                                             name=getYuAnName(instance.ctype, mydate),)
+    # 保存新实例，生成新的主键
+    new_instance.save()
+    # 处理外键字段
+    for field in instance._meta.get_fields():
+        if field.is_relation and field.many_to_one:
+            related_instance = getattr(instance, field.name)
+            if related_instance:
+                # 递归复制关联对象
+                new_related_instance = deep_copy_model(related_instance)
+                setattr(new_instance, field.name, new_related_instance)
+    for node in instance.nodeOutlineList:
+        # 处理节点外键字段
+        new_instance_node = TemplateNode.objects.create(label=node['label'], description=node['description'], template=node['template'], order=node['order'])
+        new_instance.nodes.add(new_instance_node)
+    # 保存更新后的新实例
+    new_instance.save()
+    return new_instance
+
+
 class YuAnRecomApiPost(generics.GenericAPIView):
     authentication_classes = (CsrfExemptSessionAuthentication, BasicAuthentication)
     serializer_class = BaseApiResponseSerializer
@@ -957,13 +1038,14 @@ class YuAnRecomApiPost(generics.GenericAPIView):
                 bars = BaseApiResponseSerializer(data=data, many=False)
                 bars.is_valid()
                 return Response(bars.data, status=status.HTTP_200_OK)
-
-            tmpResult = model_to_dict(pt, exclude=["nodes", "id"])
-            tmpResult['nodeOutlineList'] = pt.nodeOutlineList
-            tmpResult['created_at'] = pt.created_at.strftime("%Y-%m-%d %H:%M:%S")
+            
+            # 深拷贝模型实例
+            new_pt = deep_copy_model(pt, mydate)
+            tmpResult = model_to_dict(new_pt, exclude=["nodes"])
+            tmpResult['nodeOutlineList'] = new_pt.nodeOutlineList
+            tmpResult['created_at'] = new_pt.created_at.strftime("%Y-%m-%d %H:%M:%S")
             tmpResult['name'] = getYuAnName(ptType, mydate)
             tmpResult['yadate'] = mydate
-
             data = {"code": 200, "msg": "success", "data": tmpResult, "success": True}
         else:
             data = {"code": 201, "data": {}, "msg": "暂无推荐数据", "success": False}
@@ -1057,20 +1139,100 @@ class YuAnUserPtSaveApiPost(generics.GenericAPIView):
             tmpP = PlanByUser.objects.get(id=pid)
 
         for nodeDict in nodeList:
-            if nodeDict.get("id", None) is None:
-                tmpN = TemplateNode.objects.create(**nodeDict)
-                tmpP.nodes.add(tmpN)
-            else:
+            try:
+                # 先尝试更新,
                 tmpNid = nodeDict.get("id", None)
                 tmpN = TemplateNode.objects.get(id=tmpNid)
                 for k, v in nodeDict.items():
                     setattr(tmpN, k, v)
                 tmpN.save()
+            except:
+                # 没有则创建
+                del nodeDict['id']
+                tmpN = TemplateNode.objects.create(**nodeDict)
+                tmpP.nodes.add(tmpN)
+                
         tmpP.save()
         result = model_to_dict(tmpP, exclude=["nodes"])
         result['nodeOutlineList'] = tmpP.nodeOutlineList
         result['created_at'] = tmpP.created_at.strftime("%Y-%m-%d %H:%M:%S")
         data = {"code": 200, "data": result, "msg": "success"}
+        serializers = BaseApiResponseSerializer(data=data, many=False)
+        serializers.is_valid()
+        return Response(serializers.data, status=status.HTTP_200_OK)
+
+class YuAnUserPtNodeAddOrUpdateApiPost(generics.GenericAPIView):
+    authentication_classes = (CsrfExemptSessionAuthentication, BasicAuthentication)
+    serializer_class = BaseApiResponseSerializer
+
+    @swagger_auto_schema(
+        operation_summary='用户增/修改某个节点',
+        operation_description='POST 标准接口',
+        request_body=openapi.Schema(
+            type=openapi.TYPE_OBJECT,
+            required=['id'],
+            properties={
+                'id': openapi.Schema(type=openapi.TYPE_NUMBER, description="text"),
+                'nodeId': openapi.Schema(type=openapi.TYPE_NUMBER, description="nodeId"),
+                'label': openapi.Schema(type=openapi.TYPE_STRING, description="label"),
+                'description': openapi.Schema(type=openapi.TYPE_STRING, description="description"),
+                'template': openapi.Schema(type=openapi.TYPE_STRING, description="template"),
+                'order': openapi.Schema(type=openapi.TYPE_NUMBER, description="order"),
+                'upload_file_flag': openapi.Schema(type=openapi.TYPE_STRING, description="upload_file_flag"),
+            },
+        ),
+        responses={
+            200: BaseApiResponseSerializer(many=False),
+            400: "请求失败",
+        },
+        tags=['ya_api']
+    )
+    @csrf_exempt
+    def post(self, request, *args, **krgs):
+        """
+            针对用户输入,动态推荐预案摸板
+        """
+        pid = request.data.get("id", None)
+        nodeId = request.data.get("nodeId", None)
+        label = request.data.get("label", None)
+        description = request.data.get("description", None)
+        template = request.data.get("template", "默认模板")
+        order = request.data.get("order", 0)
+        upload_file_flag = request.data.get("upload_file_flag", 0)
+
+        try:
+            pt = PlanByUser.objects.get(id=pid)
+        except:
+            data = {"code": 202, "data": {}, "msg": "系统不存在该数据", "success": False}
+            bars = BaseApiResponseSerializer(data=data, many=False)
+            bars.is_valid()
+            return Response(bars.data, status=status.HTTP_200_OK)
+        
+        if nodeId is not None:
+            tmpN = TemplateNode.objects.get(id=nodeId)
+            if label is not None:
+                tmpN.label = label
+            if description is not None:
+                tmpN.description = description
+            if template is not None:
+                tmpN.template = template
+            if order is not None:
+                tmpN.order = order
+            if upload_file_flag is not None:
+                tmpN.upload_file_flag = upload_file_flag
+            tmpN.save()
+            data = {"code": 200, "data":{}, "msg": "更新节点内容成功", "success": True}
+        else:
+            tmpN = TemplateNode.objects.create(label=label, description=description, template=template, order=order, upload_file_flag=upload_file_flag)
+            pt.nodes.add(tmpN)
+            pt.save()
+            data = {"code": 200, "data":{}, "msg": "新建节点成功", "success": True}
+
+        tmpdict = model_to_dict(tmpN, exclude=["result", "wordParagraphs"])
+        tmpdict['title'] = tmpN.label
+        tmpdict['prompt'] = tmpN.template
+        tmpdict['created_at'] = tmpN.created_at.strftime("%Y-%m-%d %H:%M:%S")
+        data['data'] = tmpdict
         serializers = BaseApiResponseSerializer(data=data, many=False)
         serializers.is_valid()
         return Response(serializers.data, status=status.HTTP_200_OK)
@@ -1104,6 +1266,7 @@ class YuAnUserPtDeleteApiPost(generics.GenericAPIView):
         """
         pid = request.data.get("id", None)
         nodeId = request.data.get("nodeId", None)
+
         try:
             pt = PlanByUser.objects.get(id=pid)
             tmpN = TemplateNode.objects.get(id=nodeId)
@@ -1194,7 +1357,6 @@ class YuAnUserPtListApiGet(mixins.ListModelMixin,
 
         results = []
         for tmp in ptList:
-            print("SS:", tmp)
             tmpdict = model_to_dict(tmp, exclude=["plan", "nodes"])
             tmpdict['created_at'] = tmp.created_at.strftime("%Y-%m-%d %H:%M:%S")
             results.append(tmpdict)
@@ -1203,6 +1365,35 @@ class YuAnUserPtListApiGet(mixins.ListModelMixin,
         bars = BaseApiResponseSerializer(data=data, many=False)
         bars.is_valid()
         return Response(bars.data, status=status.HTTP_200_OK)
+    
+
+class RecentlyYuAnUserPtApiGet(mixins.ListModelMixin,
+                           mixins.CreateModelMixin,
+                           generics.GenericAPIView):
+    serializer_class = BaseApiResponseSerializer
+
+    @swagger_auto_schema(
+        operation_description='GET ///',
+        operation_summary="[获取最新预案]  获取用户最近编辑的",
+        # 接口参数 GET请求参数
+        manual_parameters=[
+        ],
+        responses={
+            200: BaseApiResponseSerializer(many=False),
+            400: "请求失败",
+        },
+        tags=['ya_api'])
+    def get(self, request, *args, **kwargs):
+        YuAnUserPtListApiGet.queryset = PlanByUser.objects
+        recentUserPt = YuAnUserPtListApiGet.queryset.order_by('-created_at').first()
+        result = model_to_dict(recentUserPt, exclude=["plan", "nodes"])
+        result['nodeOutlineList'] = recentUserPt.nodeOutlineList
+        result['created_at'] = recentUserPt.created_at.strftime("%Y-%m-%d %H:%M:%S")
+        data = {"code": 200, "msg": "success", "data": result, "success": True}
+        bars = BaseApiResponseSerializer(data=data, many=False)
+        bars.is_valid()
+        return Response(bars.data, status=status.HTTP_200_OK)
+    
     
 class YuAnUserPlanDeleteApiPost(generics.GenericAPIView):
     authentication_classes = (CsrfExemptSessionAuthentication, BasicAuthentication)

@@ -347,9 +347,7 @@ class PlanFactory:
                 tmp_ddgc_img_desc = f"{skname}调度过程({date_list[0]}~{date_list[-1]})"
                 # TODO: 需要根据调度方案单的类型来确定调度方案单的函数
                 tmp_ddjg_result = f"预计{skname}将于{max_date}达到最高水位{max_sw}m，{xld_sk(sw=max_sw)}；\n"
-                skddresult += paraHtml(tmp_ddjg_result) + divHtml(
-                    "<image src='data:image/png;base64," + tmp_ddgc_img + "'>") + "\n" + divHtml(
-                    tmp_ddgc_img_desc) + "\n"
+                skddresult += paraHtml(tmp_ddjg_result) + divHtml("<image src='data:image/png;base64," + tmp_ddgc_img + "'  width='60%' >") + "\n" + divHtml(tmp_ddgc_img_desc) + "\n"
 
             hd_result = ""
             sw2image = {}
@@ -374,9 +372,7 @@ class PlanFactory:
                 sw2image[swname] = tmp_ddgc_img
                 tmp_ddgc_img_desc = f"{swname}调度过程({date_list[0]}~{date_list[-1]})"
                 tmp_result = f"预计{max_date}，{swname}出现{max_ll}立方米每秒的洪峰流量\n"
-                hd_result = paraHtml(tmp_result) + divHtml(
-                    "<image src='data:image/png;base64," + tmp_ddgc_img + "'>") + "\n" + paraHtml(
-                    tmp_ddgc_img_desc) + "\n"
+                hd_result = paraHtml(tmp_result) + divHtml("<image src='data:image/png;base64," + tmp_ddgc_img + "'  width='60%' >") + "\n" + paraHtml(tmp_ddgc_img_desc) + "\n"
             for n in self.node.wordParagraphs.all():
                 n.delete()
             tmpjson = huanghe_diaodu_plan_jianyi_ctx(ddjy)

@@ -87,6 +87,10 @@ class PlanTemplate(models.Model):
         tmpNodes = []
         for node in self.nodes.all():
             tmpN = model_to_dict(node, exclude=['wordParagraphs'])
+            tmpN['order'] = node.order
+            tmpN['label'] = node.label
+            tmpN['title'] = node.label
+            tmpN['prompt'] = node.template
             tmpN['created_at'] = node.created_at.strftime("%Y-%m-%d %H:%M:%S")
             tmpN['updated_at'] = node.updated_at.strftime("%Y-%m-%d %H:%M:%S")
             tmpN['paraglist'] = [model_to_dict(wp) for wp in node.wordParagraphs.all()]
@@ -98,6 +102,10 @@ class PlanTemplate(models.Model):
         tmpNodes = []
         for node in self.nodes.all():
             tmpN = model_to_dict(node, exclude=['wordParagraphs', 'result'])
+            tmpN['order'] = node.order
+            tmpN['label'] = node.label
+            tmpN['title'] = node.label
+            tmpN['prompt'] = node.template
             tmpN['created_at'] = node.created_at.strftime("%Y-%m-%d %H:%M:%S")
             tmpN['updated_at'] = node.updated_at.strftime("%Y-%m-%d %H:%M:%S")
             tmpNodes.append(tmpN)
@@ -129,6 +137,8 @@ class PlanByUser(models.Model):
         tmpNodes = []
         for node in self.nodes.all():
             tmpN = model_to_dict(node, exclude=['wordParagraphs'])
+            tmpN['title'] = node.label
+            tmpN['prompt'] = node.template
             tmpN['created_at'] = node.created_at.strftime("%Y-%m-%d %H:%M:%S")
             tmpN['updated_at'] = node.updated_at.strftime("%Y-%m-%d %H:%M:%S")
             tmpNodes.append(tmpN)
@@ -139,6 +149,8 @@ class PlanByUser(models.Model):
         tmpNodes = []
         for node in self.nodes.all():
             tmpN = model_to_dict(node, exclude=['wordParagraphs'])
+            tmpN['title'] = node.label
+            tmpN['prompt'] = node.template
             tmpN['created_at'] = node.created_at.strftime("%Y-%m-%d %H:%M:%S")
             tmpN['updated_at'] = node.updated_at.strftime("%Y-%m-%d %H:%M:%S")
             tmpNodes.append(tmpN)
