@@ -48,16 +48,19 @@ class LoggingMiddleware(MiddlewareMixin):
 
     def log_operation(self, request, response):
         # 缺少对其他流的支持
-        if not hasattr(response, 'content'):
-            return
-        response_content = response.content
-        # 如果是字节类型，先解码
-        if isinstance(response_content, bytes):
-            response_content = response_content.decode('utf-8')
-            try:
-                json_result = json.loads(response_content)
-            except json.JSONDecodeError as e:
-                json_result = {} 
+        content_type = response.get('Content-Type', '')
+        # 检查响应内容是否为文本类型
+        if content_type.startswith('text') or 'json' in content_type:
+            response_content = response.content
+            # 如果是字节类型，先解码
+            if isinstance(response_content, bytes):
+                response_content = response_content.decode('utf-8')
+                try:
+                    json_result = json.loads(response_content)
+                except json.JSONDecodeError as e:
+                    json_result = {}
+        else:
+            json_result = {}
 
         user_agent = request.META.get('HTTP_USER_AGENT') 
         user_agent_parsed = parse(user_agent)

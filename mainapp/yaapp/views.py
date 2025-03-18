@@ -960,11 +960,11 @@ class UpdateUserPlanDocument(generics.GenericAPIView):
     
 
 
-def deep_copy_model(instance:PlanTemplate, mydate: str):
+def deep_copy_model(instance:PlanTemplate, mydate: str, user: User=None):
     # 获取模型类
-
     new_instance = PlanByUser.objects.create(ctype=instance.ctype, 
                                              yadate=mydate,
+                                             user=user,
                                              name=getYuAnName(instance.ctype, mydate),)
     # 保存新实例，生成新的主键
     new_instance.save()
@@ -988,6 +988,7 @@ class YuAnRecomApiPost(generics.GenericAPIView):
             type=openapi.TYPE_OBJECT,
             required=['text'],
             properties={
+                'uid': openapi.Schema(type=openapi.TYPE_INTEGER, description="uid"),
                 'text': openapi.Schema(type=openapi.TYPE_STRING, description="text"),
                 'date': openapi.Schema(type=openapi.TYPE_STRING, description="date"),
             },
@@ -1003,6 +1004,7 @@ class YuAnRecomApiPost(generics.GenericAPIView):
         """
             针对用户输入,动态推荐预案摸板
         """
+        uid = request.data.get("uid", None)
         text = request.data.get("text", None)
         mydate = request.data.get("date", str(datetime.now().strftime("%Y-%m-%d")))
 
@@ -1016,8 +1018,12 @@ class YuAnRecomApiPost(generics.GenericAPIView):
         #     data = model_to_dict(PlanTemplate.objects.get(name=template_name))
         # else:
         #     data = {text}
-        
-        results = recommend_plan(text, plans=pts, user=None)
+        try:
+            tmpUser = User.objects.get(id=uid)
+        except:
+            tmpUser = None
+
+        results = recommend_plan(text, plans=pts, user=tmpUser)
         if results:
             target_plan = results[0]
             ptId = target_plan['id']
@@ -1032,7 +1038,7 @@ class YuAnRecomApiPost(generics.GenericAPIView):
                 return Response(bars.data, status=status.HTTP_200_OK)
             
             # 深拷贝模型实例
-            new_pt = deep_copy_model(pt, mydate)
+            new_pt = deep_copy_model(pt, mydate, user=tmpUser)
             tmpResult = model_to_dict(new_pt, exclude=["nodes"])
             tmpResult['nodeOutlineList'] = new_pt.nodeOutlineList
             tmpResult['created_at'] = new_pt.created_at.strftime("%Y-%m-%d %H:%M:%S")
@@ -1319,6 +1325,7 @@ class YuAnUserPtListApiGet(mixins.ListModelMixin,
         operation_summary="[生成预案列表]  获取用户预案列表",
         # 接口参数 GET请求参数
         manual_parameters=[
+            openapi.Parameter('uid', openapi.IN_QUERY, type=openapi.TYPE_NUMBER),
             openapi.Parameter('keyword', openapi.IN_QUERY, type=openapi.TYPE_STRING),
             openapi.Parameter('page', openapi.IN_QUERY, type=openapi.TYPE_NUMBER),
             openapi.Parameter('pageSize', openapi.IN_QUERY, type=openapi.TYPE_NUMBER),
@@ -1329,10 +1336,16 @@ class YuAnUserPtListApiGet(mixins.ListModelMixin,
         },
         tags=['ya_api'])
     def get(self, request, *args, **kwargs):
+        uid = request.GET.get("uid", None)
         keyword = request.GET.get("keyword", None)
         page = request.GET.get("page", 1)
         pageSize = request.GET.get("pageSize", 5)
-        YuAnUserPtListApiGet.queryset = PlanByUser.objects
+        
+        tmpUser = User.objects.get(id=uid)
+        if tmpUser is None:
+            YuAnUserPtListApiGet.queryset = PlanByUser.objects
+        else:
+            YuAnUserPtListApiGet.queryset = PlanByUser.objects.filter(user=tmpUser)
 
         if keyword:
             YuAnUserPtListApiGet.queryset = YuAnUserPtListApiGet.queryset.filter(name__icontains=keyword).order_by('-created_at').all()
@@ -1376,7 +1389,12 @@ class RecentlyYuAnUserPtApiGet(mixins.ListModelMixin,
         },
         tags=['ya_api'])
     def get(self, request, *args, **kwargs):
-        YuAnUserPtListApiGet.queryset = PlanByUser.objects
+        uid = request.GET.get("uid", None)
+        tmpUser = User.objects.get(id=uid)
+        if tmpUser is None:
+            YuAnUserPtListApiGet.queryset = PlanByUser.objects
+        else:
+            YuAnUserPtListApiGet.queryset = PlanByUser.objects.filter(user=tmpUser)
         recentUserPt = YuAnUserPtListApiGet.queryset.order_by('-created_at').first()
         if recentUserPt is None:
             data = {"code": 202, "data": {}, "msg": "系统不存在该数据", "success": False}

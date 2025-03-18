@@ -8,11 +8,10 @@ from rest_framework.views import APIView
 from rest_framework.decorators import action
 from django.http.multipartparser import MultiPartParser
 from rest_framework.response import Response
-
 from apiapp import prod_outline, prod_qa, prod_abstract, prod_extend, prod_text2sql
-from apiapp.serializers import KgAPIResponseSerializer
 from kgapp.models import KgText2SQL
-from modelapp.serializers import *
+from yunheKGPro import settings
+from apiapp.serializers import *
 from django.http import HttpResponse
 # from django.contrib.auth.models import User, Group
 from rest_framework import status
@@ -23,7 +22,6 @@ from django.core.paginator import Paginator, EmptyPage, PageNotAnInteger
 from django.views.decorators.csrf import csrf_exempt
 from datetime import datetime
 from rest_framework.authentication import BasicAuthentication
-import os
 
 from rest_framework.parsers import (
     FormParser,
@@ -33,8 +31,6 @@ from rest_framework.parsers import (
 from apiapp.serializers import BaseApiResponseSerializer
 from yunheKGPro import CsrfExemptSessionAuthentication
 
-
-# Create your views here.
 
 
 class OutlineApiView(generics.GenericAPIView):

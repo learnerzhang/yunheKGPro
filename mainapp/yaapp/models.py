@@ -2,7 +2,8 @@ from django.db import models
 from django.contrib.auth.models import AbstractUser, Group, Permission
 from django.db import models
 from ckeditor.fields import RichTextField
-from django.forms import model_to_dict  # 导入 RichTextField
+from django.forms import model_to_dict
+from userapp.models import User  # 导入 RichTextField
 # Create your models here.
 
 
@@ -126,6 +127,7 @@ class PlanByUser(models.Model):
     ctype = models.IntegerField(choices=((0, '黄河中下游'), (1, '小浪底秋汛'), (2, '小浪底调水调沙'), (3, '黄河汛情及水库调度方案单'),(4, "其他")), default=0, verbose_name='预案模板类型', blank=True)
     word_data = models.JSONField(verbose_name='word数据', blank=True, null=True)
     html_data = models.JSONField(verbose_name='html数据', blank=True, null=True)
+    user = models.ForeignKey(User, on_delete=models.CASCADE, verbose_name="用户", help_text="用户", null=True, blank=True)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 
