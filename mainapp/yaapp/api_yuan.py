@@ -49,30 +49,58 @@ def get_access_token():
     return response.json().get("access_token")
 
 #注意：翻墙的时候无法调用百度  api  接口
-def query_question(text):
-    url = "https://aip.baidubce.com/rpc/2.0/ai_custom/v1/wenxinworkshop/chat/eb-instant?access_token=" + get_access_token()
-    #s = input()
-    # 注意message必须是奇数条
-    payload = json.dumps({
-        "messages": [
-            {
-                "role": "user",
-                "content": text
-            }
-        ],
-    })
-    headers = {
-        'Content-Type': 'application/json'
-    }
-
-    res = requests.request("POST", url, headers=headers, data=payload).json()
-    return res['result']
+# def query_question(text):
+#     url = "https://aip.baidubce.com/rpc/2.0/ai_custom/v1/wenxinworkshop/chat/eb-instant?access_token=" + get_access_token()
+#     #s = input()
+#     # 注意message必须是奇数条
+#     payload = json.dumps({
+#         "messages": [
+#             {
+#                 "role": "user",
+#                 "content": text
+#             }
+#         ],
+#     })
+#     headers = {
+#         'Content-Type': 'application/json'
+#     }
+#
+#     res = requests.request("POST", url, headers=headers, data=payload).json()
+#     return res['result']
 
 # def query_question(text):
 #     llm = Ollama(model="qwen2.5")
 #     res = llm(text)
 #     return res
+def query_question(text):
+    # 定义 API 的 URL
+    url = "https://ark.cn-beijing.volces.com/api/v3/chat/completions"
 
+    # 定义请求头
+    headers = {
+        "Content-Type": "application/json",
+        "Authorization": "Bearer ff47bc89-2fa3-4cd2-ae4f-49f11cb38cf0"
+    }
+
+    # 定义请求体
+    data = {
+        "model": "doubao-1-5-pro-32k-250115",
+        "messages": [
+            {"role": "system", "content": "你是人工智能助手."},
+            {"role": "user", "content": text}
+        ]
+    }
+
+    # 发送 POST 请求
+    response = requests.post(url, headers=headers, json=data)
+
+    # 检查响应状态码
+    if response.status_code == 200:
+        # 提取并返回 assistant 的回复内容
+        return response.json()['choices'][0]['message']['content']
+    else:
+        # 返回错误信息
+        return f"Error: {response.status_code}, {response.text}"
 
 def qiuxun2Word(context=None):
     if context is None:
