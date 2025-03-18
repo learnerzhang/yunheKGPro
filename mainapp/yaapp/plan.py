@@ -162,7 +162,7 @@ class PlanFactory:
                 self.node.wordParagraphs.add(wp)
                 wp = WordParagraph.objects.create(title="降雨预报", content=tmpdesc, ctype=1)
                 self.node.wordParagraphs.add(wp)
-                tmpHtml += divHtml("<image src='data:image/png;base64," + encoded_string + "'>") + "\n" + paraHtml(tmpdesc) + "\n"
+                tmpHtml += divHtml("<img src='data:image/png;base64," + encoded_string + "' width='50%'>") + "\n" + paraHtml(tmpdesc) + "\n"
             return tmpHtml
 
         if self.context['type'] == 0:
@@ -347,9 +347,7 @@ class PlanFactory:
                 tmp_ddgc_img_desc = f"{skname}调度过程({date_list[0]}~{date_list[-1]})"
                 # TODO: 需要根据调度方案单的类型来确定调度方案单的函数
                 tmp_ddjg_result = f"预计{skname}将于{max_date}达到最高水位{max_sw}m，{xld_sk(sw=max_sw)}；\n"
-                skddresult += paraHtml(tmp_ddjg_result) + divHtml(
-                    "<image src='data:image/png;base64," + tmp_ddgc_img + "'>") + "\n" + divHtml(
-                    tmp_ddgc_img_desc) + "\n"
+                skddresult += paraHtml(tmp_ddjg_result) + divHtml("<img src='data:image/png;base64," + tmp_ddgc_img + "'  width='50%' >") + "\n" + divHtml(tmp_ddgc_img_desc) + "\n"
 
             hd_result = ""
             sw2image = {}
@@ -374,9 +372,7 @@ class PlanFactory:
                 sw2image[swname] = tmp_ddgc_img
                 tmp_ddgc_img_desc = f"{swname}调度过程({date_list[0]}~{date_list[-1]})"
                 tmp_result = f"预计{max_date}，{swname}出现{max_ll}立方米每秒的洪峰流量\n"
-                hd_result = paraHtml(tmp_result) + divHtml(
-                    "<image src='data:image/png;base64," + tmp_ddgc_img + "'>") + "\n" + paraHtml(
-                    tmp_ddgc_img_desc) + "\n"
+                hd_result = paraHtml(tmp_result) + divHtml("<img src='data:image/png;base64," + tmp_ddgc_img + "'  width='60%' >") + "\n" + paraHtml(tmp_ddgc_img_desc) + "\n"
             for n in self.node.wordParagraphs.all():
                 n.delete()
             tmpjson = huanghe_diaodu_plan_jianyi_ctx(ddjy)
@@ -451,7 +447,7 @@ class PlanFactory:
                 tmp_ddgc_img_desc = f"{skname}调度过程({date_list[0]}~{date_list[-1]})"
                 # TODO: 需要根据调度方案单的类型来确定调度方案单的函数
                 tmp_ddjg_result = f"预计{skname}将于{max_date}达到最高水位{max_sw}m，{xld_sk(sw=max_sw)}；\n"
-                skddresult += paraHtml(tmp_ddjg_result) + divHtml("<image src='data:image/png;base64," + tmp_ddgc_img + "'>") + "\n" + divHtml(tmp_ddgc_img_desc) + "\n"
+                skddresult += paraHtml(tmp_ddjg_result) + divHtml("<img src='data:image/png;base64," + tmp_ddgc_img + "' width='50%'>") + "\n" + divHtml(tmp_ddgc_img_desc) + "\n"
 
 
             hd_result = ""
@@ -476,7 +472,7 @@ class PlanFactory:
                 tmp_ddgc_img = img2base64(tmpimgpath)
                 tmp_ddgc_img_desc = f"{swname}调度过程({date_list[0]}~{date_list[-1]})"
                 tmp_result = f"预计{max_date}，{swname}出现{max_ll}立方米每秒的洪峰流量\n"
-                hd_result = paraHtml(tmp_result) + divHtml("<image src='data:image/png;base64," + tmp_ddgc_img + "'>" ) + "\n" + paraHtml(tmp_ddgc_img_desc) + "\n"
+                hd_result = paraHtml(tmp_result) + divHtml("<img src='data:image/png;base64," + tmp_ddgc_img + "' width='50%'>" ) + "\n" + paraHtml(tmp_ddgc_img_desc) + "\n"
             
             tqym = huanghe_tanqu_yanmo(self.params)
             keneng_danger = huanghe_keneng_danger(self.params)
@@ -604,7 +600,7 @@ class PlanFactory:
             encoded_string = re.sub('^data:image/.+;base64,', '', ddgc_img)
             wp = WordParagraph.objects.create(title="降雨预报", content=encoded_string, ctype=2)
             self.node.wordParagraphs.add(wp)
-            tmpHtml +=  "预报小浪底水库的调度过程" + "\n""<image src='data:image/png;base64," + encoded_string + "'>" + "\n"
+            tmpHtml +=  "预报小浪底水库的调度过程" + "\n""<img src='data:image/png;base64," + encoded_string + "' width='50%'>" + "\n"
             return tmpHtml
         if self.context['type'] == 0:
             # 黄河中下游
