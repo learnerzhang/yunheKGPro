@@ -968,14 +968,6 @@ def deep_copy_model(instance:PlanTemplate, mydate: str):
                                              name=getYuAnName(instance.ctype, mydate),)
     # 保存新实例，生成新的主键
     new_instance.save()
-    # 处理外键字段
-    for field in instance._meta.get_fields():
-        if field.is_relation and field.many_to_one:
-            related_instance = getattr(instance, field.name)
-            if related_instance:
-                # 递归复制关联对象
-                new_related_instance = deep_copy_model(related_instance)
-                setattr(new_instance, field.name, new_related_instance)
     for node in instance.nodeOutlineList:
         # 处理节点外键字段
         new_instance_node = TemplateNode.objects.create(label=node['label'], description=node['description'], template=node['template'], order=node['order'])
@@ -1386,6 +1378,11 @@ class RecentlyYuAnUserPtApiGet(mixins.ListModelMixin,
     def get(self, request, *args, **kwargs):
         YuAnUserPtListApiGet.queryset = PlanByUser.objects
         recentUserPt = YuAnUserPtListApiGet.queryset.order_by('-created_at').first()
+        if recentUserPt is None:
+            data = {"code": 202, "data": {}, "msg": "系统不存在该数据", "success": False}
+            bars = BaseApiResponseSerializer(data=data, many=False)
+            bars.is_valid()
+            return Response(bars.data, status=status.HTTP_200_OK)
         result = model_to_dict(recentUserPt, exclude=["plan", "nodes"])
         result['nodeOutlineList'] = recentUserPt.nodeOutlineList
         result['created_at'] = recentUserPt.created_at.strftime("%Y-%m-%d %H:%M:%S")

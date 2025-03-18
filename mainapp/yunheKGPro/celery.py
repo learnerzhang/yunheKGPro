@@ -13,7 +13,7 @@ import jieba.analyse
 import codecs
 import re
 import pandas as pd
-from langchain_community.document_loaders import PyPDFLoader, TextLoader, Docx2txtLoader, JSONLoader
+from langchain_community.document_loaders import PyPDFLoader, TextLoader, Docx2txtLoader, JSONLoader, UnstructuredExcelLoader
 from langchain_ollama import OllamaEmbeddings, OllamaLLM
 from langchain.text_splitter import RecursiveCharacterTextSplitter
 from yunheKGPro.settings import MODEL_PATH
@@ -827,7 +827,7 @@ def knowledgeParseTask(paramdict):
     """
         知识库文档解析
     """
-    from kgapp.models import KgProductTask, KgDoc, KgTmpQA, KgDocCttTag, KgDocFragmentation, Knowledge
+    from kgapp.models import KgProductTask, KgDoc, KgTmpQA, KgDocCttTag, KgDocFragmentation, Knowledge,KgTableContent
     from yaapp.models import PlanByUser
     from django.forms.models import model_to_dict
     from yaapp.plan import PlanFactory
@@ -835,20 +835,19 @@ def knowledgeParseTask(paramdict):
     
     print("开始自动解析任务", paramdict)
     prodtaskid = paramdict['task_id']
-    kg_doc_ids = paramdict['kg_doc_ids']
     knowledge_id = paramdict['knowledge_id']
     tmptask = KgProductTask.objects.get(id=prodtaskid)
     tmptask.task_status = 1  # 开始执行
     tmptask.save()
-    tmpkg = Knowledge.objects.filter(hashid=knowledge_id).first()
     text_splitter = RecursiveCharacterTextSplitter(chunk_size=512, chunk_overlap=64)
-    for kg_doc_id in kg_doc_ids:
-        tmpdoc = KgDoc.objects.get(id=kg_doc_id)
+
+    tmpKg = Knowledge.objects.filter(hashid=knowledge_id).first()
+    docs = KgDoc.objects.filter(kg_knowledge_id=tmpKg).all()
+
+    for tmpdoc in docs:
         filepath = os.path.join("media", tmpdoc.filepath)
-        
         if filepath.startswith("/"):
             filepath = filepath[1:]
-
         print("Exist:", os.path.exists(filepath), "Path:", filepath)
         if not os.path.exists(filepath):
             continue
@@ -860,6 +859,8 @@ def knowledgeParseTask(paramdict):
             docs = TextLoader(file_path=filepath).load()
         elif file_extension.lower() == ".docx":
             docs = Docx2txtLoader(file_path=filepath).load()
+        elif file_extension.lower() == ".xlsx" or file_extension.lower() == '.xls':
+            docs = UnstructuredExcelLoader(file_path=filepath).load()
         elif file_extension.lower() == '.json':
             docs = JSONLoader(file_path=filepath, jq_schema='.', text_content=False).load()
         else:
@@ -878,9 +879,9 @@ def knowledgeParseTask(paramdict):
             # print(f'第 {idx + 1} 个文档:', chunk.page_content)
             # keywords = jieba.analyse.extract_tags(chunk.page_content, topK=10, withWeight=True)
             keywords = jieba.analyse.textrank(chunk.page_content, topK=10, withWeight=True)
-            tmpfrag = KgDocFragmentation.objects.create(no=idx+1, 
+            tmpfrag, _ = KgDocFragmentation.objects.get_or_create(no=idx+1, 
                                               kg_doc_id=tmpdoc, 
-                                              kg_knowledge_id=tmpkg, 
+                                              kg_knowledge_id=tmpKg, 
                                               content=chunk.page_content,
                                               ctt_size=len(chunk.page_content),
                                               recall_cnt=0,

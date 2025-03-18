@@ -191,8 +191,8 @@ DATABASES = {
         'ENGINE': 'django.db.backends.mysql',
         'NAME': 'kgproj',
         'USER': 'root',
-        'PASSWORD': 'root',
-        'HOST': '127.0.0.1',
+        'PASSWORD': '20221qaz@WSX',
+        'HOST': '192.168.2.182',
         'PORT': '3306',
     }
 }
@@ -246,6 +246,18 @@ elif sys.platform.startswith('win'):
             'PORT': '3306',
         }
     }
+
+    DATABASES = {
+        'default': {
+            'ENGINE': 'django.db.backends.mysql',
+            'NAME': 'kgproj',
+            'USER': 'root',
+            'PASSWORD': '20221qaz@WSX',
+            'HOST': '192.168.2.182',
+            'PORT': '3306',
+        }
+    }
+
     ELASTICSEARCH_DSL = {
     'default': {
         'hosts': 'http://localhost:9200',
