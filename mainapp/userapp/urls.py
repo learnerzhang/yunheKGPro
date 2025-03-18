@@ -25,11 +25,14 @@ urlpatterns = [
     path('userapi/logout', views.UserLogoutApiView.as_view()),
     path('userapi/status', views.UserLoginStatusApiView.as_view()),
     path('userapi/regist', views.UserRegistApiView.as_view()),
+    path('userapi/profile', views.UserApiGet.as_view()),
+    path('userapi/updateProfile', views.UpdateUserApiPost.as_view()),
+    path('userapi/uploadavatar', views.AvatarUpload.as_view()),
     path('userapi/addorUpdate', views.UserAddorUpdateApiView.as_view()),
-    path('userapp/roleList', views.RoleList.as_view()),
-    path('userapp/roleDetail', views.RoleDetailApiView.as_view()),
+    path('userapi/roleList', views.RoleList.as_view()),
+    path('userapi/roleDetail', views.RoleDetailApiView.as_view()),
     path('userapi/roleDelete', views.RoleDeleteApiView.as_view()),
-    path('userapp/roleAddorUpdate', views.RoleAddorUpdateApiView.as_view()),
+    path('userapi/roleAddorUpdate', views.RoleAddorUpdateApiView.as_view()),
     path('userapi/menus', views.KgMenuList.as_view()),
     path('userapi/menusByUser', views.KgMenuByUserList.as_view()),
     path('userapi/menusaddByUser', views.KgMenuAddByUser.as_view()),
@@ -40,6 +43,7 @@ urlpatterns = [
     path('userapi/menuAddOrUpdate', views.MenuAddOrUpdateApiView.as_view()),
     path('userapi/menuDelete', views.MenuDeleteApiView.as_view()),
     path('userapi/menuDetail', views.MenuDetailApiView.as_view()),
+    path('userapi/captcha', views.CaptchaImageView.as_view(), name='captcha-image'),
 ]
 
 # urlpatterns = format_suffix_patterns(urlpatterns)

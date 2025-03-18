@@ -4,7 +4,7 @@ import datetime
 from django.db import models
 # Create your models here.
 from django.contrib.auth.models import AbstractUser
-
+from django.contrib.auth.models import AbstractUser, Group, Permission
 # 用户表
 from django.forms import model_to_dict
 
@@ -15,8 +15,25 @@ class User(AbstractUser):
     icon = models.ImageField(upload_to='icon', default='/icon/default.jpg', verbose_name='用户头像')
     name = models.CharField(max_length=12, verbose_name='用户姓名')
     sex = models.IntegerField(choices=((1, '男'), (0, '女')), default=1, verbose_name='性别')
-    role = models.IntegerField(choices=((1, '超级管理员'), (2, '管理员'), (3, '普通用户'), (4, '临时用户')), default=4,
-                               verbose_name='用户角色')
+    role = models.IntegerField(choices=((1, '超级管理员'), (2, '管理员'), (3, '普通用户'), (4, '临时用户')), default=4, verbose_name='用户角色')
+
+    groups = models.ManyToManyField(
+        Group,
+        verbose_name='groups',
+        blank=True,
+        help_text='The groups this user belongs to.',
+        related_name="new_user_set",  # 更改 related_name
+        related_query_name="user",
+    )  
+
+    user_permissions = models.ManyToManyField(
+        Permission,
+        verbose_name='user permissions',
+        blank=True,
+        help_text='Specific permissions for this user.',
+        related_name="new_user_set",  # 更改 related_name
+        related_query_name="user",
+    )
 
 
 class Menu(models.Model):

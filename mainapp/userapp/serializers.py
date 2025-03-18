@@ -42,6 +42,7 @@ class KgUserDetailResponseSerializer(serializers.Serializer):
     data = UserSerializer(many=False)
     code = serializers.IntegerField()
     msg = serializers.CharField(max_length=200)
+    success = serializers.BooleanField()
 
     def validate(self, attrs):
         return attrs
