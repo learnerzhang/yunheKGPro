@@ -167,7 +167,7 @@ def huanghe_yuqing_generate(context=None):
             f"请模仿上述描述，根据以下已知信息生成雨水实况，并进行优化，不要生成无关信息提示，"
             f"也请不要使用'优化后的描述：'这样的字样。"
             f"确保不包含任何说明性文字。"
-            f"\n已知信息：{information},当前日期: {year}年{month}月{day}日"
+            f"\n已知信息：{information}，没有时间信息则不显示时间信息。"
         )
         res = query_question(prompt)
         # print("res:",res)
