@@ -1390,7 +1390,11 @@ class RecentlyYuAnUserPtApiGet(mixins.ListModelMixin,
         tags=['ya_api'])
     def get(self, request, *args, **kwargs):
         uid = request.GET.get("uid", None)
-        tmpUser = User.objects.get(id=uid)
+        try:
+            tmpUser = User.objects.get(id=uid)
+        except:
+            tmpUser = None
+            
         if tmpUser is None:
             YuAnUserPtListApiGet.queryset = PlanByUser.objects
         else:
