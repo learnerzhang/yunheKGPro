@@ -11,8 +11,8 @@ import json
 from collections import defaultdict
 from pyecharts.charts import Line
 from pyecharts import options as opts
-#import rule
-from . import rule
+import rule
+#from . import rule
 #from yaapp import rule
 idx_list = ['水位', '入库', '出库', '蓄量', "流量"]
 sknames = { '三门峡', '小浪底',  '陆浑', '故县', '河口村', '西霞院', '万家寨', '龙口'}
@@ -579,6 +579,7 @@ def query_question(text):
     res = llm(text)
     return res
 import pprint
+
 if __name__ == "__main__":
     #pass
     #skddjy("../../mainapp/media/ddfa/2025-02-08.xlsx")
@@ -607,43 +608,49 @@ if __name__ == "__main__":
 
 
 
-    r = excel_to_dict("../../mainapp/media/ddfa/3/2025-02-08.xlsx")
-    #pprint.pprint(r)
-    if r:
-        skMapData, swMapData, date_list = r
-        prompt = (
-            "根据以下水库调度规则和水文数据，分析并生成三门峡水库的调度方案：\n\n"
-            "### 水库调度规则：\n"
-            f"{smx_ddgz}\n\n"
-            "### 水库数据：\n"
-            f"三门峡水库水位: {skMapData['三门峡']['水位']}\n"
-            f"三门峡水库入库流量: {skMapData['三门峡'].get('入库流量', '数据缺失')}\n"
-            f"三门峡水库出库流量: {skMapData['三门峡'].get('出库流量', '数据缺失')}\n\n"
-            "### 水文站数据：\n"
-            f"花园口流量: {swMapData['花园口']}\n"
-            f"潼关流量: {swMapData.get('潼关', ['数据缺失'])}\n\n"
-            "### 时间信息：\n"
-            f"{date_list}\n\n"
-            "### 任务要求：\n"
-            "根据水库调度规则和数据，生成三门峡水库的调度方案，包括下泄流量和水位控制要求。\n"
-            "### 参考格式：\n"
-            f"{reference_sk}\n\n"
-            "请直接生成调度方案文本，不要包含其他描述性语句。"
-        )
-        print("prompt:",prompt)
-        res = query_question(prompt)
-        print(res)
-    #     # 打印 skMapData
-    #     print("SK Map Data:")
-    #     print(skMapData["故县"]["水位"])
-    #     print(len(skMapData["故县"]["水位"]))
-    #     # 打印 SW Map Data
-    #     print("\nSW Map Data:")
-    #     print(swMapData)
-    #
-    #     # 打印日期列表
-    #     print("\nDate List:")
-    #     print(date_list)
-    # else:
-    #     print("数据提取失败。")
-    # pass
+    # r = excel_to_dict("../../mainapp/media/ddfa/3/2025-02-08.xlsx")
+    # #pprint.pprint(r)
+    # if r:
+    #     skMapData, swMapData, date_list = r
+    #     prompt = (
+    #         "根据以下水库调度规则和水文数据，分析并生成三门峡水库的调度方案：\n\n"
+    #         "### 水库调度规则：\n"
+    #         f"{smx_ddgz}\n\n"
+    #         "### 水库数据：\n"
+    #         f"三门峡水库水位: {skMapData['三门峡']['水位']}\n"
+    #         f"三门峡水库入库流量: {skMapData['三门峡'].get('入库流量', '数据缺失')}\n"
+    #         f"三门峡水库出库流量: {skMapData['三门峡'].get('出库流量', '数据缺失')}\n\n"
+    #         "### 水文站数据：\n"
+    #         f"花园口流量: {swMapData['花园口']}\n"
+    #         f"潼关流量: {swMapData.get('潼关', ['数据缺失'])}\n\n"
+    #         "### 时间信息：\n"
+    #         f"{date_list}\n\n"
+    #         "### 任务要求：\n"
+    #         "根据水库调度规则和数据，生成三门峡水库的调度方案，包括下泄流量和水位控制要求。\n"
+    #         "### 参考格式：\n"
+    #         f"{reference_sk}\n\n"
+    #         "请直接生成调度方案文本，不要包含其他描述性语句。"
+    #     )
+    #     print("prompt:",prompt)
+    #     res = query_question(prompt)
+    #     print(res)
+    # 记录开始时间
+    r = excel_to_dict("../../mainapp/media/ddfa/3/2025-03-13.xlsx")
+    # pprint.pprint(r)
+    start_time = time.time()
+    # 调用函数并获取结果
+    res = yautils.skddjy_new("../../mainapp/media/ddfa/3/2025-03-13.xlsx")
+    ddjy_list = []
+    # 遍历返回的结果字典
+    for key, value in res.items():
+        # 处理每个水库的出流量
+        ckll = process_outflow(value, date_list)
+        ddjy_list.append(f"{key}水库：{ckll}")
+    # 将所有水库的调度建议合并为一个字符串
+    ddjy = "\n".join(ddjy_list)
+    # 记录结束时间
+    end_time = time.time()
+    # 计算并打印执行时间
+    execution_time = end_time - start_time
+    print(f"执行结果：{res}")
+    print(f"代码执行时间：{execution_time:.4f} 秒")

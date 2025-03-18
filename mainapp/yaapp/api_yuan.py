@@ -305,16 +305,16 @@ def huanghe_gongqing_generate(context):
             f"河南段累计{henan_heduan}；"
             f"山东段累计{shangdong_heduan}。"
         )
-        print("information:",information)
-        data  = text_table(information)
-        df = pd.DataFrame(data)
-        res = df.to_json(orient="records")
-        # prompt = (
-        #     f"参考描述：{default_context}\n"
-        #     f"请模仿上述描述，根据以下已知信息生成工程险情实况，不要生成总结或无关信息，"
-        #     f"\n已知信息：{information}"
-        # )
-        # res = query_question(prompt)
+        #print("information:",information)
+        # data  = text_table(information)
+        # df = pd.DataFrame(data)
+        # res = df.to_json(orient="records")
+        prompt = (
+            f"参考描述：{default_context}\n"
+            f"请模仿上述描述，根据以下已知信息生成工程险情实况，不要生成总结或无关信息，"
+            f"\n已知信息：{information}"
+        )
+        res = query_question(prompt)
     else:
         res = default_context
     return res
