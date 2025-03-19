@@ -1820,28 +1820,28 @@ def recommend_plan(text, plans: List[PlanTemplate] = [], user: User=None):
         基于用户行为, 推荐合适的模板, 相似打分
     """
     results = []
-    if user:
-        # TODO 实现基于历史推荐算法
+    # if user:
+    #     # TODO 实现基于历史推荐算法
+    #     for plan in plans:
+    #         results.append(model_to_dict(plan, exclude=['nodes']))
+    #     return results
+    # else:
+    if text:
+        # TODO 关键词匹配算法  优化
         for plan in plans:
-            results.append(model_to_dict(plan, exclude=['nodes']))
-        return results
-    else:
-        if text:
-            # TODO 关键词匹配算法  优化
-            for plan in plans:
-                if plan.name.find(text) != -1:
-                    tmp = model_to_dict(plan, exclude=[])
-                    tmp['keywords'] = text
-                    tmp['score'] = 1
-                    results.append(model_to_dict(plan, exclude=['nodes']))
-        else:
-            # 默认推荐
-            for plan in plans:
+            if plan.name.find(text) != -1:
                 tmp = model_to_dict(plan, exclude=[])
                 tmp['keywords'] = text
-                tmp['score'] = 0.0
+                tmp['score'] = 1
                 results.append(model_to_dict(plan, exclude=['nodes']))
-        return results
+    else:
+        # 默认推荐
+        for plan in plans:
+            tmp = model_to_dict(plan, exclude=[])
+            tmp['keywords'] = text
+            tmp['score'] = 0.0
+            results.append(model_to_dict(plan, exclude=['nodes']))
+    return results
 
 def map_input_to_template(user_input, templates):
     user_input = user_input.lower()
