@@ -27,3 +27,4 @@ my-ui/
 # 忽略所有 settings.py 文件
 **/settings.py
 
+settings.py

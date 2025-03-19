@@ -49,30 +49,58 @@ def get_access_token():
     return response.json().get("access_token")
 
 #注意：翻墙的时候无法调用百度  api  接口
-def query_question(text):
-    url = "https://aip.baidubce.com/rpc/2.0/ai_custom/v1/wenxinworkshop/chat/eb-instant?access_token=" + get_access_token()
-    #s = input()
-    # 注意message必须是奇数条
-    payload = json.dumps({
-        "messages": [
-            {
-                "role": "user",
-                "content": text
-            }
-        ],
-    })
-    headers = {
-        'Content-Type': 'application/json'
-    }
-
-    res = requests.request("POST", url, headers=headers, data=payload).json()
-    return res['result']
+# def query_question(text):
+#     url = "https://aip.baidubce.com/rpc/2.0/ai_custom/v1/wenxinworkshop/chat/eb-instant?access_token=" + get_access_token()
+#     #s = input()
+#     # 注意message必须是奇数条
+#     payload = json.dumps({
+#         "messages": [
+#             {
+#                 "role": "user",
+#                 "content": text
+#             }
+#         ],
+#     })
+#     headers = {
+#         'Content-Type': 'application/json'
+#     }
+#
+#     res = requests.request("POST", url, headers=headers, data=payload).json()
+#     return res['result']
 
 # def query_question(text):
 #     llm = Ollama(model="qwen2.5")
 #     res = llm(text)
 #     return res
+def query_question(text):
+    # 定义 API 的 URL
+    url = "https://ark.cn-beijing.volces.com/api/v3/chat/completions"
 
+    # 定义请求头
+    headers = {
+        "Content-Type": "application/json",
+        "Authorization": "Bearer ff47bc89-2fa3-4cd2-ae4f-49f11cb38cf0"
+    }
+
+    # 定义请求体
+    data = {
+        "model": "doubao-1-5-pro-32k-250115",
+        "messages": [
+            {"role": "system", "content": "你是人工智能助手."},
+            {"role": "user", "content": text}
+        ]
+    }
+
+    # 发送 POST 请求
+    response = requests.post(url, headers=headers, json=data)
+
+    # 检查响应状态码
+    if response.status_code == 200:
+        # 提取并返回 assistant 的回复内容
+        return response.json()['choices'][0]['message']['content']
+    else:
+        # 返回错误信息
+        return f"Error: {response.status_code}, {response.text}"
 
 def qiuxun2Word(context=None):
     if context is None:
@@ -139,7 +167,7 @@ def huanghe_yuqing_generate(context=None):
             f"请模仿上述描述，根据以下已知信息生成雨水实况，并进行优化，不要生成无关信息提示，"
             f"也请不要使用'优化后的描述：'这样的字样。"
             f"确保不包含任何说明性文字。"
-            f"\n已知信息：{information},当前日期: {year}年{month}月{day}日"
+            f"\n已知信息：{information}，没有时间信息则不显示时间信息。"
         )
         res = query_question(prompt)
         # print("res:",res)
@@ -305,16 +333,16 @@ def huanghe_gongqing_generate(context):
             f"河南段累计{henan_heduan}；"
             f"山东段累计{shangdong_heduan}。"
         )
-        print("information:",information)
-        data  = text_table(information)
-        df = pd.DataFrame(data)
-        res = df.to_json(orient="records")
-        # prompt = (
-        #     f"参考描述：{default_context}\n"
-        #     f"请模仿上述描述，根据以下已知信息生成工程险情实况，不要生成总结或无关信息，"
-        #     f"\n已知信息：{information}"
-        # )
-        # res = query_question(prompt)
+        #print("information:",information)
+        # data  = text_table(information)
+        # df = pd.DataFrame(data)
+        # res = df.to_json(orient="records")
+        prompt = (
+            f"参考描述：{default_context}\n"
+            f"请模仿上述描述，根据以下已知信息生成工程险情实况，不要生成总结或无关信息，"
+            f"\n已知信息：{information}"
+        )
+        res = query_question(prompt)
     else:
         res = default_context
     return res
@@ -335,15 +363,15 @@ def huanghe_gongqing_generate_html(context):
             f"河南段累计有{henan_heduan}，"
             f"山东段累计有{ shangdong_heduan}"
         )
-        data  = text_table(information)
-        df = pd.DataFrame(data)
-        res = pd2HtmlCSS() + divHtml(df.to_html(index=False))
-        # prompt = (
-        #     f"参考描述：{default_context}\n"
-        #     f"请模仿上述描述，根据以下已知信息生成工程险情实况，不要生成总结或无关信息，"
-        #     f"\n已知信息：{information}"
-        # )
-        # res = query_question(prompt)
+        # data  = text_table(information)
+        # df = pd.DataFrame(data)
+        # res = pd2HtmlCSS() + divHtml(df.to_html(index=False))
+        prompt = (
+            f"参考描述：{default_context}\n"
+            f"请模仿上述描述，根据以下已知信息生成工程险情实况，不要生成总结或无关信息，"
+            f"\n已知信息：{information}"
+        )
+        res = query_question(prompt)
     else:
         res = default_context
     return res
@@ -389,10 +417,10 @@ def huanghe_jiangyu13_forecast(context):
 
         prompt = (f"参考降雨模板：{default_context}\n"
                   f"请描述当前日期及未来3天的降雨预报，确保使用实际结果替换对应内容，不要添加任何引导性语言或总结性语言。\n"
-                  f"{month}月{day}日：{current_jianyu}\n"
-                  f"{month}月{day+1}日：{first_jiangyu}\n"
-                  f"{month}月{day+2}日：{second_jiangyu}\n"
-                  f"{month}月{day+3}日：{third_jiangyu}\n")
+                  f"当日降雨情况：{current_jianyu}\n"
+                  f"未来第1天降雨预报情况：{first_jiangyu}\n"
+                  f"未来第2天降雨预报情况：{second_jiangyu}\n"
+                  f"未来第3天降雨预报情况：{third_jiangyu}\n")
         res = query_question(prompt)
     else:
         res = query_question(context)
@@ -486,10 +514,10 @@ def  huanghe_jiangyu47_forecast(context):
         seventh_jiangyu =  context["seventh_jiangyu"]# "黄河中下游大部地区小雨，其中三花间部分中雨，黄河下游大部大雨。"#后续接口获取
         prompt = (f"参考降雨模板：{default_context}\n"
                   f"请描述当前日期及未来4-7天的降雨预报，确保使用实际结果替换对应内容，不要添加任何引导性语言或总结性语言。\n"
-                  f"{month}月{day+4}日：{fourth_jiangyu}\n"
-                  f"{month}月{day+5}日：{fifth_jiangyu}\n"
-                  f"{month}月{day+6}日：{sixth_jiangyu}\n"
-                  f"{month}月{day+7}日：{seventh_jiangyu}\n")
+                  f"未来第4天降雨预报情况：：{fourth_jiangyu}\n"
+                  f"未来第5天降雨预报情况：：{fifth_jiangyu}\n"
+                  f"未来第6天降雨预报情况：：{sixth_jiangyu}\n"
+                  f"未来第7天降雨预报情况：：{seventh_jiangyu}\n")
 
         res = query_question(prompt)
     else:
@@ -585,12 +613,15 @@ def huanghe_diaodu_plan(context):
         # tab_html = ddfa_html_table(ddfa_path)
         # tab_html = pd.read_excel(ddfa_path).to_html(index=False)  
         # 不在展示调度方案单的内容
-        prompt = (f"参照调度模板{default_context}\n"
-                  f"根据下述调度原则及调度建议，生成调度方案，不要生成总结或无关信息,以纯文本形式展示,不要显示markdown格式。\n"
-                  f"调度原则为:{diaoduyuanze}\n"
-                  f"调度建议为：{diaodujianyi}\n")
-        res = query_question(prompt)
-        res = res + "\n"
+        # prompt = (f"参照调度模板{default_context}\n"
+        #           f"根据下述调度原则及调度建议，生成调度方案，不要生成总结或无关信息,以纯文本形式展示,不要显示markdown格式。\n"
+        #           f"调度原则为:{diaoduyuanze}\n"
+        #           f"调度建议为：{diaodujianyi}\n"
+        #           f"按照普通文本输出，不要输出markdown格式")
+        # res = query_question(prompt)
+        # res = res + "\n"
+        res =   (f"调度原则为:{diaoduyuanze}\n"
+                f"调度建议为：{diaodujianyi}\n")
     else:
         res = query_question(context)
 

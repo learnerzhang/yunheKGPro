@@ -675,23 +675,53 @@ def add_watermark(input_pdf, output_pdf, watermark_reader):
     except Exception as e:
         print(f"添加水印时发生错误: {str(e)}")
         return False
+def query_question(text):
+    # 定义 API 的 URL
+    url = "https://ark.cn-beijing.volces.com/api/v3/chat/completions"
 
+    # 定义请求头
+    headers = {
+        "Content-Type": "application/json",
+        "Authorization": "Bearer ff47bc89-2fa3-4cd2-ae4f-49f11cb38cf0"
+    }
+
+    # 定义请求体
+    data = {
+        "model": "doubao-1-5-pro-32k-250115",
+        "messages": [
+            {"role": "system", "content": "你是人工智能助手."},
+            {"role": "user", "content": text}
+        ]
+    }
+
+    # 发送 POST 请求
+    response = requests.post(url, headers=headers, json=data)
+
+    # 检查响应状态码
+    if response.status_code == 200:
+        # 提取并返回 assistant 的回复内容
+        return response.json()['choices'][0]['message']['content']
+    else:
+        # 返回错误信息
+        return f"Error: {response.status_code}, {response.text}"
 
 if __name__ == "__main__":
     # 输入参数
-    input_pdf = "media/plans/黄河汛情及水库调度方案单.pdf"  # 输入PDF文件路径
-    output_pdf = "media/plans/黄河汛情及水库调度方案单_new.pdf"  # 输出PDF文件路径
-    watermark_text = "小浪底水利枢纽"  # 水印文本
-
-    try:
-        # 创建水印
-        watermark_reader = create_watermark(watermark_text)
-
-        # 添加水印
-        if add_watermark(input_pdf, output_pdf, watermark_reader):
-            print("水印添加成功！")
-        else:
-            print("水印添加失败！")
-
-    except Exception as e:
-        print(f"程序执行出错: {str(e)}")
+    # input_pdf = "media/plans/黄河汛情及水库调度方案单.pdf"  # 输入PDF文件路径
+    # output_pdf = "media/plans/黄河汛情及水库调度方案单_new.pdf"  # 输出PDF文件路径
+    # watermark_text = "小浪底水利枢纽"  # 水印文本
+    #
+    # try:
+    #     # 创建水印
+    #     watermark_reader = create_watermark(watermark_text)
+    #
+    #     # 添加水印
+    #     if add_watermark(input_pdf, output_pdf, watermark_reader):
+    #         print("水印添加成功！")
+    #     else:
+    #         print("水印添加失败！")
+    #
+    # except Exception as e:
+    #     print(f"程序执行出错: {str(e)}")
+    res = query_question("如何构建大模型")
+    print(res)

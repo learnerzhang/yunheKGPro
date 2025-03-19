@@ -960,7 +960,72 @@ def yujingdengji(shuiku_shuiwei: dict, shuiwenzhan_liuliang: dict):
     print("""预警等级: 按照《黄河防汛抗旱应急预案》，当前无预警""")
     return """按照《黄河防汛抗旱应急预案》，当前无预警"""
 
-if __name__ == '__main__':
-    #res = generate_ddjy("../../mainapp/media/ddfa/3/2025-03-03.xlsx")
-    res = yautils.skddjy_new("../../mainapp/media/ddfa/3/2025-03-13.xlsx")
-    print(res)
+
+# import time
+# import matplotlib.pyplot as plt
+# if __name__ == '__main__':
+#     # 记录开始时间
+#     r = yautils.excel_to_dict("../../mainapp/media/ddfa/3/2025-03-03.xlsx")
+#     skMapData, swMapData, date_list = r
+#     # pprint.pprint(r)
+#     start_time = time.time()
+#     # 调用函数并获取结果
+#     res = yautils.skddjy_new("../../mainapp/media/ddfa/3/2025-03-03.xlsx")
+#     ddjy_list = []
+#     # 遍历返回的结果字典
+#     for key, value in res.items():
+#         # 处理每个水库的出流量
+#         ckll = process_outflow(value, date_list)
+#         ddjy_list.append(f"{key}水库：{ckll}")
+#     # 将所有水库的调度建议合并为一个字符串
+#     ddjy = "\n".join(ddjy_list)
+#     # 记录结束时间
+#     end_time = time.time()
+#     # 计算并打印执行时间
+#     execution_time = end_time - start_time
+#     print(f"水库调度建议：\n{ddjy}")
+#     print(f"代码执行时间：{execution_time:.4f} 秒")
+#     plt.rcParams['font.sans-serif'] = ['SimHei']  # 使用黑体
+#     plt.rcParams['axes.unicode_minus'] = False  # 解决负号显示问题
+#
+#     # 示例数据
+#     data = {
+#         "水库名称": ["故县水库", "陆浑水库", "河口村水库", "三门峡水库", "小浪底水库"],
+#         "开始时间": ["2021-10-27 08:00:00"] * 5,
+#         "结束时间": ["2021-10-27 22:00:00"] * 5,
+#         "流量": [1000, 900, 4000, 500, 4500],  # 流量值，三门峡为敞泄（假设为0）
+#     }
+#
+#     # 转换为 DataFrame
+#     df = pd.DataFrame(data)
+#
+#     # 将时间转换为 datetime 格式
+#     df["开始时间"] = pd.to_datetime(df["开始时间"])
+#     df["结束时间"] = pd.to_datetime(df["结束时间"])
+#
+#     # 创建图表
+#     plt.figure(figsize=(12, 6))
+#
+#     # 绘制每个水库的调度时间段
+#     for i, row in df.iterrows():
+#         # 绘制时间段
+#         plt.plot([row["开始时间"], row["结束时间"]], [row["流量"], row["流量"]],
+#                  marker="o", label=row["水库名称"], linewidth=2)
+#         # # 标注流量值
+#         # plt.text(row["开始时间"], row["流量"], f"{row['流量']} m³/s",
+#         #          va="bottom", ha="right", fontsize=10, color="blue")
+#
+#     # 设置图表属性
+#     plt.xlabel("时间", fontsize=12)
+#     plt.ylabel("出库流量 (立方米/秒)", fontsize=12)
+#     plt.title("水库调度方式时间序列图", fontsize=14)
+#     plt.grid(True, linestyle="--", alpha=0.6)  # 网格线
+#     plt.legend(loc="upper right", fontsize=10)  # 图例
+#
+#     # 设置 X 轴时间格式
+#     plt.gca().xaxis.set_major_formatter(plt.matplotlib.dates.DateFormatter('%Y-%m-%d %H:%M:%S'))
+#     plt.gcf().autofmt_xdate()  # 自动旋转 X 轴标签
+#
+#     # 显示图表
+#     plt.tight_layout()
+#     plt.show()
