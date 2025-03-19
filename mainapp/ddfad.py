@@ -147,7 +147,7 @@ def plot_save_html(ddfa_file_path, business_type=0, myDate=None):
             myDate = str(date.today())
 
         htmls_dir = os.path.join("data", str(business_type), myDate, "html")
-        imgs_dir = os.path.join("data", str(business_type), myDate, "imgs")
+        imgs_dir = os.path.join("data", str(business_type), myDate, "jyybimgs")
         if not os.path.exists(htmls_dir):
             os.makedirs(htmls_dir)
         if not os.path.exists(imgs_dir):

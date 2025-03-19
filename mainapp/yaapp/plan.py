@@ -92,7 +92,7 @@ class PlanFactory:
             wp = WordParagraph.objects.create(title="河道水情", content=json.dumps(tmpjson), ctype=3)
             self.node.wordParagraphs.add(wp)
             tmp = huanghe_hedaoshuiqing_generate(self.params)
-            return divHtml(f"黄河主要站点流量表（{current_date}）\n") + tmp
+            return divHtml(f"黄河主要站点流量表\n") + tmp
         elif self.context['type'] == 1:
             # 小浪底河道水情
             #TODO
@@ -149,14 +149,19 @@ class PlanFactory:
         print("get_jyyb", self.context)
         def jyyb_imgs(context):
             jyyb_imgs = context.get("jyyb_imgs", [])
+            print(" jyyb_imgs:",jyyb_imgs)
             tmpHtml = ""
             for imgJson in jyyb_imgs:
                 print("jyyb img:",imgJson)
                 tmpdesc = imgJson['desc']
                 tmpfname = imgJson['url']
-                tmppath = os.path.join("data", "imgs", self.context['yadate'], tmpfname)
+                tmppath = os.path.join("data", "jyybimgs", self.context['yadate'], tmpfname)
+                #tmppath ="/data/jyybimgs/2023-07-23 /1.png"
+                print("tmppath:",tmppath)
                 if not os.path.exists(tmppath):
+                    print(f"文件不存在: {tmppath}")
                     continue
+                print("降雨路径:",tmppath)
                 encoded_string = img2base64(tmppath)
                 wp = WordParagraph.objects.create(title="降雨预报", content=encoded_string, ctype=2)
                 self.node.wordParagraphs.add(wp)
@@ -192,9 +197,9 @@ class PlanFactory:
             #TODO
             # yubao = (f"1） 降雨预报   \n"
             #          f"\t{jiangyu13}\n"
-            yubao = (f"降雨预报\n"
-                     f"\t{jyyb_img_html}\n"
-                     f"分区面平均雨量预报   \n" + 
+            yubao = (#f"降雨预报\n"
+                     f"\t{jyyb_img_html}\n"+
+                     #f"分区面平均雨量预报   \n" + 
                      divHtml(f"黄河流域分区面平均雨量预报（单位：mm）  \n") + 
                      f"\t{jiangyu_table}\n")
                      # f"4）未来4—7天降水预报  \n"
