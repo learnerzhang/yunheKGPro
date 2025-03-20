@@ -2,16 +2,19 @@ from rest_framework import serializers
 from kgapp.models import KgTableContent, KgDoc, KgTag, KgBusiness, KgTemplates
 from rest_framework import routers, serializers, viewsets
 
+from common.serializers import BaseSerializer
 
-class KgBaseResponseSerializer(serializers.Serializer):
+
+class KgAppResponseSerializer(BaseSerializer):
     total = serializers.IntegerField()
-    data = serializers.DictField()
-    code = serializers.IntegerField()
+    pageNum = serializers.IntegerField()
+    success = serializers.BooleanField()
+    records = serializers.ListField()
     msg = serializers.CharField(max_length=200)
 
 # Serializers define the API representation.
 
-class KgDataIndexResponseSerializer(serializers.Serializer):
+class KgDataIndexResponseSerializer(BaseSerializer):
     total = serializers.IntegerField()
     data = serializers.DictField()
     code = serializers.IntegerField()
@@ -30,7 +33,7 @@ class KgTableContentViewSet(viewsets.ModelViewSet):
     serializer_class = KgTableContentSerializer
 
 
-class KgDocSerializer(serializers.Serializer):
+class KgDocSerializer(BaseSerializer):
     id = serializers.IntegerField()
     title = serializers.CharField()
     size = serializers.IntegerField()
@@ -50,7 +53,7 @@ class KgDocSerializer(serializers.Serializer):
         return data
 
 
-class KgDocDetailResponseSerializer(serializers.Serializer):
+class KgDocDetailResponseSerializer(BaseSerializer):
     total = serializers.IntegerField()
     page = serializers.IntegerField()
     pageSize = serializers.IntegerField()
@@ -59,7 +62,7 @@ class KgDocDetailResponseSerializer(serializers.Serializer):
     msg = serializers.CharField(max_length=200)
 
 
-class KgDocResponseSerializer(serializers.Serializer):
+class KgDocResponseSerializer(BaseSerializer):
     total = serializers.IntegerField()
     page = serializers.IntegerField()
     pageSize = serializers.IntegerField()
@@ -68,7 +71,7 @@ class KgDocResponseSerializer(serializers.Serializer):
     msg = serializers.CharField(max_length=200)
 
 
-class KgText2SQLResponseSerializer(serializers.Serializer):
+class KgText2SQLResponseSerializer(BaseSerializer):
     total = serializers.IntegerField()
     page = serializers.IntegerField()
     pageSize = serializers.IntegerField()
@@ -77,13 +80,13 @@ class KgText2SQLResponseSerializer(serializers.Serializer):
     msg = serializers.CharField(max_length=200)
 
 
-class KgDocIdListResponseSerializer(serializers.Serializer):
+class KgDocIdListResponseSerializer(BaseSerializer):
     data = serializers.ListField()
     code = serializers.IntegerField()
     msg = serializers.CharField(max_length=200)
 
 
-class KgTagSerializer(serializers.Serializer):
+class KgTagSerializer(BaseSerializer):
     id = serializers.IntegerField()
     name = serializers.CharField(max_length=200)
     desc = serializers.CharField(max_length=512)
@@ -92,7 +95,7 @@ class KgTagSerializer(serializers.Serializer):
     created_at = serializers.DateTimeField()
 
 
-class KgTagResponseSerializer(serializers.Serializer):
+class KgTagResponseSerializer(BaseSerializer):
     total = serializers.IntegerField()
     page = serializers.IntegerField()
     pageSize = serializers.IntegerField()
@@ -101,7 +104,7 @@ class KgTagResponseSerializer(serializers.Serializer):
     msg = serializers.CharField(max_length=200)
 
 
-class KgCTTSerializer(serializers.Serializer):
+class KgCTTSerializer(BaseSerializer):
     id = serializers.IntegerField()
     name = serializers.CharField()
     parent_id = serializers.IntegerField()
@@ -111,19 +114,19 @@ class KgCTTSerializer(serializers.Serializer):
         return data
 
 
-class KgTabCTTResponseSerializer(serializers.Serializer):
+class KgTabCTTResponseSerializer(BaseSerializer):
     data = KgCTTSerializer(many=False)
     tabctt = serializers.DictField()
     code = serializers.IntegerField()
     msg = serializers.CharField(max_length=200)
 
 
-class KgBusSerializer(serializers.Serializer):
+class KgBusSerializer(BaseSerializer):
     name = serializers.CharField(max_length=200)
     kg_user_id = serializers.IntegerField()
 
 
-class KgBusResponseSerializer(serializers.Serializer):
+class KgBusResponseSerializer(BaseSerializer):
     total = serializers.IntegerField()
     page = serializers.IntegerField()
     pageSize = serializers.IntegerField()
@@ -132,7 +135,7 @@ class KgBusResponseSerializer(serializers.Serializer):
     msg = serializers.CharField(max_length=200)
 
 
-class KgTemplateSerializer(serializers.Serializer):
+class KgTemplateSerializer(BaseSerializer):
     id = serializers.IntegerField()
     name = serializers.CharField()
     desc = serializers.CharField()
@@ -149,7 +152,7 @@ class KgTemplateSerializer(serializers.Serializer):
         return data
 
 
-class KgTempResponseSerializer(serializers.Serializer):
+class KgTempResponseSerializer(BaseSerializer):
     total = serializers.IntegerField()
     page = serializers.IntegerField()
     pageSize = serializers.IntegerField()
@@ -158,7 +161,7 @@ class KgTempResponseSerializer(serializers.Serializer):
     msg = serializers.CharField(max_length=200)
 
 
-class KgTempDetailResponseSerializer(serializers.Serializer):
+class KgTempDetailResponseSerializer(BaseSerializer):
     total = serializers.IntegerField()
     page = serializers.IntegerField()
     pageSize = serializers.IntegerField()
@@ -167,7 +170,7 @@ class KgTempDetailResponseSerializer(serializers.Serializer):
     msg = serializers.CharField(max_length=200)
 
 
-class KgTaskSerializer(serializers.Serializer):
+class KgTaskSerializer(BaseSerializer):
     id = serializers.IntegerField()
     name = serializers.CharField()
     desc = serializers.CharField()
@@ -180,7 +183,7 @@ class KgTaskSerializer(serializers.Serializer):
     created_at = serializers.DateTimeField()
 
 
-class KgTaskDetailResponseSerializer(serializers.Serializer):
+class KgTaskDetailResponseSerializer(BaseSerializer):
     total = serializers.IntegerField()
     page = serializers.IntegerField()
     pageSize = serializers.IntegerField()
@@ -190,7 +193,7 @@ class KgTaskDetailResponseSerializer(serializers.Serializer):
     data = KgTaskSerializer(many=False)
 
 
-class KgTaskResponseSerializer(serializers.Serializer):
+class KgTaskResponseSerializer(BaseSerializer):
     total = serializers.IntegerField()
     page = serializers.IntegerField()
     pageSize = serializers.IntegerField()
@@ -200,13 +203,13 @@ class KgTaskResponseSerializer(serializers.Serializer):
     data = KgTaskSerializer(many=True)
 
 
-class KgTaskStatusResponseSerializer(serializers.Serializer):
+class KgTaskStatusResponseSerializer(BaseSerializer):
     code = serializers.IntegerField()
     msg = serializers.CharField(max_length=200)
     status = serializers.CharField(max_length=20)
 
 
-class KgTmpQASerializer(serializers.Serializer):
+class KgTmpQASerializer(BaseSerializer):
     id = serializers.IntegerField()
     answer = serializers.CharField()
     question = serializers.CharField()
@@ -214,7 +217,7 @@ class KgTmpQASerializer(serializers.Serializer):
     simqas = serializers.ListField()
 
 
-class KgTmpQAResponseSerializer(serializers.Serializer):
+class KgTmpQAResponseSerializer(BaseSerializer):
     total = serializers.IntegerField()
     page = serializers.IntegerField()
     pageSize = serializers.IntegerField()
@@ -223,7 +226,7 @@ class KgTmpQAResponseSerializer(serializers.Serializer):
     data = KgTmpQASerializer(many=True)
 
 
-class KgTmpQADetailResponseSerializer(serializers.Serializer):
+class KgTmpQADetailResponseSerializer(BaseSerializer):
     total = serializers.IntegerField()
     page = serializers.IntegerField()
     pageSize = serializers.IntegerField()
@@ -232,13 +235,13 @@ class KgTmpQADetailResponseSerializer(serializers.Serializer):
     data = KgTmpQASerializer(many=False)
 
 
-class KgGraphResponseSerializer(serializers.Serializer):
+class KgGraphResponseSerializer(BaseSerializer):
     code = serializers.IntegerField()
     msg = serializers.CharField(max_length=200)
     data = serializers.DictField()
 
 
-class KgTmeplateSerializer(serializers.Serializer):
+class KgTmeplateSerializer(BaseSerializer):
     id = serializers.IntegerField()
     title = serializers.CharField(max_length=200)
     path = serializers.CharField(max_length=512)
@@ -246,7 +249,7 @@ class KgTmeplateSerializer(serializers.Serializer):
     created_at = serializers.DateTimeField()
 
 
-class KgTaskTemplateResponseSerializer(serializers.Serializer):
+class KgTaskTemplateResponseSerializer(BaseSerializer):
     total = serializers.IntegerField()
     page = serializers.IntegerField()
     pageSize = serializers.IntegerField()
@@ -255,7 +258,7 @@ class KgTaskTemplateResponseSerializer(serializers.Serializer):
     data = KgTmeplateSerializer(many=False)
 
 
-class KgQASerializer(serializers.Serializer):
+class KgQASerializer(BaseSerializer):
     id = serializers.IntegerField()
     answer = serializers.CharField()
     question = serializers.CharField()
@@ -264,7 +267,7 @@ class KgQASerializer(serializers.Serializer):
     created_at = serializers.DateTimeField()
 
 
-class KgQAResponseSerializer(serializers.Serializer):
+class KgQAResponseSerializer(BaseSerializer):
     total = serializers.IntegerField()
     page = serializers.IntegerField()
     pageSize = serializers.IntegerField()
@@ -273,7 +276,7 @@ class KgQAResponseSerializer(serializers.Serializer):
     data = KgQASerializer(many=True)
 
 
-class KgQADetailResponseSerializer(serializers.Serializer):
+class KgQADetailResponseSerializer(BaseSerializer):
     total = serializers.IntegerField()
     page = serializers.IntegerField()
     pageSize = serializers.IntegerField()
@@ -282,7 +285,7 @@ class KgQADetailResponseSerializer(serializers.Serializer):
     data = KgQASerializer(many=False)
 
 
-class KgEntitySerializer(serializers.Serializer):
+class KgEntitySerializer(BaseSerializer):
     id = serializers.IntegerField()
     name = serializers.CharField()
     attlist = serializers.ListField()
@@ -295,7 +298,7 @@ class KgEntitySerializer(serializers.Serializer):
     created_at = serializers.DateTimeField()
 
 
-class KgEntiyResponseSerializer(serializers.Serializer):
+class KgEntiyResponseSerializer(BaseSerializer):
     total = serializers.IntegerField()
     page = serializers.IntegerField()
     pageSize = serializers.IntegerField()
@@ -304,13 +307,13 @@ class KgEntiyResponseSerializer(serializers.Serializer):
     data = KgEntitySerializer(many=True)
 
 
-class KgEntityDetailResponseSerializer(serializers.Serializer):
+class KgEntityDetailResponseSerializer(BaseSerializer):
     code = serializers.IntegerField()
     msg = serializers.CharField(max_length=200)
     data = KgEntitySerializer(many=False)
 
 
-class KgEntitySchemeSerializer(serializers.Serializer):
+class KgEntitySchemeSerializer(BaseSerializer):
     id = serializers.IntegerField()
     name = serializers.CharField()
     color = serializers.CharField()
@@ -320,7 +323,7 @@ class KgEntitySchemeSerializer(serializers.Serializer):
     created_at = serializers.DateTimeField()
 
 
-class KgEntiySchemeResponseSerializer(serializers.Serializer):
+class KgEntiySchemeResponseSerializer(BaseSerializer):
     total = serializers.IntegerField()
     page = serializers.IntegerField()
     pageSize = serializers.IntegerField()
@@ -329,7 +332,7 @@ class KgEntiySchemeResponseSerializer(serializers.Serializer):
     data = KgEntitySchemeSerializer(many=True)
 
 
-class KgEntitySchemeDetailResponseSerializer(serializers.Serializer):
+class KgEntitySchemeDetailResponseSerializer(BaseSerializer):
     total = serializers.IntegerField()
     page = serializers.IntegerField()
     pageSize = serializers.IntegerField()
@@ -338,7 +341,7 @@ class KgEntitySchemeDetailResponseSerializer(serializers.Serializer):
     data = KgEntitySchemeSerializer(many=False)
 
 
-class KgRelationSchemeSerializer(serializers.Serializer):
+class KgRelationSchemeSerializer(BaseSerializer):
     id = serializers.IntegerField()
     name = serializers.CharField()
     desc = serializers.CharField()
@@ -346,7 +349,7 @@ class KgRelationSchemeSerializer(serializers.Serializer):
     created_at = serializers.DateTimeField()
 
 
-class KgRelationSchemeResponseSerializer(serializers.Serializer):
+class KgRelationSchemeResponseSerializer(BaseSerializer):
     total = serializers.IntegerField()
     page = serializers.IntegerField()
     pageSize = serializers.IntegerField()
@@ -355,7 +358,7 @@ class KgRelationSchemeResponseSerializer(serializers.Serializer):
     data = KgRelationSchemeSerializer(many=True)
 
 
-class KgRelationSchemeDetailResponseSerializer(serializers.Serializer):
+class KgRelationSchemeDetailResponseSerializer(BaseSerializer):
     total = serializers.IntegerField()
     page = serializers.IntegerField()
     pageSize = serializers.IntegerField()
@@ -366,7 +369,7 @@ class KgRelationSchemeDetailResponseSerializer(serializers.Serializer):
 
 ##############################################################################
 
-# class KgDDActionSerializer(serializers.Serializer):
+# class KgDDActionSerializer(BaseSerializer):
 #     id = serializers.IntegerField()
 #     name = serializers.CharField()
 #     kguser = serializers.CharField()
@@ -374,7 +377,7 @@ class KgRelationSchemeDetailResponseSerializer(serializers.Serializer):
 #     created_at = serializers.DateTimeField()
 
 
-# class KgDDActionResponseSerializer(serializers.Serializer):
+# class KgDDActionResponseSerializer(BaseSerializer):
 #     total = serializers.IntegerField()
 #     page = serializers.IntegerField()
 #     pageSize = serializers.IntegerField()
@@ -383,7 +386,7 @@ class KgRelationSchemeDetailResponseSerializer(serializers.Serializer):
 #     data = KgDDActionSerializer(many=True)
 
 
-# class KgDDActionDetailResponseSerializer(serializers.Serializer):
+# class KgDDActionDetailResponseSerializer(BaseSerializer):
 #     total = serializers.IntegerField()
 #     page = serializers.IntegerField()
 #     pageSize = serializers.IntegerField()
@@ -392,7 +395,7 @@ class KgRelationSchemeDetailResponseSerializer(serializers.Serializer):
 #     data = KgDDActionSerializer(many=False)
 
 
-class KgDDRuleAttributeSerializer(serializers.Serializer):
+class KgDDRuleAttributeSerializer(BaseSerializer):
     id = serializers.IntegerField()
     name = serializers.CharField()
     zhName = serializers.CharField()
@@ -402,7 +405,7 @@ class KgDDRuleAttributeSerializer(serializers.Serializer):
     created_at = serializers.DateTimeField()
 
 
-class KgDDRuleAttributeResponseSerializer(serializers.Serializer):
+class KgDDRuleAttributeResponseSerializer(BaseSerializer):
     total = serializers.IntegerField()
     page = serializers.IntegerField()
     pageSize = serializers.IntegerField()
@@ -411,7 +414,7 @@ class KgDDRuleAttributeResponseSerializer(serializers.Serializer):
     data = KgDDRuleAttributeSerializer(many=True)
 
 
-class KgDDRuleAttributeDetailResponseSerializer(serializers.Serializer):
+class KgDDRuleAttributeDetailResponseSerializer(BaseSerializer):
     total = serializers.IntegerField()
     page = serializers.IntegerField()
     pageSize = serializers.IntegerField()
@@ -420,7 +423,7 @@ class KgDDRuleAttributeDetailResponseSerializer(serializers.Serializer):
     data = KgDDRuleAttributeSerializer(many=False)
 
 
-class KgDDRuleSerializer(serializers.Serializer):
+class KgDDRuleSerializer(BaseSerializer):
     id = serializers.IntegerField()
     name = serializers.CharField()
     desc = serializers.CharField()
@@ -446,7 +449,7 @@ class KgDDRuleSerializer(serializers.Serializer):
     created_at = serializers.DateTimeField()
 
 
-class KgDDRuleResponseSerializer(serializers.Serializer):
+class KgDDRuleResponseSerializer(BaseSerializer):
     total = serializers.IntegerField()
     page = serializers.IntegerField()
     pageSize = serializers.IntegerField()
@@ -455,7 +458,7 @@ class KgDDRuleResponseSerializer(serializers.Serializer):
     data = KgDDRuleSerializer(many=True)
 
 
-class KgDDRuleDetailResponseSerializer(serializers.Serializer):
+class KgDDRuleDetailResponseSerializer(BaseSerializer):
     total = serializers.IntegerField()
     page = serializers.IntegerField()
     pageSize = serializers.IntegerField()
@@ -464,13 +467,13 @@ class KgDDRuleDetailResponseSerializer(serializers.Serializer):
     data = KgDDRuleSerializer(many=False)
 
 
-class KgDDRuleResultResponseSerializer(serializers.Serializer):
+class KgDDRuleResultResponseSerializer(BaseSerializer):
     code = serializers.IntegerField()
     msg = serializers.CharField(max_length=200)
     data = serializers.ListField()
 
 
-class KgGraphResponseSerializer(serializers.Serializer):
+class KgGraphResponseSerializer(BaseSerializer):
     nodes = serializers.ListField()
     links = serializers.ListField()
     categories = serializers.ListField()
@@ -483,12 +486,3 @@ class KgGraphResponseSerializer(serializers.Serializer):
     msg = serializers.CharField(max_length=200)
 
 
-
-class BaseApiResponseSerializer(serializers.Serializer):
-    data = serializers.JSONField()
-    code = serializers.IntegerField()
-    total = serializers.IntegerField()
-    pageNum = serializers.IntegerField()
-    success = serializers.BooleanField()
-    records = serializers.ListField()
-    msg = serializers.CharField(max_length=200)

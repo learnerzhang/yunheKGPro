@@ -1,10 +1,10 @@
 from rest_framework import routers, serializers, viewsets
 from userapp.models import User
-
+from common.serializers import BaseSerializer
 
 # Serializers define the API representation.
 
-class UserSerializer(serializers.Serializer):
+class UserSerializer(BaseSerializer):
     id = serializers.IntegerField()
     username = serializers.CharField(max_length=200)
     first_name = serializers.CharField(max_length=200)
@@ -26,7 +26,7 @@ class UserSerializer(serializers.Serializer):
 #     queryset = User.objects.all()
 #     serializer_class = UserSerializer 
 
-class KgUserResponseSerializer(serializers.Serializer):
+class KgUserResponseSerializer(BaseSerializer):
     total = serializers.IntegerField()
     page = serializers.IntegerField()
     pageSize = serializers.IntegerField()
@@ -38,7 +38,7 @@ class KgUserResponseSerializer(serializers.Serializer):
         return attrs
 
 
-class KgUserDetailResponseSerializer(serializers.Serializer):
+class KgUserDetailResponseSerializer(BaseSerializer):
     data = UserSerializer(many=False)
     code = serializers.IntegerField()
     msg = serializers.CharField(max_length=200)
@@ -48,24 +48,24 @@ class KgUserDetailResponseSerializer(serializers.Serializer):
         return attrs
 
 
-class KgMenuSerializer(serializers.Serializer):
+class KgMenuSerializer(BaseSerializer):
     id = serializers.IntegerField()
     name = serializers.CharField()
 
 
-class KgMenuResponseSerializer(serializers.Serializer):
+class KgMenuResponseSerializer(BaseSerializer):
     menus = serializers.ListField()
     code = serializers.IntegerField()
     msg = serializers.CharField(max_length=200)
 
 
-class KgMenuDetailResponseSerializer(serializers.Serializer):
+class KgMenuDetailResponseSerializer(BaseSerializer):
     menus = KgMenuSerializer(many=False)
     code = serializers.IntegerField()
     msg = serializers.CharField(max_length=200)
 
 
-class RoleSerializer(serializers.Serializer):
+class RoleSerializer(BaseSerializer):
     id = serializers.IntegerField()
     name = serializers.CharField(max_length=200)
     user_id = serializers.IntegerField()
@@ -79,13 +79,13 @@ class RoleSerializer(serializers.Serializer):
         return attrs
     
 
-class KgRoleDetailResponseSerializer(serializers.Serializer):
+class KgRoleDetailResponseSerializer(BaseSerializer):
     data = RoleSerializer(many=False)
     code = serializers.IntegerField()
     msg = serializers.CharField(max_length=200)
     
 
-class KgRoleResponseSerializer(serializers.Serializer):
+class KgRoleResponseSerializer(BaseSerializer):
     total = serializers.IntegerField()
     page = serializers.IntegerField()
     pageSize = serializers.IntegerField()

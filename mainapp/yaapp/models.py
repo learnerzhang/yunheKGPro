@@ -180,7 +180,7 @@ class PlanByUserDocument(models.Model):
         用户预案文档
     """
     name = models.CharField(max_length=100)
-    document = models.FileField(upload_to='plans/')
+    document = models.FileField(upload_to='outplans/')
     uploaded_at = models.DateTimeField(auto_now_add=True)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)

@@ -9,8 +9,6 @@ from rest_framework.views import APIView
 from rest_framework.decorators import action
 from django.http.multipartparser import MultiPartParser
 from rest_framework.response import Response
-
-from apiapp.serializers import KgAPIResponseSerializer
 from kgapp.base_enum import AttributeValueTypeEnum, RuleContentConnectEnum, RuleContentConnectList, RuleContentJudgeTypeEnum, RuleContentJudgeTypeList, RuleContentOperatorList, RuleContentTypeEnum
 from kgapp.serializers import *
 from kgapp.models import *
@@ -902,7 +900,6 @@ class KgDDRuleResultApiView(APIView):
             properties={
                 'id': openapi.Schema(type=openapi.TYPE_INTEGER, description="调度规则ID"),
                 'flag': openapi.Schema(type=openapi.TYPE_INTEGER, description="本地测试环境"),
-                'conditionInfos': openapi.Schema(type=openapi.TYPE_ARRAY, items=openapi.Items(openapi.TYPE_OBJECT), description="条件传参"),
             },
         ),
         responses={

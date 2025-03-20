@@ -4,12 +4,10 @@ from rest_framework.response import Response
 from rest_framework.parsers import FormParser, MultiPartParser
 from drf_yasg.utils import swagger_auto_schema
 from drf_yasg import openapi
-
-from kgapp.serializers import KgBaseResponseSerializer
+from dataapp.serializers import *
 from .models import AppAPIModel, DataModel, DataModelParam  # 确保导入您的接口
 from kgapp.models import KgTag
 from userapp.models import User
-from .serializers import DataModelSerializer, DataModelParamDetailResponseSerializer, DataModelParamSerializer
 from django.utils import timezone
 from rest_framework import mixins
 from rest_framework.authentication import BasicAuthentication
@@ -286,6 +284,7 @@ class DataModelBatchDeleteAPIView(generics.GenericAPIView):
     queryset = DataModel.objects.all()
     authentication_classes = (CsrfExemptSessionAuthentication, BasicAuthentication)
     parser_classes = (FormParser, MultiPartParser)
+    serializer_class = DataModelSerializer
 
     @swagger_auto_schema(
         operation_summary='批量删除数据接口',
@@ -661,24 +660,24 @@ class DataModelParamAPIView(generics.GenericAPIView):
                 type=openapi.TYPE_OBJECT,
                 properties={
                     'code': openapi.Schema(type=openapi.TYPE_INTEGER, description='响应状态码'),
-                    'data': openapi.Schema(
-                        type=openapi.TYPE_ARRAY,
-                        items=openapi.Schema(
-                            type=openapi.TYPE_OBJECT,
-                            properties={
-                                'id': openapi.Schema(type=openapi.TYPE_INTEGER, description='参数ID'),
-                                'name': openapi.Schema(type=openapi.TYPE_STRING, description='参数名称'),
-                                'type': openapi.Schema(type=openapi.TYPE_STRING, description='参数类型'),
-                                'default': openapi.Schema(type=openapi.TYPE_STRING, description='默认值'),
-                                'desc': openapi.Schema(type=openapi.TYPE_STRING, description='参数说明'),
-                                'necessary': openapi.Schema(type=openapi.TYPE_INTEGER, description='是否为必须参数'),
-                                'activate': openapi.Schema(type=openapi.TYPE_INTEGER, description='激活状态'),
-                                'kg_model_id': openapi.Schema(type=openapi.TYPE_INTEGER, description='关联模型ID'),
-                                'updated_at': openapi.Schema(type=openapi.TYPE_STRING, description='更新时间'),
-                                'created_at': openapi.Schema(type=openapi.TYPE_STRING, description='创建时间'),
-                            }
-                        )
-                    )
+                    # 'data': openapi.Schema(
+                    #     type=openapi.TYPE_ARRAY,
+                    #     items=openapi.Schema(
+                    #         type=openapi.TYPE_OBJECT,
+                    #         properties={
+                    #             'id': openapi.Schema(type=openapi.TYPE_INTEGER, description='参数ID'),
+                    #             'name': openapi.Schema(type=openapi.TYPE_STRING, description='参数名称'),
+                    #             'type': openapi.Schema(type=openapi.TYPE_STRING, description='参数类型'),
+                    #             'default': openapi.Schema(type=openapi.TYPE_STRING, description='默认值'),
+                    #             'desc': openapi.Schema(type=openapi.TYPE_STRING, description='参数说明'),
+                    #             'necessary': openapi.Schema(type=openapi.TYPE_INTEGER, description='是否为必须参数'),
+                    #             'activate': openapi.Schema(type=openapi.TYPE_INTEGER, description='激活状态'),
+                    #             'kg_model_id': openapi.Schema(type=openapi.TYPE_INTEGER, description='关联模型ID'),
+                    #             'updated_at': openapi.Schema(type=openapi.TYPE_STRING, description='更新时间'),
+                    #             'created_at': openapi.Schema(type=openapi.TYPE_STRING, description='创建时间'),
+                    #         }
+                    #     )
+                    # )
                 }
             ),
             400: "请求失败",
@@ -1012,6 +1011,7 @@ class DataParamBatchAddApiView(generics.GenericAPIView):
 
 
 class DataParamUpdateApiView(generics.GenericAPIView):
+    serializer_class = DataModelParamSerializer
     parser_classes = (FormParser, MultiPartParser)
     authentication_classes = (CsrfExemptSessionAuthentication, BasicAuthentication)
 
@@ -1067,6 +1067,7 @@ class DataParamUpdateApiView(generics.GenericAPIView):
 
 
 class DataParamBatchUpdateApiView(generics.GenericAPIView):
+    serializer_class = DataModelParamSerializer
     parser_classes = (FormParser, MultiPartParser)
     authentication_classes = (CsrfExemptSessionAuthentication, BasicAuthentication)
 
@@ -1123,6 +1124,7 @@ class DataParamBatchUpdateApiView(generics.GenericAPIView):
 
 
 class DataParamDeleteApiView(APIView):
+    serializer_class = DataModelParamSerializer
     authentication_classes = (CsrfExemptSessionAuthentication, BasicAuthentication)
 
     @swagger_auto_schema(
@@ -1158,6 +1160,7 @@ class DataParamDeleteApiView(APIView):
 
 
 class DataParamDetailApiView(generics.GenericAPIView):
+    serializer_class = DataModelParamSerializer
     serializer_class = DataModelParamDetailResponseSerializer
 
     @swagger_auto_schema(
@@ -1692,7 +1695,7 @@ class OpenapiFormatAPI(generics.GenericAPIView):
 class AppAPIList(mixins.ListModelMixin,
                      mixins.CreateModelMixin,
                      generics.GenericAPIView):
-    serializer_class = KgBaseResponseSerializer
+    serializer_class = DataAppResponseSerializer
 
     @swagger_auto_schema(
         operation_description='GET /dataapp/appapilist',
@@ -1716,7 +1719,7 @@ class AppAPIList(mixins.ListModelMixin,
             openapi.Parameter('pageSize', openapi.IN_QUERY, type=openapi.TYPE_NUMBER),
         ],
         responses={
-            200: KgBaseResponseSerializer(many=False),
+            200: DataAppResponseSerializer(many=False),
             400: "请求失败",
         },
         tags=['datamodel'])
@@ -1757,7 +1760,7 @@ class AppAPIList(mixins.ListModelMixin,
         data['data'] = retData
         data['code'] = 200
         data['total'] = len(querySet)
-        serializers = KgBaseResponseSerializer(data=data, many=False)
+        serializers = DataAppResponseSerializer(data=data, many=False)
         serializers.is_valid()
         return Response(serializers.data, status=status.HTTP_200_OK)
 
@@ -1765,6 +1768,7 @@ class AppAPIList(mixins.ListModelMixin,
 
 class AppAPIAddView(generics.GenericAPIView):
     parser_classes = (FormParser, MultiPartParser)
+    serializer_class = DataAppResponseSerializer
 
     # serializer_class = KgFileResponseSerializer
     # def get_serializer_class(self):
@@ -1814,13 +1818,6 @@ class AppAPIAddView(generics.GenericAPIView):
                 type=openapi.TYPE_STRING
             ),
             openapi.Parameter(
-                name='toolids',
-                in_=openapi.IN_FORM,
-                items=openapi.Items(openapi.TYPE_INTEGER),
-                description='工具接口IDs',
-                type=openapi.TYPE_ARRAY
-            ),
-            openapi.Parameter(
                 name='user_id',
                 in_=openapi.IN_FORM,
                 description='创建作者',
@@ -1828,7 +1825,7 @@ class AppAPIAddView(generics.GenericAPIView):
             ),
         ],
         responses={
-            200: KgBaseResponseSerializer(many=False),
+            200: DataAppResponseSerializer(many=False),
             400: "请求失败",
         },
         tags=['datamodel']
@@ -1848,7 +1845,7 @@ class AppAPIAddView(generics.GenericAPIView):
         if appname is None or appkey is None or appdesc is None or appurl is None or tip_type is None or tip_ctt is None or toolids is None or user_id is None or not isinstance(toolids, list):
             data["code"] = 201
             data["msg"] = "参数错误"
-            serializers = KgBaseResponseSerializer(data=data, many=False)
+            serializers = DataAppResponseSerializer(data=data, many=False)
             serializers.is_valid()
             return Response(serializers.data, status=status.HTTP_200_OK)
 
@@ -1860,7 +1857,7 @@ class AppAPIAddView(generics.GenericAPIView):
             tmpuser = User.objects.get(id=user_id)
         except:
             data = {"code": 201, "msg": "用户ID不存在！！！"}
-            serializers = KgBaseResponseSerializer(data=data, many=False)
+            serializers = DataAppResponseSerializer(data=data, many=False)
             serializers.is_valid()
             return Response(serializers.data, status=status.HTTP_200_OK)
 
@@ -1879,6 +1876,6 @@ class AppAPIAddView(generics.GenericAPIView):
                 tmpapp.toolapis.add(tmptool)
         tmpapp.save()
         data = {"code": 200, "msg": "应用工具创建成功"}
-        serializers = KgBaseResponseSerializer(data=data, many=False)
+        serializers = DataAppResponseSerializer(data=data, many=False)
         serializers.is_valid()
         return Response(serializers.data, status=status.HTTP_200_OK)

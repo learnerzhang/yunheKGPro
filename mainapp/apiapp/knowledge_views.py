@@ -19,9 +19,7 @@ from django.core.paginator import Paginator, EmptyPage, PageNotAnInteger
 from django.views.decorators.csrf import csrf_exempt
 from datetime import datetime
 from rest_framework.authentication import BasicAuthentication
-from langchain.embeddings import HuggingFaceEmbeddings
 from langchain.vectorstores import FAISS
-
 import os
 import collections
 
@@ -29,16 +27,16 @@ from rest_framework.parsers import (
     FormParser,
     MultiPartParser
 )
-
-from yunheKGPro.settings import MODEL_PATH
-from apiapp.serializers import BaseApiResponseSerializer
+from apiapp.serializers import ApiAppResponseSerializer
 from yunheKGPro import CsrfExemptSessionAuthentication
+from yunheKGPro.settings import embedding
+
 # Create your views here.
 
 class KnowledgeAddApiView(generics.GenericAPIView):
     parser_classes = (FormParser, MultiPartParser)
     authentication_classes = (CsrfExemptSessionAuthentication, BasicAuthentication)
-    serializer_class = BaseApiResponseSerializer
+    serializer_class = ApiAppResponseSerializer
     @swagger_auto_schema(
         operation_summary='[可用] 增加知识库',
         operation_description='POST /knowledge/add',
@@ -57,7 +55,7 @@ class KnowledgeAddApiView(generics.GenericAPIView):
             ),
         ],
         responses={
-            200: BaseApiResponseSerializer(many=False),
+            200: ApiAppResponseSerializer(many=False),
             400: "请求失败",
         },
         tags=['api']
@@ -70,7 +68,7 @@ class KnowledgeAddApiView(generics.GenericAPIView):
 
         if not kgname:
             data = {"code": 201, "msg": "参数错误！"}
-            serializers = BaseApiResponseSerializer(data=data, many=False)
+            serializers = ApiAppResponseSerializer(data=data, many=False)
             serializers.is_valid()
             return Response(serializers.data, status=status.HTTP_200_OK)
         
@@ -79,7 +77,7 @@ class KnowledgeAddApiView(generics.GenericAPIView):
 
         if Knowledge.objects.filter(hashid=hashid).exists():
             data = {"code": 202, "msg": "知识库已经存在"}
-            serializers = BaseApiResponseSerializer(data=data, many=False)
+            serializers = ApiAppResponseSerializer(data=data, many=False)
             serializers.is_valid()
             return Response(serializers.data, status=status.HTTP_200_OK)
 
@@ -90,7 +88,7 @@ class KnowledgeAddApiView(generics.GenericAPIView):
         except Exception as e:
             data = {"code": 203, "msg": "知识库创建失败"}
             
-        serializers = BaseApiResponseSerializer(data=data, many=False)
+        serializers = ApiAppResponseSerializer(data=data, many=False)
         serializers.is_valid()
         return Response(serializers.data, status=status.HTTP_200_OK)
 
@@ -98,8 +96,7 @@ class KnowledgeAddApiView(generics.GenericAPIView):
 class KnowledgeListApiView(mixins.ListModelMixin,
                            mixins.CreateModelMixin,
                            generics.GenericAPIView):
-    serializer_class = BaseApiResponseSerializer
-
+    serializer_class = ApiAppResponseSerializer
     @swagger_auto_schema(
         operation_description='GET /knowledge/list',
         operation_summary="[可用] 获取知识库列表",
@@ -110,7 +107,7 @@ class KnowledgeListApiView(mixins.ListModelMixin,
             openapi.Parameter('pageSize', openapi.IN_QUERY, type=openapi.TYPE_NUMBER),
         ],
         responses={
-            200: BaseApiResponseSerializer(many=False),
+            200: ApiAppResponseSerializer(many=False),
             400: "请求失败",
         },
         tags=['api'])
@@ -141,14 +138,14 @@ class KnowledgeListApiView(mixins.ListModelMixin,
             results.append(tmpdict)
 
         data = {"code": 200, "msg": "success", "data": results, "success": True, "total": paginator.count, "page": paginator.num_pages, "pageSize": paginator.per_page}
-        bars = BaseApiResponseSerializer(data=data, many=False)
+        bars = ApiAppResponseSerializer(data=data, many=False)
         bars.is_valid()
         return Response(bars.data, status=status.HTTP_200_OK)
 
 
 class KnowledgeDeleteApiView(generics.GenericAPIView):
     authentication_classes = (CsrfExemptSessionAuthentication, BasicAuthentication)
-    serializer_class = BaseApiResponseSerializer
+    serializer_class = ApiAppResponseSerializer
     @swagger_auto_schema(
         operation_summary='[可用] 删除知识库操作',
         operation_description='POST /knowledge/del',
@@ -160,7 +157,7 @@ class KnowledgeDeleteApiView(generics.GenericAPIView):
             },
         ),
         responses={
-            200: BaseApiResponseSerializer(many=False),
+            200: ApiAppResponseSerializer(many=False),
             400: "请求失败",
         },
         tags=['api']
@@ -175,24 +172,14 @@ class KnowledgeDeleteApiView(generics.GenericAPIView):
         except:
             data = {"code": 202, "data": {}, "msg": "系统不存在该数据", "success": False}
 
-        serializers = BaseApiResponseSerializer(data=data, many=False)
+        serializers = ApiAppResponseSerializer(data=data, many=False)
         serializers.is_valid()
         return Response(serializers.data, status=status.HTTP_200_OK)
     
 
-embedding = HuggingFaceEmbeddings(
-            # model_name="BAAI/bge-small-zh-v1.5",
-            model_name=MODEL_PATH,
-            model_kwargs={'device': 'cpu'},
-            encode_kwargs={
-                'batch_size': 64,
-                'normalize_embeddings': True
-            }
-        )
-
 class KnowledgeRetrieval(generics.GenericAPIView):
     authentication_classes = (CsrfExemptSessionAuthentication, BasicAuthentication)
-    serializer_class = BaseApiResponseSerializer
+    serializer_class = ApiAppResponseSerializer
 
     @swagger_auto_schema(
         operation_summary='[可用] Defy知识库节点挂接',
@@ -207,7 +194,7 @@ class KnowledgeRetrieval(generics.GenericAPIView):
             },
         ),
         responses={
-            200: BaseApiResponseSerializer(many=False),
+            200: ApiAppResponseSerializer(many=False),
             400: "请求失败",
         },
         tags=['api']
@@ -230,7 +217,7 @@ class KnowledgeRetrieval(generics.GenericAPIView):
         if not os.path.exists(index_path):
             print("❌ 不存在向量库，开始创建向量库...")
             data = {"code": 201, "records": [], "msg": "未找到任何对应的知识片段"}
-            serializers = BaseApiResponseSerializer(data=data, many=False)
+            serializers = ApiAppResponseSerializer(data=data, many=False)
             serializers.is_valid()
             return Response(serializers.data, status=status.HTTP_200_OK)
         
@@ -245,7 +232,7 @@ class KnowledgeRetrieval(generics.GenericAPIView):
         if not fragpacks:
             print("❌ 未找到任何对应的知识片段")
             data = {"code": 202, "records": [], "msg": "参数错误"}
-            serializers = BaseApiResponseSerializer(data=data, many=False)
+            serializers = ApiAppResponseSerializer(data=data, many=False)
             serializers.is_valid()
             return Response(serializers.data, status=status.HTTP_200_OK)
         
@@ -277,15 +264,15 @@ class KnowledgeRetrieval(generics.GenericAPIView):
         
         print("✅ 已获取知识片段对应的知识")
         data = {"code": 200, "msg": "success", "records": records}
-        serializers = BaseApiResponseSerializer(data=data, many=False)
+        serializers = ApiAppResponseSerializer(data=data, many=False)
         serializers.is_valid()
         return Response(serializers.data, status=status.HTTP_200_OK)
 
 
 class KnowledgeUploadApiView(generics.GenericAPIView):
     parser_classes = (FormParser, MultiPartParser)
+    serializer_class = ApiAppResponseSerializer
     authentication_classes = (CsrfExemptSessionAuthentication, BasicAuthentication)
-    serializer_class = BaseApiResponseSerializer
     @swagger_auto_schema(
         operation_summary='[可用] 新增知识库文档上传功能',
         operation_description='POST /knowledge/upload',
@@ -302,16 +289,9 @@ class KnowledgeUploadApiView(generics.GenericAPIView):
                 description='知识库ID',
                 type=openapi.TYPE_STRING
             ),
-            openapi.Parameter(
-                name='tags',
-                in_=openapi.IN_FORM,
-                items=openapi.Items(openapi.TYPE_STRING),
-                description='标签',
-                type=openapi.TYPE_ARRAY
-            ),
         ],
         responses={
-            200: BaseApiResponseSerializer(many=False),
+            200: ApiAppResponseSerializer(many=False),
             400: "请求失败",
         },
         tags=['api']
@@ -327,7 +307,7 @@ class KnowledgeUploadApiView(generics.GenericAPIView):
         if tmpfile is None or knowledge_id is None: 
             data['code'] = 201
             data['msg'] = '请求参数错误, 缺少参数！！！'
-            serializers = BaseApiResponseSerializer(data=data, many=False)
+            serializers = ApiAppResponseSerializer(data=data, many=False)
             serializers.is_valid()
             return Response(serializers.data, status=status.HTTP_200_OK)
         
@@ -348,7 +328,7 @@ class KnowledgeUploadApiView(generics.GenericAPIView):
         except Exception as e:
             print(f"Error writing file: {e}")
             data = {"code": 201, "msg": "文件写入错误..."}
-            serializers = BaseApiResponseSerializer(data=data, many=False)
+            serializers = ApiAppResponseSerializer(data=data, many=False)
             serializers.is_valid()
             return Response(serializers.data, status=status.HTTP_200_OK)
         filepath = os.path.join("knowledges", knowledge_id, new_filename)
@@ -374,14 +354,14 @@ class KnowledgeUploadApiView(generics.GenericAPIView):
         data['data'] = model_to_dict(tmpdoc, exclude=['path', 'tags'])
         data['data']['filepath'] = tmpdoc.filepath
         data['data']['tag_list'] = tmpdoc.tag_list
-        serializers = BaseApiResponseSerializer(data=data, many=False)
+        serializers = ApiAppResponseSerializer(data=data, many=False)
         serializers.is_valid()
         return Response(serializers.data, status=status.HTTP_200_OK)
     
 
 class KnowledgeTrainTaskApiView(generics.GenericAPIView):
     authentication_classes = (CsrfExemptSessionAuthentication, BasicAuthentication)
-    serializer_class = BaseApiResponseSerializer
+    serializer_class = ApiAppResponseSerializer
     @swagger_auto_schema(
         operation_summary='[可用] 知识库训练Faiss',
         operation_description='POST /knowledge/train',
@@ -395,7 +375,7 @@ class KnowledgeTrainTaskApiView(generics.GenericAPIView):
             },
         ),
         responses={
-            200: BaseApiResponseSerializer(many=False),
+            200: ApiAppResponseSerializer(many=False),
             400: "请求失败",
         },
         tags=['api']
@@ -408,7 +388,7 @@ class KnowledgeTrainTaskApiView(generics.GenericAPIView):
         if not knowledge_id:
             data['code'] = 201
             data['msg'] = '请求知识库参数错误, 缺少参数！！！'
-            serializers = BaseApiResponseSerializer(data=data, many=False)
+            serializers = ApiAppResponseSerializer(data=data, many=False)
             serializers.is_valid()
             return Response(serializers.data,  status=status.HTTP_200_OK)
         
@@ -416,7 +396,7 @@ class KnowledgeTrainTaskApiView(generics.GenericAPIView):
             tmpuser = User.objects.get(id=user_id)
         except:
             data = {"code": 202, "msg": "用户ID不存在！！！" }
-            serializers = BaseApiResponseSerializer(data=data, many=False)
+            serializers = ApiAppResponseSerializer(data=data, many=False)
             serializers.is_valid()
             return Response(serializers.data, status=status.HTTP_200_OK)
             
@@ -424,7 +404,7 @@ class KnowledgeTrainTaskApiView(generics.GenericAPIView):
             tmpKg = Knowledge.objects.filter(hashid=knowledge_id).first()
         except:
             data = {"code": 203, "msg": "知识库ID不存在！！！" }
-            serializers = BaseApiResponseSerializer(data=data, many=False)
+            serializers = ApiAppResponseSerializer(data=data, many=False)
             serializers.is_valid()
             return Response(serializers.data, status=status.HTTP_200_OK)
         
@@ -451,14 +431,14 @@ class KnowledgeTrainTaskApiView(generics.GenericAPIView):
             print("知识库训练Faiss任务创建成功...", subtask)
         data = {"code": 200, "msg": "知识库训练Faiss新建成功", "success": True, "data": model_to_dict(subtask)}
         data['data'] = model_to_dict(subtask)
-        serializers = BaseApiResponseSerializer(data=data, many=False)
+        serializers = ApiAppResponseSerializer(data=data, many=False)
         serializers.is_valid()
         return Response(serializers.data, status=status.HTTP_200_OK)
 
 
 class KnowledgeDocParseTaskApiView(generics.GenericAPIView):
     authentication_classes = (CsrfExemptSessionAuthentication, BasicAuthentication)
-    serializer_class = BaseApiResponseSerializer
+    serializer_class = ApiAppResponseSerializer
     @swagger_auto_schema(
         operation_summary='[可用] 知识库文档解析操作',
         operation_description='POST /knowledge/parse',
@@ -474,7 +454,7 @@ class KnowledgeDocParseTaskApiView(generics.GenericAPIView):
             },
         ),
         responses={
-            200: BaseApiResponseSerializer(many=False),
+            200: ApiAppResponseSerializer(many=False),
             400: "请求失败",
         },
         tags=['api']
@@ -488,7 +468,7 @@ class KnowledgeDocParseTaskApiView(generics.GenericAPIView):
         if kgdocid is None or not knowledge_id:
             data['code'] = 201
             data['msg'] = '请求参数错误, 缺少参数！！！'
-            serializers = BaseApiResponseSerializer(data=data, many=False)
+            serializers = ApiAppResponseSerializer(data=data, many=False)
             serializers.is_valid()
             return Response(serializers.data,  status=status.HTTP_200_OK)
         
@@ -496,7 +476,7 @@ class KnowledgeDocParseTaskApiView(generics.GenericAPIView):
             tmpuser = User.objects.get(id=user_id)
         except:
             data = {"code": 202, "msg": "用户ID不存在！！！" }
-            serializers = BaseApiResponseSerializer(data=data, many=False)
+            serializers = ApiAppResponseSerializer(data=data, many=False)
             serializers.is_valid()
             return Response(serializers.data, status=status.HTTP_200_OK)
             
@@ -504,7 +484,7 @@ class KnowledgeDocParseTaskApiView(generics.GenericAPIView):
             tmpKg = Knowledge.objects.filter(hashid=knowledge_id).first()
         except:
             data = {"code": 203, "msg": "知识库ID不存在！！！" }
-            serializers = BaseApiResponseSerializer(data=data, many=False)
+            serializers = ApiAppResponseSerializer(data=data, many=False)
             serializers.is_valid()
             return Response(serializers.data, status=status.HTTP_200_OK)
         
@@ -512,7 +492,7 @@ class KnowledgeDocParseTaskApiView(generics.GenericAPIView):
             tmpDoc = KgDoc.objects.get(id=kgdocid)
         except:
             data = {"code": 204, "msg": "文档ID不存在！！！" }
-            serializers = BaseApiResponseSerializer(data=data, many=False)
+            serializers = ApiAppResponseSerializer(data=data, many=False)
             serializers.is_valid()
             return Response(serializers.data, status=status.HTTP_200_OK)
         
@@ -539,14 +519,14 @@ class KnowledgeDocParseTaskApiView(generics.GenericAPIView):
             print("ProductTask 任务创建成功...", subtask)
         data = {"code": 200, "msg": "预案生产任务新建成功", "success": True, "data": model_to_dict(subtask)}
         data['data'] = model_to_dict(subtask)
-        serializers = BaseApiResponseSerializer(data=data, many=False)
+        serializers = ApiAppResponseSerializer(data=data, many=False)
         serializers.is_valid()
         return Response(serializers.data, status=status.HTTP_200_OK)
 
 
 class KnowledgeDocBatchParseTaskApiView(generics.GenericAPIView):
     authentication_classes = (CsrfExemptSessionAuthentication, BasicAuthentication)
-    serializer_class = BaseApiResponseSerializer
+    serializer_class = ApiAppResponseSerializer
     @swagger_auto_schema(
         operation_summary='[可用] 知识库批量文档解析操作',
         operation_description='POST /knowledge/batchparse',
@@ -562,7 +542,7 @@ class KnowledgeDocBatchParseTaskApiView(generics.GenericAPIView):
             },
         ),
         responses={
-            200: BaseApiResponseSerializer(many=False),
+            200: ApiAppResponseSerializer(many=False),
             400: "请求失败",
         },
         tags=['api']
@@ -576,7 +556,7 @@ class KnowledgeDocBatchParseTaskApiView(generics.GenericAPIView):
         if kgdocids is None or not knowledge_id:
             data['code'] = 201
             data['msg'] = '请求参数错误, 缺少参数！！！'
-            serializers = BaseApiResponseSerializer(data=data, many=False)
+            serializers = ApiAppResponseSerializer(data=data, many=False)
             serializers.is_valid()
             return Response(serializers.data,  status=status.HTTP_200_OK)
         
@@ -584,7 +564,7 @@ class KnowledgeDocBatchParseTaskApiView(generics.GenericAPIView):
             tmpuser = User.objects.get(id=user_id)
         except:
             data = {"code": 202, "msg": "用户ID不存在！！！" }
-            serializers = BaseApiResponseSerializer(data=data, many=False)
+            serializers = ApiAppResponseSerializer(data=data, many=False)
             serializers.is_valid()
             return Response(serializers.data, status=status.HTTP_200_OK)
             
@@ -592,7 +572,7 @@ class KnowledgeDocBatchParseTaskApiView(generics.GenericAPIView):
             tmpKg = Knowledge.objects.filter(hashid=knowledge_id).first()
         except:
             data = {"code": 203, "msg": "知识库ID不存在！！！" }
-            serializers = BaseApiResponseSerializer(data=data, many=False)
+            serializers = ApiAppResponseSerializer(data=data, many=False)
             serializers.is_valid()
             return Response(serializers.data, status=status.HTTP_200_OK)
         
@@ -619,6 +599,6 @@ class KnowledgeDocBatchParseTaskApiView(generics.GenericAPIView):
             print("ProductTask 任务创建成功...", subtask)
         data = {"code": 200, "msg": "预案生产任务新建成功", "success": True, "data": model_to_dict(subtask)}
         data['data'] = model_to_dict(subtask)
-        serializers = BaseApiResponseSerializer(data=data, many=False)
+        serializers = ApiAppResponseSerializer(data=data, many=False)
         serializers.is_valid()
         return Response(serializers.data, status=status.HTTP_200_OK)

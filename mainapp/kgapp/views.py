@@ -37,7 +37,7 @@ class BusinessList(mixins.ListModelMixin,
                   mixins.CreateModelMixin,
                   generics.GenericAPIView):
     
-    serializer_class = KgBaseResponseSerializer
+    serializer_class = KgAppResponseSerializer
     @swagger_auto_schema(
             operation_description='GET /businesslist',
             operation_summary="",
@@ -45,7 +45,7 @@ class BusinessList(mixins.ListModelMixin,
             manual_parameters=[
             ],
             responses={
-                200: KgBaseResponseSerializer(many=False),
+                200: KgAppResponseSerializer(many=False),
                 400: "请求失败",
             },
             tags = ['task'])
@@ -53,7 +53,7 @@ class BusinessList(mixins.ListModelMixin,
         data = {"code": 200}
         bus_list = Business.objects.all()
         data['data'] = [model_to_dict(b) for b in bus_list]
-        serializers = KgBaseResponseSerializer(data=data, many=False)
+        serializers = KgAppResponseSerializer(data=data, many=False)
         serializers.is_valid()
         return Response(serializers.data,  status=status.HTTP_200_OK)
     
@@ -61,7 +61,7 @@ class RecomQAList(mixins.ListModelMixin,
                   mixins.CreateModelMixin,
                   generics.GenericAPIView):
     
-    serializer_class = KgBaseResponseSerializer
+    serializer_class = KgAppResponseSerializer
     @swagger_auto_schema(
             operation_description='GET /recomqalist',
             operation_summary="业务问题推荐",
@@ -70,7 +70,7 @@ class RecomQAList(mixins.ListModelMixin,
                 openapi.Parameter('code', openapi.IN_QUERY, type=openapi.TYPE_STRING, description='业务编号'),
             ],
             responses={
-                200: KgBaseResponseSerializer(many=False),
+                200: KgAppResponseSerializer(many=False),
                 400: "请求失败",
             },
             tags = ['task'])
@@ -81,14 +81,14 @@ class RecomQAList(mixins.ListModelMixin,
         if business_code is None:
             data['code'] = 201
             data['msg'] = '请求参数错误, 缺少参数！！！'
-            serializers = KgBaseResponseSerializer(data=data, many=False)
+            serializers = KgAppResponseSerializer(data=data, many=False)
             serializers.is_valid()
             return Response(serializers.data,  status=status.HTTP_200_OK)
         try:
             tmpBusiness = Business.objects.filter(code=business_code).first()
         except:
             data = {"code": 201, "msg": "业务不存在！！！" }
-            serializers = KgBaseResponseSerializer(data=data, many=False)
+            serializers = KgAppResponseSerializer(data=data, many=False)
             serializers.is_valid()
             return Response(serializers.data, status=status.HTTP_200_OK)
         
@@ -98,7 +98,7 @@ class RecomQAList(mixins.ListModelMixin,
             cate = disQuestion.category.name
             result[cate].append(model_to_dict(disQuestion, exclude=['business', 'category']))
         data['data'] = result
-        serializers = KgBaseResponseSerializer(data=data, many=False)
+        serializers = KgAppResponseSerializer(data=data, many=False)
         serializers.is_valid()
         return Response(serializers.data,  status=status.HTTP_200_OK)
 
@@ -571,13 +571,8 @@ class DocDetailApiView(mixins.ListModelMixin,
 
 
 class DocAddApiView(generics.GenericAPIView):
+    serializer_class = KgDocSerializer
     parser_classes = (FormParser, MultiPartParser)
-
-    # serializer_class = KgFileResponseSerializer
-    # def get_serializer_class(self):
-    #     if self.action == 'post':
-    #         return KgFileResponseSerializer
-    #     return self.serializer_class
     authentication_classes = (CsrfExemptSessionAuthentication, BasicAuthentication)
 
     @swagger_auto_schema(
@@ -625,13 +620,6 @@ class DocAddApiView(generics.GenericAPIView):
                 in_=openapi.IN_FORM,
                 description='创建作者',
                 type=openapi.TYPE_INTEGER
-            ),
-            openapi.Parameter(
-                name='tags',
-                in_=openapi.IN_FORM,
-                items=openapi.Items(openapi.TYPE_STRING),
-                description='标签',
-                type=openapi.TYPE_ARRAY
             ),
         ],
         responses={
@@ -725,13 +713,8 @@ class DocAddApiView(generics.GenericAPIView):
 
 
 class DocBatchAddApiView(generics.GenericAPIView):
+    serializer_class = KgDocSerializer
     parser_classes = (FormParser, MultiPartParser)
-
-    # serializer_class = KgFileResponseSerializer
-    # def get_serializer_class(self):
-    #     if self.action == 'post':
-    #         return KgFileResponseSerializer
-    #     return self.serializer_class
     authentication_classes = (CsrfExemptSessionAuthentication, BasicAuthentication)
 
     @swagger_auto_schema(
@@ -879,12 +862,8 @@ class DocBatchAddApiView(generics.GenericAPIView):
 
 
 class DocAddTagApiView(generics.GenericAPIView):
+    serializer_class = KgDocSerializer
     parser_classes = (FormParser, MultiPartParser)
-    # serializer_class = KgFileResponseSerializer
-    # def get_serializer_class(self):
-    #     if self.action == 'post':
-    #         return KgFileResponseSerializer
-    #     return self.serializer_class
     authentication_classes = (CsrfExemptSessionAuthentication, BasicAuthentication)
 
     @swagger_auto_schema(
@@ -902,13 +881,6 @@ class DocAddTagApiView(generics.GenericAPIView):
                 in_=openapi.IN_FORM,
                 description='文档ID',
                 type=openapi.TYPE_INTEGER
-            ),
-            openapi.Parameter(
-                name='tagids',
-                in_=openapi.IN_FORM,
-                items=openapi.Items(openapi.TYPE_INTEGER),
-                description='标签ID',
-                type=openapi.TYPE_ARRAY
             ),
         ],
         responses={
@@ -961,13 +933,8 @@ class DocAddTagApiView(generics.GenericAPIView):
 
 
 class DocUpdateApiView(generics.GenericAPIView):
+    serializer_class = KgDocSerializer
     parser_classes = (FormParser, MultiPartParser)
-
-    # serializer_class = KgDocResponseSerializer
-    # def get_serializer_class(self):
-    #     if self.action == 'post':
-    #         return KgDocResponseSerializer
-    #     return self.serializer_class
     authentication_classes = (CsrfExemptSessionAuthentication, BasicAuthentication)
 
     @swagger_auto_schema(
@@ -1129,6 +1096,7 @@ class DocUpdateApiView(generics.GenericAPIView):
 
 
 class DocBatchUpdateApiView(generics.GenericAPIView):
+    serializer_class = KgDocSerializer
     parser_classes = (FormParser, MultiPartParser)
     authentication_classes = (CsrfExemptSessionAuthentication, BasicAuthentication)
 
@@ -1254,54 +1222,6 @@ class KgQAList(mixins.ListModelMixin,
     def post(self, request, *args, **kwargs):
         return self.create(request, *args, **kwargs)
 
-
-# class KgHotSearchList(mixins.ListModelMixin,
-#                   mixins.CreateModelMixin,
-#                   generics.GenericAPIView):
-
-#     serializer_class = KgHotSearchResponseSerializer
-#     @swagger_auto_schema(
-#             operation_description='GET /kgapp/kghotqa/',
-#             operation_summary="获取所有Hot问题列表",
-#             # 接口参数 GET请求参数
-#             manual_parameters=[
-#                 # 声明参数
-#                 openapi.Parameter(
-#                     "keyword", 
-#                     openapi.IN_QUERY, 
-#                     # 参数描述
-#                     description="问题模糊搜索", 
-#                     # 参数字符类型
-#                     type=openapi.TYPE_STRING
-#                 ),
-#                 openapi.Parameter(
-#                     "top", 
-#                     openapi.IN_QUERY, 
-#                     # 参数描述
-#                     description="获取前TOP热搜", 
-#                     # 参数字符类型
-#                     type=openapi.TYPE_STRING
-#                 ),
-#                 openapi.Parameter('page', openapi.IN_QUERY, type=openapi.TYPE_NUMBER),
-#                 openapi.Parameter('pageSize', openapi.IN_QUERY, type=openapi.TYPE_NUMBER),
-#             ],
-#             tags = ['kg'])
-#     def get(self, request, *args, **kwargs):
-#         data = {"code": 200 }
-#         keyword = request.GET.get('keyword', None)
-#         top = int(request.GET.get('top', 10))
-#         if keyword:
-#             values = KgHotSearch.objects.filter(content__contain=keyword).order_by("-cnt")
-#         else:
-#             values = KgHotSearch.objects.order_by("-cnt").all()
-#         data['data'] = [model_to_dict(e) for e in values[:top]]
-#         serializers = KgHotSearchResponseSerializer(data=data, many=False)
-#         serializers.is_valid()
-#         return Response(serializers.data,  status=status.HTTP_200_OK)
-
-#     @swagger_auto_schema(operation_description='GET /kgapp/kghotqa/',operation_summary="新建hot问题", tags = ['kg'])
-#     def post(self, request, *args, **kwargs):
-#         return self.create(request, *args, **kwargs)
 
 class KgTabTagList(mixins.ListModelMixin,
                    mixins.CreateModelMixin,
@@ -1564,10 +1484,6 @@ class TabTagAddTagApiView(mixins.ListModelMixin,
             required=['name'],
             properties={
                 'id': openapi.Schema(type=openapi.TYPE_INTEGER, description="标签目录名称"),
-                'tags': openapi.Schema(type=openapi.TYPE_ARRAY, items=openapi.Items(openapi.TYPE_STRING),
-                                       description="子标签"),
-                'descs': openapi.Schema(type=openapi.TYPE_ARRAY, items=openapi.Items(openapi.TYPE_STRING),
-                                        description="描述"),
             },
         ),
         tags=['tag'])
