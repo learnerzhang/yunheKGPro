@@ -1486,7 +1486,7 @@ class DDFAUploadApiPost(generics.GenericAPIView):
             krrs.is_valid()
             return Response(krrs.data, status=status.HTTP_400_BAD_REQUEST)
         
-        tmproot = os.path.join("media", "ddfa", str(myType))
+        tmproot = os.path.join("data", "yuan_data", str(myType), "ddfad")
         if not os.path.exists(tmproot):
             os.makedirs(tmproot)
         df_path = os.path.join(tmproot, f"{myDate}.xlsx")

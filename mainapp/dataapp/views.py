@@ -286,6 +286,7 @@ class DataModelBatchDeleteAPIView(generics.GenericAPIView):
     queryset = DataModel.objects.all()
     authentication_classes = (CsrfExemptSessionAuthentication, BasicAuthentication)
     parser_classes = (FormParser, MultiPartParser)
+    serializer_class = DataModelSerializer
 
     @swagger_auto_schema(
         operation_summary='批量删除数据接口',
@@ -896,6 +897,7 @@ class DataModelTestAPIView(generics.GenericAPIView):
 class DataParamAddApiView(generics.GenericAPIView):
     authentication_classes = (CsrfExemptSessionAuthentication, BasicAuthentication)
     parser_classes = (FormParser, MultiPartParser)
+    serializer_class = DataModelParamSerializer
 
     @swagger_auto_schema(
         operation_summary='[可用] 新增参数功能',
@@ -1014,6 +1016,7 @@ class DataParamBatchAddApiView(generics.GenericAPIView):
 class DataParamUpdateApiView(generics.GenericAPIView):
     parser_classes = (FormParser, MultiPartParser)
     authentication_classes = (CsrfExemptSessionAuthentication, BasicAuthentication)
+    serializer_class = DataModelParamDetailResponseSerializer
 
     @swagger_auto_schema(
         operation_summary='[可用] 更新参数功能',
@@ -1069,6 +1072,7 @@ class DataParamUpdateApiView(generics.GenericAPIView):
 class DataParamBatchUpdateApiView(generics.GenericAPIView):
     parser_classes = (FormParser, MultiPartParser)
     authentication_classes = (CsrfExemptSessionAuthentication, BasicAuthentication)
+    serializer_class = DataModelParamDetailResponseSerializer
 
     @swagger_auto_schema(
         operation_summary='[可用] 批量更新参数功能',
@@ -1765,6 +1769,7 @@ class AppAPIList(mixins.ListModelMixin,
 
 class AppAPIAddView(generics.GenericAPIView):
     parser_classes = (FormParser, MultiPartParser)
+    serializer_class = KgBaseResponseSerializer
 
     # serializer_class = KgFileResponseSerializer
     # def get_serializer_class(self):

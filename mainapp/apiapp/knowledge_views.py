@@ -29,16 +29,15 @@ from rest_framework.parsers import (
     FormParser,
     MultiPartParser
 )
-
-from yunheKGPro.settings import MODEL_PATH
 from apiapp.serializers import BaseApiResponseSerializer
+from yunheKGPro.settings import MODEL_PATH
 from yunheKGPro import CsrfExemptSessionAuthentication
 # Create your views here.
 
 class KnowledgeAddApiView(generics.GenericAPIView):
     parser_classes = (FormParser, MultiPartParser)
     authentication_classes = (CsrfExemptSessionAuthentication, BasicAuthentication)
-
+    serializer_class = BaseApiResponseSerializer
     @swagger_auto_schema(
         operation_summary='[可用] 增加知识库',
         operation_description='POST /knowledge/add',
@@ -284,7 +283,7 @@ class KnowledgeRetrieval(generics.GenericAPIView):
 
 class KnowledgeUploadApiView(generics.GenericAPIView):
     parser_classes = (FormParser, MultiPartParser)
-
+    serializer_class = BaseApiResponseSerializer
     authentication_classes = (CsrfExemptSessionAuthentication, BasicAuthentication)
 
     @swagger_auto_schema(

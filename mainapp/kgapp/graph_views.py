@@ -10,7 +10,7 @@ from rest_framework.decorators import action
 from django.http.multipartparser import MultiPartParser
 from rest_framework.response import Response
 
-from apiapp.serializers import KgAPIResponseSerializer
+from apiapp.serializers import BaseApiResponseSerializer
 from kgapp.serializers import *
 from kgapp.models import *
 from django.http import HttpResponse

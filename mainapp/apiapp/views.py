@@ -22,6 +22,7 @@ from django.core.paginator import Paginator, EmptyPage, PageNotAnInteger
 from django.views.decorators.csrf import csrf_exempt
 from datetime import datetime
 from rest_framework.authentication import BasicAuthentication
+import os
 
 from rest_framework.parsers import (
     FormParser,
@@ -35,7 +36,7 @@ from yunheKGPro import CsrfExemptSessionAuthentication
 
 class OutlineApiView(generics.GenericAPIView):
     parser_classes = (FormParser, MultiPartParser)
-
+    serializer_class = BaseApiResponseSerializer
     authentication_classes = (CsrfExemptSessionAuthentication, BasicAuthentication)
 
     @swagger_auto_schema(
@@ -63,7 +64,7 @@ class OutlineApiView(generics.GenericAPIView):
             ),
         ],
         responses={
-            200: KgAPIResponseSerializer(many=False),
+            200: BaseApiResponseSerializer(many=False),
             400: "请求失败",
         },
         tags=['api']
@@ -101,15 +102,15 @@ class OutlineApiView(generics.GenericAPIView):
             data = {"code": 201, "msg": "大模型解析出问题了"}
         else:
             data = {"code": 200, "data": outlinedata}
-        serializers = KgAPIResponseSerializer(data=data, many=False)
+        serializers = BaseApiResponseSerializer(data=data, many=False)
         serializers.is_valid()
         return Response(serializers.data, status=status.HTTP_200_OK)
 
 
 class OlineQAApiView(generics.GenericAPIView):
     parser_classes = (FormParser, MultiPartParser)
-
     authentication_classes = (CsrfExemptSessionAuthentication, BasicAuthentication)
+    serializer_class = BaseApiResponseSerializer
 
     @swagger_auto_schema(
         operation_summary='[可用] 问答生产',
@@ -141,7 +142,7 @@ class OlineQAApiView(generics.GenericAPIView):
             ),
         ],
         responses={
-            200: KgAPIResponseSerializer(many=False),
+            200: BaseApiResponseSerializer(many=False),
             400: "请求失败",
         },
         tags=['api']
@@ -165,7 +166,7 @@ class OlineQAApiView(generics.GenericAPIView):
                     payload[param.name] = param.default
                 if param.necessary == 1 and param.name not in payload:
                     data = {"code": 201, "msg": f"缺少{param.name}必须的参数"}
-                    serializers = KgAPIResponseSerializer(data=data, many=False)
+                    serializers = BaseApiResponseSerializer(data=data, many=False)
                     serializers.is_valid()
                     return Response(serializers.data, status=status.HTTP_200_OK)
             print("OlineQAApiView:", payload)
@@ -176,7 +177,7 @@ class OlineQAApiView(generics.GenericAPIView):
             data = {"code": 201, "msg": "大模型问答出问题了"}
         else:
             data = {"code": 200, "data": qa_result}
-        serializers = KgAPIResponseSerializer(data=data, many=False)
+        serializers = BaseApiResponseSerializer(data=data, many=False)
         serializers.is_valid()
         return Response(serializers.data, status=status.HTTP_200_OK)
 
@@ -184,6 +185,8 @@ class OlineQAApiView(generics.GenericAPIView):
 class OlineAbstractApiView(generics.GenericAPIView):
     parser_classes = (FormParser, MultiPartParser)
     authentication_classes = (CsrfExemptSessionAuthentication, BasicAuthentication)
+
+    serializer_class = BaseApiResponseSerializer
 
     @swagger_auto_schema(
         operation_summary='[可用] 摘要生成',
@@ -209,7 +212,7 @@ class OlineAbstractApiView(generics.GenericAPIView):
             ),
         ],
         responses={
-            200: KgAPIResponseSerializer(many=False),
+            200: BaseApiResponseSerializer(many=False),
             400: "请求失败",
         },
         tags=['api']
@@ -234,7 +237,7 @@ class OlineAbstractApiView(generics.GenericAPIView):
                     payload[param.name] = param.default
                 if param.necessary == 1 and param.name not in payload:
                     data = {"code": 201, "msg": f"缺少{param.name}必须的参数"}
-                    serializers = KgAPIResponseSerializer(data=data, many=False)
+                    serializers = BaseApiResponseSerializer(data=data, many=False)
                     serializers.is_valid()
                     return Response(serializers.data, status=status.HTTP_200_OK)
             print("OlineAbstractApiView:", payload)
@@ -269,7 +272,7 @@ class OlineAbstractApiView(generics.GenericAPIView):
             data = {"code": 201, "msg": "大模型问答出问题了"}
         else:
             data = {"code": 200, "data": qa_result}
-        serializers = KgAPIResponseSerializer(data=data, many=False)
+        serializers = BaseApiResponseSerializer(data=data, many=False)
         serializers.is_valid()
         return Response(serializers.data, status=status.HTTP_200_OK)
 
@@ -279,6 +282,7 @@ class TextExtentApiView(generics.GenericAPIView):
 
     authentication_classes = (CsrfExemptSessionAuthentication, BasicAuthentication)
 
+    serializer_class = BaseApiResponseSerializer
     @swagger_auto_schema(
         operation_summary='[可用] 文本扩写',
         operation_description='POST /apiapp/api/text_extends',
@@ -297,7 +301,7 @@ class TextExtentApiView(generics.GenericAPIView):
             ),
         ],
         responses={
-            200: KgAPIResponseSerializer(many=False),
+            200: BaseApiResponseSerializer(many=False),
             400: "请求失败",
         },
         tags=['api']
@@ -322,7 +326,7 @@ class TextExtentApiView(generics.GenericAPIView):
                     payload[param.name] = param.default
                 if param.necessary == 1 and param.name not in payload:
                     data = {"code": 201, "msg": f"缺少{param.name}必须的参数"}
-                    serializers = KgAPIResponseSerializer(data=data, many=False)
+                    serializers = BaseApiResponseSerializer(data=data, many=False)
                     serializers.is_valid()
                     return Response(serializers.data, status=status.HTTP_200_OK)
         print("TextExtentApiView:", payload)
@@ -335,7 +339,7 @@ class TextExtentApiView(generics.GenericAPIView):
             data = {"code": 201, "msg": "大模型解析出问题了"}
         else:
             data = {"code": 200, "data": outlinedata}
-        serializers = KgAPIResponseSerializer(data=data, many=False)
+        serializers = BaseApiResponseSerializer(data=data, many=False)
         serializers.is_valid()
         return Response(serializers.data, status=status.HTTP_200_OK)
 
@@ -345,6 +349,7 @@ class OlineText2SQLApiView(generics.GenericAPIView):
 
     authentication_classes = (CsrfExemptSessionAuthentication, BasicAuthentication)
 
+    serializer_class = BaseApiResponseSerializer
     @swagger_auto_schema(
         operation_summary='[可用] 文本转SQL',
         operation_description='POST /apiapp/api/text2sql/',
@@ -369,7 +374,7 @@ class OlineText2SQLApiView(generics.GenericAPIView):
             ),
         ],
         responses={
-            200: KgAPIResponseSerializer(many=False),
+            200: BaseApiResponseSerializer(many=False),
             400: "请求失败",
         },
         tags=['api']
@@ -393,7 +398,7 @@ class OlineText2SQLApiView(generics.GenericAPIView):
                     payload[param.name] = param.default
                 if param.necessary == 1 and param.name not in payload:
                     data = {"code": 201, "msg": f"缺少{param.name}必须的参数"}
-                    serializers = KgAPIResponseSerializer(data=data, many=False)
+                    serializers = BaseApiResponseSerializer(data=data, many=False)
                     serializers.is_valid()
                     return Response(serializers.data, status=status.HTTP_200_OK)
             print("OlineText2SQLApiView:", payload)
@@ -418,7 +423,7 @@ class OlineText2SQLApiView(generics.GenericAPIView):
                 else:
                     print(f"问题 {query} 已经存在!")
             data = {"code": 200, "data": qa_result}
-        serializers = KgAPIResponseSerializer(data=data, many=False)
+        serializers = BaseApiResponseSerializer(data=data, many=False)
         serializers.is_valid()
         return Response(serializers.data, status=status.HTTP_200_OK)
 
@@ -493,7 +498,8 @@ from langchain.chains import GraphCypherQAChain
 class GraphQueryApiView(generics.GenericAPIView):
     parser_classes = (FormParser, MultiPartParser)
     authentication_classes = (CsrfExemptSessionAuthentication, BasicAuthentication)
-
+    serializer_class = BaseApiResponseSerializer
+    
     @swagger_auto_schema(
         operation_summary='查询图谱数据',
         operation_description='POST /apiapp/api/graphquery/',

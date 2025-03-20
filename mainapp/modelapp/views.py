@@ -26,8 +26,6 @@ from rest_framework.parsers import (
     FormParser,
     MultiPartParser
 )
-
-from apiapp.serializers import BaseApiResponseSerializer
 from yunheKGPro import CsrfExemptSessionAuthentication
 # Create your views here.
 
@@ -198,7 +196,7 @@ class ModelAddApiView(generics.GenericAPIView):
     #         return KgFileResponseSerializer
     #     return self.serializer_class
     authentication_classes = (CsrfExemptSessionAuthentication, BasicAuthentication)
-    serializer_class = BaseApiResponseSerializer
+    serializer_class = KgModelDetailResponseSerializer
     swagger_fake_view = True
     @swagger_auto_schema(
         operation_summary='[可用] 新增模型功能',
@@ -309,7 +307,7 @@ class ModelUpdateApiView(generics.GenericAPIView):
     #         return KgModelResponseSerializer
     #     return self.serializer_class
     authentication_classes = (CsrfExemptSessionAuthentication, BasicAuthentication)
-    serializer_class = BaseApiResponseSerializer
+    serializer_class = KgModelResponseSerializer
     @swagger_auto_schema(
         operation_summary='[可用] 更新模型功能',
         operation_description='[可用] 更新模型功能',
@@ -636,7 +634,7 @@ class ModelParamAddApiView(generics.GenericAPIView):
     #     return self.serializer_class
     authentication_classes = (CsrfExemptSessionAuthentication, BasicAuthentication)
 
-    serializer_class = BaseApiResponseSerializer
+    serializer_class = KgModelParamDetailResponseSerializer
     swagger_fake_view = True
     @swagger_auto_schema(
         operation_summary='[可用] 新增参数功能',
@@ -743,7 +741,7 @@ class ModelParamBatchAddApiView(generics.GenericAPIView):
     #     return self.serializer_class
     authentication_classes = (CsrfExemptSessionAuthentication, BasicAuthentication)
 
-    serializer_class = BaseApiResponseSerializer
+    serializer_class = KgModelParamDetailResponseSerializer
     swagger_fake_view = True
 
     @swagger_auto_schema(
@@ -820,7 +818,7 @@ class ModelParamUpdateApiView(generics.GenericAPIView):
 
     authentication_classes = (CsrfExemptSessionAuthentication, BasicAuthentication)
     
-    serializer_class = BaseApiResponseSerializer
+    serializer_class = KgModelParamResponseSerializer
     swagger_fake_view = True
 
     @swagger_auto_schema(
@@ -935,7 +933,7 @@ class ModelParamBatchUpdateApiView(generics.GenericAPIView):
     #         return KgFileResponseSerializer
     #     return self.serializer_class
     authentication_classes = (CsrfExemptSessionAuthentication, BasicAuthentication)
-    serializer_class = BaseApiResponseSerializer
+    serializer_class = KgModelParamDetailResponseSerializer
     swagger_fake_view = True
 
     @swagger_auto_schema(

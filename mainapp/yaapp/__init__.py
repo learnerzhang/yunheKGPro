@@ -8,14 +8,14 @@ def getYuAnParamPath(ctype, mydate):
         获取对应的参数路径
     """
     if ctype == 0:
-        return f"data/plans/HHZXY_api_data_{mydate}.json"
+        return f"data/yuan_data/0/plans/HHZXY_api_data_{mydate}.json"
     elif ctype == 1:
-        return f"data/plans/XLDQX_api_data_{mydate}.json"
+        return f"data/yuan_data/1/plans/XLDQX_api_data_{mydate}.json"
     elif ctype == 2:
-        return f"data/plans/XLDTSTS_api_data_{mydate}.json"
+        return f"data/yuan_data/2/plans/XLDTSTS_api_data_{mydate}.json"
     elif ctype == 3:
-        return f"data/plans/HHXQ_api_data_{mydate}.json"
-    return "data/plans/default.json"
+        return f"data/yuan_data/3/plans/HHXQ_api_data_{mydate}.json"
+    return "data/yuan_data/0/plans/HHZXY_api_data_2023-07-23.json"
 
 
 def getYuAnName(ctype, mydate):

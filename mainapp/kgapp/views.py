@@ -727,7 +727,7 @@ class DocAddApiView(generics.GenericAPIView):
 class DocBatchAddApiView(generics.GenericAPIView):
     parser_classes = (FormParser, MultiPartParser)
 
-    # serializer_class = KgFileResponseSerializer
+    serializer_class = KgDocResponseSerializer
     # def get_serializer_class(self):
     #     if self.action == 'post':
     #         return KgFileResponseSerializer

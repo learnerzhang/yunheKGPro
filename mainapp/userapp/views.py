@@ -6,7 +6,7 @@ from rest_framework.views import APIView
 from rest_framework.decorators import action
 from django.http.multipartparser import MultiPartParser
 from rest_framework.response import Response
-from kgapp.serializers import KgBaseResponseSerializer
+from apiapp.serializers import BaseApiResponseSerializer
 from yunheKGPro import settings
 from userapp.serializers import *
 from userapp.models import User, Menu, Role
@@ -21,7 +21,7 @@ from django.core.paginator import Paginator, EmptyPage, PageNotAnInteger
 # Create your views here.
 from yunheKGPro import CsrfExemptSessionAuthentication
 from django.utils import timezone
-from django.core.cache import cache  
+from django.core.cache import cache
 import PIL
 import random
 import string
@@ -1321,7 +1321,7 @@ class CaptchaImageView(APIView):
         manual_parameters=[
         ],
         responses={
-            200: KgBaseResponseSerializer(many=False),
+            200: BaseApiResponseSerializer(many=False),
             400: "请求失败",
         },
         tags=['appuser'])

@@ -155,7 +155,7 @@ class PlanFactory:
                 print("jyyb img:",imgJson)
                 tmpdesc = imgJson['desc']
                 tmpfname = imgJson['url']
-                tmppath = os.path.join("data", "jyybimgs", self.context['yadate'], tmpfname)
+                tmppath = os.path.join("data", "yuan_data","0","yubao", self.context['yadate'], tmpfname)
                 #tmppath ="/data/jyybimgs/2023-07-23 /1.png"
                 print("tmppath:",tmppath)
                 if not os.path.exists(tmppath):
@@ -243,8 +243,10 @@ class PlanFactory:
             import pandas as pd
             import time
             yadate = self.context['plan']['yadate']
-            ddfa_excel = os.path.join("media", "ddfa", str(self.context['plan']['ctype']), f"{yadate}.xlsx")
+            ddfa_excel = os.path.join("data","yuan_data","0","ddfad",f"{yadate}.xlsx")
+            #ddfa_excel="data/yuan_data/0/ddfad/2023-07-23.xlsx" 
             if not os.path.exists(ddfa_excel):
+                print("ddfan_excel:",ddfa_excel)
                 raise Exception("调度方案单不存在")
             skMapData, swMapData, date_list = yautils.excel_to_dict(ddfa_excel)
             smx_ckll, xld_ckll, lh_ckll, gx_ckll, hkc_ckll = yautils.skddjy(ddfa_excel)
@@ -298,7 +300,8 @@ class PlanFactory:
             import pandas as pd
             import time
             yadate = self.context['plan']['yadate']
-            ddfa_excel = os.path.join("media", "ddfa", str(self.context['plan']['ctype']), f"{yadate}.xlsx")
+            #ddfa_excel = os.path.join("media", "ddfa", str(self.context['plan']['ctype']), f"{yadate}.xlsx")
+            ddfa_excel = os.path.join("data","yuan_data","3","ddfad",f"{yadate}.xlsx")
             #print(ddfa_excel)
             if not os.path.exists(ddfa_excel):
                 raise Exception("调度方案单不存在")
@@ -342,8 +345,8 @@ class PlanFactory:
                 max_sw = max(swdata)
                 max_idx = swdata.index(max_sw)
                 max_date = date_list[max_idx]
-
-                tmpimgpath = f"data/ddfaouts/{self.context['plan']['ctype']}/{self.context['plan']['yadate']}/imgs/{skname}.png"
+                tmpimgpath = f"data/yuan_data/3/ddfadouts/{self.context['plan']['yadate']}/imgs/{skname}.png"
+                #tmpimgpath = f"data/ddfaouts/{self.context['plan']['ctype']}/{self.context['plan']['yadate']}/imgs/{skname}.png"
                 if not os.path.exists(tmpimgpath):
                     print(f"调度过程曲线不存在：{tmpimgpath}")
                     continue
@@ -368,7 +371,8 @@ class PlanFactory:
                 max_idx = lldata.index(max_ll)
                 max_date = date_list[max_idx]
 
-                tmpimgpath = f"data/ddfaouts/{self.context['plan']['ctype']}/{self.context['plan']['yadate']}/imgs/{swname}.png"
+                #tmpimgpath = f"data/ddfaouts/{self.context['plan']['ctype']}/{self.context['plan']['yadate']}/imgs/{swname}.png"
+                tmpimgpath = f"data/yuan_data/3/ddfadouts/{self.context['plan']['yadate']}/imgs/{swname}.png"
                 if not os.path.exists(tmpimgpath):
                     print(f"调度过程曲线不存在：{tmpimgpath}")
                     continue
@@ -407,7 +411,8 @@ class PlanFactory:
             import pandas as pd
             import time
             yadate = self.context['plan']['yadate']
-            ddfa_excel = os.path.join("media", "ddfa", str(self.context['plan']['ctype']), f"{yadate}.xlsx")
+            #ddfa_excel = os.path.join("media", "ddfa", str(self.context['plan']['ctype']), f"{yadate}.xlsx")
+            ddfa_excel = os.path.join("data","yuan_data","0","ddfad",f"{yadate}.xlsx")
             if not os.path.exists(ddfa_excel):
                 raise Exception("调度方案单不存在")
             pd.set_option('display.notebook_repr_html', False)
@@ -443,7 +448,9 @@ class PlanFactory:
                 max_idx = swdata.index(max_sw)
                 max_date = date_list[max_idx]
 
-                tmpimgpath = f"data/ddfaouts/{self.context['plan']['ctype']}/{self.context['plan']['yadate']}/imgs/{skname}.png"
+                #tmpimgpath = f"data/ddfaouts/{self.context['plan']['ctype']}/{self.context['plan']['yadate']}/imgs/{skname}.png"
+                tmpimgpath = f"data/yuan_data/0/ddfadouts/{self.context['plan']['yadate']}/imgs/{skname}.png"
+                #ddfa_excel = os.path.join("data","yuan_data","0","ddfad",f"{yadate}.xlsx")
                 if not os.path.exists(tmpimgpath):
                     print(f"调度过程曲线不存在：{tmpimgpath}")
                     continue
@@ -469,7 +476,8 @@ class PlanFactory:
                 max_idx = lldata.index(max_ll)
                 max_date = date_list[max_idx]
 
-                tmpimgpath = f"data/ddfaouts/{self.context['plan']['ctype']}/{self.context['plan']['yadate']}/imgs/{swname}.png"
+                #tmpimgpath = f"data/ddfaouts/{self.context['plan']['ctype']}/{self.context['plan']['yadate']}/imgs/{swname}.png"
+                tmpimgpath = f"data/yuan_data/0/ddfadouts/{self.context['plan']['yadate']}/imgs/{swname}.png"
                 if not os.path.exists(tmpimgpath):
                     print(f"调度过程曲线不存在：{tmpimgpath}")
                     continue
