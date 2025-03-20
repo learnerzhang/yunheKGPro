@@ -22,7 +22,7 @@ import json
 import difflib
 
 from userapp.models import User
-from yaapp import divHtml, pd2HtmlCSS, text_table, extract_shuiku_data,extract_shuiku_data_jianyi,yujingdengji
+from yaapp import divHtml, pd2HtmlCSS, text_table, extract_shuiku_data,extract_shuiku_data_jianyi,yujingdengji,search_fragpacks
 from yaapp.models import PlanTemplate
 from langchain.llms import Ollama
 def get_access_token():
@@ -151,6 +151,9 @@ def huanghe_yuqing_generate(context=None):
     year = now.year
     month = now.month
     day = now.day
+    frag = search_fragpacks("雨情实况")
+    if frag:
+        default_context = frag
     if isinstance(context, dict):
         huanghe_weather = context.get("huanghe_weather")  # 从 context 中获取值
         sanhuanjian_weather = context.get("sanhuanjian_weather")
@@ -983,6 +986,9 @@ def huanghe_diaodu_result(context):
 def xld_yushui_context(context=None):
     default_context=("\t当前雨水情势：3日 23时，小浪底库水位269.890米，西霞院库水位133.360米，潼关流量2720m3/s，三门峡流量2750m3/s，西霞院流量2750m3/s，花园口流量4850m3/s，利津流量5070m3/s。\n"
                      "\t预报雨水情势：根据共享接入的黄委水文局预报数据，在05日 08时—12日 08时，潼关水文站最大流量10660（m3/s）07日 06时,水量78.06（亿m）。小浪底水库若按当前调令3750.0（m3/s）下泄，根据防汛调度业务系统内置的水库调度模型计算结果，库水位变化范围是269.89（m）（05日 08时）—275（m）（12日 08时）。")
+    frag =search_fragpacks("雨情实况")
+    if frag:
+         default_context = frag
     if isinstance(context, dict):
         xld_data = context#json.load(open("data/qiuxun.json", mode='r', encoding="utf8"))
 
@@ -1862,8 +1868,11 @@ def map_input_to_template(user_input, templates):
         return user_input
 
 def generate_description_for_label(label):
-    prompt = f"生成水利工程预案描述：请围绕'{label}', 撰写一段相关的文字描述。"
-
+    frag = search_fragpacks(label)
+    if frag:
+        prompt = f"请围绕'{label}', 依据{frag},撰写一段相关的文字描述并进行优化，结果要凝练简洁，不要出现冗余描述，写的专业化些。"
+    else:
+        prompt = f"请围绕'{label}', 撰写一段相关的文字描述并进行优化，结果要凝练简洁，不要出现冗余描述，写的专业化些。"
     description = query_question(prompt)
     return description
 

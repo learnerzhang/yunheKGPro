@@ -10,6 +10,7 @@ from datetime import datetime
 import os
 import base64
 import re
+
 class PlanFactory:
     def __init__(self, node: TemplateNode, context={}):
         self.context = context

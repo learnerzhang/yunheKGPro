@@ -1,7 +1,8 @@
 import pandas as pd
 import datetime
-from . import yautils
-#import yautils
+#from . import yautils
+import os
+import yautils
 
 def getYuAnParamPath(ctype, mydate):
     """
@@ -960,10 +961,64 @@ def yujingdengji(shuiku_shuiwei: dict, shuiwenzhan_liuliang: dict):
     print("""预警等级: 按照《黄河防汛抗旱应急预案》，当前无预警""")
     return """按照《黄河防汛抗旱应急预案》，当前无预警"""
 
+from langchain.embeddings import HuggingFaceEmbeddings
+from langchain.vectorstores import FAISS
+#from yunheKGPro.settings import MODEL_PATH
+# from apiapp.knowledge_views import embeddding
+MODEL_PATH = "D:\\data\\models\\bge-large-zh-v1.5"
+embedding = HuggingFaceEmbeddings(
+            # model_name="BAAI/bge-small-zh-v1.5",
+            model_name=MODEL_PATH,
+            model_kwargs={'device': 'cpu'},
+            encode_kwargs={
+                'batch_size': 64,
+                'normalize_embeddings': True
+            }
+        )
 
-# import time
-# import matplotlib.pyplot as plt
-# if __name__ == '__main__':
+
+def search_fragpacks(query, top_k=5):
+    """
+    根据 query 检索知识片段，并返回分数最高的文本片段。
+
+    参数:
+        query (str): 查询字符串。
+        top_k (int): 返回的相似片段数量，默认为 1。
+
+    返回:
+        分数最高的文本片段（str）。
+        如果向量库不存在或未检索到结果，返回 None。
+    """
+    # 构建知识库目录路径
+    kgdir = f"../data/knowledges/264c159aa9e1dd91e31ab9f38f3d4f9c"
+    if not os.path.exists(kgdir):
+        os.makedirs(kgdir)
+    # 构建向量库文件路径
+    index_path = os.path.join(kgdir, "faiss.index")
+    # 如果向量库不存在，返回 None
+    if not os.path.exists(index_path):
+        print("❌ 向量库不存在")
+        return None
+    # 加载 embedding 模型和向量库
+    print("✅ 加载 embedding 模型")
+    db = FAISS.load_local(index_path, embedding, allow_dangerous_deserialization=True)
+    print("✅ 已加载现有向量库")
+    # 执行向量检索
+    fragpacks = db.similarity_search_with_score(query, top_k)
+
+    # 如果没有检索到结果，返回 None
+    if not fragpacks:
+        print("❌ 未检索到任何结果")
+        return None
+    # 找到分数最高的结果
+    highest_score_doc = max(fragpacks, key=lambda x: x[1])  # 按分数排序，取最高分
+    return highest_score_doc[0].page_content
+
+import time
+import matplotlib.pyplot as plt
+if __name__ == '__main__':
+    res = search_fragpacks("雨水情信息")
+    print(res)
 #     # 记录开始时间
 #     r = yautils.excel_to_dict("../../mainapp/media/ddfa/3/2025-03-03.xlsx")
 #     skMapData, swMapData, date_list = r

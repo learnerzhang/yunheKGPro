@@ -38,7 +38,7 @@ from yunheKGPro import CsrfExemptSessionAuthentication
 class KnowledgeAddApiView(generics.GenericAPIView):
     parser_classes = (FormParser, MultiPartParser)
     authentication_classes = (CsrfExemptSessionAuthentication, BasicAuthentication)
-
+    serializer_class = BaseApiResponseSerializer
     @swagger_auto_schema(
         operation_summary='[可用] 增加知识库',
         operation_description='POST /knowledge/add',
@@ -284,9 +284,8 @@ class KnowledgeRetrieval(generics.GenericAPIView):
 
 class KnowledgeUploadApiView(generics.GenericAPIView):
     parser_classes = (FormParser, MultiPartParser)
-
     authentication_classes = (CsrfExemptSessionAuthentication, BasicAuthentication)
-
+    serializer_class = BaseApiResponseSerializer
     @swagger_auto_schema(
         operation_summary='[可用] 新增知识库文档上传功能',
         operation_description='POST /knowledge/upload',
