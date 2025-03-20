@@ -1,9 +1,8 @@
 from rest_framework import serializers
-
 from common.serializers import BaseSerializer
 
 
-class ApiAppResponseSerializer(BaseSerializer):
+class YuAnAppResponseSerializer(BaseSerializer):
     total = serializers.IntegerField()
     page = serializers.IntegerField()
     pageNum = serializers.IntegerField()

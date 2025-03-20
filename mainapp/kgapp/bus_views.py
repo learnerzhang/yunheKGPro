@@ -27,7 +27,6 @@ from rest_framework.parsers import (
     MultiPartParser
 )
 
-from apiapp.serializers import BaseApiResponseSerializer
 from yunheKGPro import CsrfExemptSessionAuthentication
 # Create your views here.
 
@@ -154,7 +153,7 @@ class KgTempAddApiView(generics.GenericAPIView):
     
     authentication_classes = (CsrfExemptSessionAuthentication, BasicAuthentication)
 
-    serializer_class = BaseApiResponseSerializer
+    serializer_class = KgAppResponseSerializer
     swagger_fake_view = True
     @swagger_auto_schema(
         operation_summary='[可用] 新增业务模板功能',
@@ -303,7 +302,7 @@ class KgTempUpdateApiView(generics.GenericAPIView):
     #     return self.serializer_class
     authentication_classes = (CsrfExemptSessionAuthentication, BasicAuthentication)
 
-    serializer_class = BaseApiResponseSerializer
+    serializer_class = KgAppResponseSerializer
     swagger_fake_view = True
     @swagger_auto_schema(
         operation_summary='[可用] 更新模板功能',

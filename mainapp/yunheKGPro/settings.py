@@ -88,10 +88,15 @@ INSTALLED_APPS = [
     # 'reversion',
     "drf_yasg",
     "django_elasticsearch_dsl",
+    'import_export',
     'userapp',
     'yaapp',
-    'import_export',
-    'apiapp', 'kgapp', 'modelapp', 'logapp','dataapp',
+    'common',
+    'apiapp', 
+    'kgapp', 
+    'modelapp', 
+    'logapp',
+    'dataapp',
     'django_celery_results',  # celery结果
     'django_celery_beat',     # celery定时任务
 ]
@@ -123,6 +128,17 @@ SWAGGER_SETTINGS = {
     # 方法列表字母排序
     'OPERATIONS_SORTER': 'alpha',
     'VALIDATOR_URL': None,
+     'DEFAULT_FIELD_INSPECTORS': [
+        'common.inspectors.CustomFieldInspector',  # 替换为实际的模块路径
+        'drf_yasg.inspectors.CamelCaseJSONFilter',
+        'drf_yasg.inspectors.InlineSerializerInspector',
+        'drf_yasg.inspectors.RelatedFieldInspector',
+        'drf_yasg.inspectors.ChoiceFieldInspector',
+        'drf_yasg.inspectors.FileFieldInspector',
+        'drf_yasg.inspectors.DictFieldInspector',
+        'drf_yasg.inspectors.SimpleFieldInspector',
+        'drf_yasg.inspectors.StringDefaultFieldInspector',
+    ],
 }
 
 MIDDLEWARE = [
@@ -220,7 +236,16 @@ if sys.platform.startswith('linux'):
             'http_auth': (ES_USER, ES_PWD)
         },
     }
-
+    from langchain.embeddings import HuggingFaceEmbeddings
+    embedding = HuggingFaceEmbeddings(
+        # model_name="BAAI/bge-small-zh-v1.5",
+        model_name=MODEL_PATH,
+        model_kwargs={'device': 'cpu'},
+        encode_kwargs={
+            'batch_size': 64,
+            'normalize_embeddings': True
+        }
+    )
     print('当前系统为 Linux')
 elif sys.platform.startswith('win'):
     # D:\data\models\bge-large-zh
@@ -238,23 +263,34 @@ elif sys.platform.startswith('win'):
         }
     }
 
-    # DATABASES = {
-    #     'default': {
-    #         'ENGINE': 'django.db.backends.mysql',
-    #         'NAME': 'kgproj',
-    #         'USER': 'root',
-    #         'PASSWORD': '20221qaz@WSX',
-    #         'HOST': '192.168.2.182',
-    #         'PORT': '3306',
-    #     }
-    # }
+    DATABASES = {
+        'default': {
+            'ENGINE': 'django.db.backends.mysql',
+            'NAME': 'kgproj',
+            'USER': 'root',
+            'PASSWORD': '20221qaz@WSX',
+            'HOST': '192.168.2.182',
+            'PORT': '3306',
+        }
+    }
 
     ELASTICSEARCH_DSL = {
-    'default': {
-        'hosts': 'http://localhost:9200',
-        'http_auth': (ES_USER, ES_PWD)
-    },
-}
+        'default': {
+            'hosts': 'http://localhost:9200',
+            'http_auth': (ES_USER, ES_PWD)
+        },
+    }
+    from langchain.embeddings import HuggingFaceEmbeddings
+    # embedding = HuggingFaceEmbeddings(
+    #     # model_name="BAAI/bge-small-zh-v1.5",
+    #     model_name=MODEL_PATH,
+    #     model_kwargs={'device': 'cpu'},
+    #     encode_kwargs={
+    #         'batch_size': 64,
+    #         'normalize_embeddings': True
+    #     }
+    # )
+    embedding = None
     print('当前系统为 Windows')
 elif sys.platform.startswith('darwin'):
     print('当前系统为 macOS')

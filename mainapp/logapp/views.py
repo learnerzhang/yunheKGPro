@@ -3,7 +3,7 @@ from .models import LoginLog, OperationLog
 from rest_framework.response import Response
 from drf_yasg.utils import swagger_auto_schema
 from rest_framework import viewsets, pagination
-from .logSerializer import LoginLogSerializer, OperationLogSerializer
+from logapp.serializers import LoginLogSerializer, OperationLogSerializer
 
 class CustomPagination(pagination.PageNumberPagination):
     page_size = 10  # 每页显示多少条数据
@@ -25,9 +25,7 @@ class LogViewSet(viewsets.ReadOnlyModelViewSet):
         log_type = self.kwargs.get('log_type')
         if log_type == 'login':
             return LoginLogSerializer
-        elif log_type == 'operation':
-            return OperationLogSerializer
-        return None  # 如果类型不匹配，则返回 None
+        return OperationLogSerializer
     
     @swagger_auto_schema(  
         operation_summary='获取日志列表',  
@@ -58,5 +56,4 @@ class LogViewSet(viewsets.ReadOnlyModelViewSet):
         page = self.paginate_queryset(data)
         if page is not None:
             return self.get_paginated_response(page)
-
         return Response(data)

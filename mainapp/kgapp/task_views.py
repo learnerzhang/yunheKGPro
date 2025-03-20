@@ -980,8 +980,6 @@ class TaskLoadDoneApiView(mixins.ListModelMixin,
             required=['task_id'],
             properties={
                 'task_id': openapi.Schema(type=openapi.TYPE_INTEGER, description="任务ID"),
-                'qa_ids': openapi.Schema(type=openapi.TYPE_ARRAY, items=openapi.Items(openapi.TYPE_INTEGER), description="需要保存ID"),
-                'replace_qa_ids': openapi.Schema(type=openapi.TYPE_ARRAY, items=openapi.Items(openapi.TYPE_INTEGER), description="需要替换的ID(删除的)"),
             },
         ),
             responses={
@@ -1063,10 +1061,6 @@ class TaskImportGraphDoneApiView(mixins.ListModelMixin,
             required=['task_id'],
             properties={
                 'task_id': openapi.Schema(type=openapi.TYPE_INTEGER, description="任务ID"),
-                'ent_ids': openapi.Schema(type=openapi.TYPE_ARRAY, items=openapi.Items(openapi.TYPE_INTEGER),
-                                         description="需要保存ID"),
-                'replace_id_pairs': openapi.Schema(type=openapi.TYPE_ARRAY, items=openapi.Items(openapi.TYPE_OBJECT),
-                                                 description="需要替换的ID,新的替换"),
             },
         ),
         responses={

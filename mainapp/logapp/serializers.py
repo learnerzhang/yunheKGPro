@@ -1,5 +1,5 @@
 from rest_framework import serializers
-from .models import LoginLog, OperationLog
+from logapp.models import LoginLog, OperationLog
 
 class LoginLogSerializer(serializers.ModelSerializer):
     class Meta:

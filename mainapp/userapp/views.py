@@ -6,7 +6,6 @@ from rest_framework.views import APIView
 from rest_framework.decorators import action
 from django.http.multipartparser import MultiPartParser
 from rest_framework.response import Response
-from apiapp.serializers import BaseApiResponseSerializer
 from yunheKGPro import settings
 from userapp.serializers import *
 from userapp.models import User, Menu, Role
@@ -202,7 +201,7 @@ class UserDeleteApiView(generics.GenericAPIView):
             },
         ),
         responses={
-            200: KgMenuDetailResponseSerializer(many=False),
+            200: BaseSerializer(many=False),
             400: "请求失败",
         },
         tags=['appuser']
@@ -213,15 +212,15 @@ class UserDeleteApiView(generics.GenericAPIView):
         if uid:
             try:
                 User.objects.get(id=uid).delete()
-                serializers = KgUserDetailResponseSerializer(data={"code": 200, "msg": "删除用户成功"}, many=False)
+                serializers = BaseSerializer(data={"code": 200, "msg": "删除用户成功"}, many=False)
                 serializers.is_valid()
                 return Response(serializers.data, status=status.HTTP_200_OK)
             except:
-                serializers = KgUserDetailResponseSerializer(data={"code": 201, "msg": "不存在该用户"}, many=False)
+                serializers = BaseSerializer(data={"code": 201, "msg": "不存在该用户"}, many=False)
                 serializers.is_valid()
                 return Response(serializers.data, status=status.HTTP_200_OK)
 
-        serializers = KgMenuDetailResponseSerializer(data={"code": 202, "msg": "参数错误"}, many=False)
+        serializers = BaseSerializer(data={"code": 202, "msg": "参数错误"}, many=False)
         serializers.is_valid()
         return Response(serializers.data, status=status.HTTP_200_OK)
 
@@ -405,7 +404,7 @@ class UserLogoutApiView(generics.GenericAPIView):
 class UserLoginStatusApiView(mixins.ListModelMixin,
                              mixins.CreateModelMixin,
                              generics.GenericAPIView):
-    serializer_class = KgUserResponseSerializer
+    serializer_class = KgUserDetailResponseSerializer
 
     @swagger_auto_schema(
         operation_description='GET /userapi/status/',
@@ -1268,7 +1267,7 @@ class MenuDetailApiView(mixins.ListModelMixin,
 
     @swagger_auto_schema(
         operation_description='GET /userapp/menuDetail',
-        operation_summary="获取所有文档列表",
+        operation_summary="获取菜单详情",
         # 接口参数 GET请求参数
         manual_parameters=[
             # 声明参数
@@ -1297,11 +1296,11 @@ class MenuDetailApiView(mixins.ListModelMixin,
             try:
                 tmpmenu = Menu.objects.get(id=mid)
                 data['data'] = model_to_dict(tmpmenu)
-                serializers = KgUserDetailResponseSerializer(data=data, many=False)
+                serializers = KgMenuDetailResponseSerializer(data=data, many=False)
                 serializers.is_valid()
                 return Response(serializers.data, status=status.HTTP_200_OK)
             except:
-                serializers = KgUserDetailResponseSerializer(data={"code": 201, "msg": "不存在该菜单单元"}, many=False)
+                serializers = KgMenuDetailResponseSerializer(data={"code": 201, "msg": "不存在该菜单单元"}, many=False)
                 serializers.is_valid()
                 return Response(serializers.data, status=status.HTTP_200_OK)
 
@@ -1321,7 +1320,7 @@ class CaptchaImageView(APIView):
         manual_parameters=[
         ],
         responses={
-            200: BaseApiResponseSerializer(many=False),
+            200: BaseSerializer(many=False),
             400: "请求失败",
         },
         tags=['appuser'])
@@ -1452,7 +1451,7 @@ class AvatarUpload(generics.GenericAPIView):
     parser_classes = (FormParser, MultiPartParser)
 
     authentication_classes = (CsrfExemptSessionAuthentication, BasicAuthentication)
-    serializer_class = KgUserDetailResponseSerializer
+    serializer_class = BaseSerializer
 
     @swagger_auto_schema(
         operation_summary='POST',
@@ -1466,7 +1465,7 @@ class AvatarUpload(generics.GenericAPIView):
             ),
         ],
         responses={
-            200: KgUserDetailResponseSerializer(many=False),
+            200: BaseSerializer(many=False),
             400: "请求失败",
         },
         tags=['base_api']
@@ -1480,6 +1479,6 @@ class AvatarUpload(generics.GenericAPIView):
         filename = fs.save("icon/" + uploaded_file.name, uploaded_file)  # 上传文件保存路径
         # 你可以通过fs.url(filename)获取文件的URL
         file_url = fs.url(filename)
-        krrs = KgUserDetailResponseSerializer(data={"code": 200, "msg": "success!", "data": file_url, "success": True}, many=False)
+        krrs = BaseSerializer(data={"code": 200, "msg": "success!", "data": file_url, "success": True}, many=False)
         krrs.is_valid()
         return Response(krrs.data, status=status.HTTP_200_OK)

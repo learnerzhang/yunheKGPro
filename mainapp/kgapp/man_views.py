@@ -9,8 +9,6 @@ from rest_framework.views import APIView
 from rest_framework.decorators import action
 from django.http.multipartparser import MultiPartParser
 from rest_framework.response import Response
-
-from apiapp.serializers import BaseApiResponseSerializer
 from kgapp.serializers import *
 from kgapp.models import *
 from django.http import HttpResponse
@@ -155,7 +153,7 @@ class KgQAUpdateApiView(mixins.ListModelMixin,
 class KgQASynToLLMApiView(mixins.ListModelMixin,
                         mixins.CreateModelMixin,
                         generics.GenericAPIView):
-    serializer_class = BaseApiResponseSerializer
+    serializer_class = KgAppResponseSerializer
     authentication_classes = (CsrfExemptSessionAuthentication, BasicAuthentication)
 
     @swagger_auto_schema(
@@ -166,7 +164,6 @@ class KgQASynToLLMApiView(mixins.ListModelMixin,
             type=openapi.TYPE_OBJECT,
             required=[''],
             properties={
-                'qidlist': openapi.Schema(type=openapi.TYPE_ARRAY, items=openapi.Items(openapi.TYPE_INTEGER), description="问题ID列表"),
             },
         ),
         tags=['artifi'])
@@ -191,7 +188,7 @@ class KgQASynToLLMApiView(mixins.ListModelMixin,
         except:
             data = {"code": 201, "msg": "远程接口异常"}
 
-        serializers = BaseApiResponseSerializer(data=data, many=False)
+        serializers = KgAppResponseSerializer(data=data, many=False)
         serializers.is_valid()
         return Response(serializers.data, status=status.HTTP_200_OK)
 

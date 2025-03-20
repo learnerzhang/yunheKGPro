@@ -34,7 +34,7 @@ class KgModelList(mixins.ListModelMixin,
                   generics.GenericAPIView):
     # authentication_classes = (CsrfExemptSessionAuthentication, BasicAuthentication)
     # permission_classes = [IsAuthenticated]  # 确保用户已认证
-    serializer_class = KgModelResponseSerializer
+    serializer_class = KgModelSerializer
     @swagger_auto_schema(
             operation_description='GET /modelapp/kgmodel/',
             operation_summary="获取所有模型列表",
@@ -114,7 +114,7 @@ class KgModelList(mixins.ListModelMixin,
 class ModelDetailApiView(mixins.ListModelMixin,
                   mixins.CreateModelMixin,
                   generics.GenericAPIView):
-    serializer_class = KgModelDetailResponseSerializer
+    serializer_class = KgModelSerializer
     @swagger_auto_schema(
             operation_description='GET /modelapp/kgmodel/detail',
             operation_summary="获取单个模型详情",
@@ -188,15 +188,10 @@ class ModelTypeListApiView(mixins.ListModelMixin,
 
 
 class ModelAddApiView(generics.GenericAPIView):
+    serializer_class = KgModelSerializer
+
     parser_classes = (FormParser, MultiPartParser)
-    
-    # serializer_class = KgFileResponseSerializer
-    # def get_serializer_class(self):
-    #     if self.action == 'post':
-    #         return KgFileResponseSerializer
-    #     return self.serializer_class
     authentication_classes = (CsrfExemptSessionAuthentication, BasicAuthentication)
-    serializer_class = KgModelDetailResponseSerializer
     swagger_fake_view = True
     @swagger_auto_schema(
         operation_summary='[可用] 新增模型功能',
@@ -299,15 +294,9 @@ class ModelAddApiView(generics.GenericAPIView):
             return Response(serializers.data, status=status.HTTP_200_OK)
 
 class ModelUpdateApiView(generics.GenericAPIView):
+    serializer_class = KgModelSerializer
     parser_classes = (FormParser, MultiPartParser)
-    
-    # serializer_class = KgModelResponseSerializer
-    # def get_serializer_class(self):
-    #     if self.action == 'post':
-    #         return KgModelResponseSerializer
-    #     return self.serializer_class
     authentication_classes = (CsrfExemptSessionAuthentication, BasicAuthentication)
-    serializer_class = KgModelResponseSerializer
     @swagger_auto_schema(
         operation_summary='[可用] 更新模型功能',
         operation_description='[可用] 更新模型功能',
@@ -430,11 +419,8 @@ class ModelUpdateApiView(generics.GenericAPIView):
 
 
 class ModelDelApiView(APIView):
-
+    serializer_class = KgModelSerializer
     authentication_classes = (CsrfExemptSessionAuthentication, BasicAuthentication)
-
-    serializer_class = KgModelResponseSerializer
-
     @swagger_auto_schema(
         operation_description="模型删除",
         operation_summary="[可用] 模型删除",
@@ -625,6 +611,7 @@ class KgModelParamListByModel(mixins.ListModelMixin,
 
 
 class ModelParamAddApiView(generics.GenericAPIView):
+    serializer_class = KgModelParamSerializer
     parser_classes = (FormParser, MultiPartParser)
     
     # serializer_class = KgFileResponseSerializer
@@ -633,8 +620,6 @@ class ModelParamAddApiView(generics.GenericAPIView):
     #         return KgFileResponseSerializer
     #     return self.serializer_class
     authentication_classes = (CsrfExemptSessionAuthentication, BasicAuthentication)
-
-    serializer_class = KgModelParamDetailResponseSerializer
     swagger_fake_view = True
     @swagger_auto_schema(
         operation_summary='[可用] 新增参数功能',
@@ -732,16 +717,10 @@ class ModelParamAddApiView(generics.GenericAPIView):
         
 
 class ModelParamBatchAddApiView(generics.GenericAPIView):
+    serializer_class = KgModelParamSerializer
     parser_classes = (FormParser, MultiPartParser)
-    
-    # serializer_class = KgFileResponseSerializer
-    # def get_serializer_class(self):
-    #     if self.action == 'post':
-    #         return KgFileResponseSerializer
-    #     return self.serializer_class
     authentication_classes = (CsrfExemptSessionAuthentication, BasicAuthentication)
 
-    serializer_class = KgModelParamDetailResponseSerializer
     swagger_fake_view = True
 
     @swagger_auto_schema(
@@ -812,12 +791,9 @@ class ModelParamBatchAddApiView(generics.GenericAPIView):
         return Response(serializers.data, status=status.HTTP_200_OK)
 
 class ModelParamUpdateApiView(generics.GenericAPIView):
-    # serializer_class = KgModelParamResponseSerializer
-
+    serializer_class = KgModelParamSerializer
     parser_classes = (FormParser, MultiPartParser)
-
     authentication_classes = (CsrfExemptSessionAuthentication, BasicAuthentication)
-    
     serializer_class = KgModelParamResponseSerializer
     swagger_fake_view = True
 
@@ -925,15 +901,10 @@ class ModelParamUpdateApiView(generics.GenericAPIView):
             return Response(serializers.data, status=status.HTTP_200_OK)
         
 class ModelParamBatchUpdateApiView(generics.GenericAPIView):
+    serializer_class = KgModelParamSerializer
     parser_classes = (FormParser, MultiPartParser)
-    
-    # serializer_class = KgFileResponseSerializer
-    # def get_serializer_class(self):
-    #     if self.action == 'post':
-    #         return KgFileResponseSerializer
-    #     return self.serializer_class
     authentication_classes = (CsrfExemptSessionAuthentication, BasicAuthentication)
-    serializer_class = KgModelParamDetailResponseSerializer
+    
     swagger_fake_view = True
 
     @swagger_auto_schema(
@@ -1025,10 +996,9 @@ class ModelParamBatchUpdateApiView(generics.GenericAPIView):
         return Response(serializers.data, status=status.HTTP_200_OK)
         
 class ModelParamDeleteApiView(APIView):
-
+    serializer_class = KgModelParamSerializer
     authentication_classes = (CsrfExemptSessionAuthentication, BasicAuthentication)
 
-    serializer_class = KgModelParamResponseSerializer
 
     @swagger_auto_schema(
         operation_description="模型参数删除",
@@ -1073,7 +1043,7 @@ class ModelParamDeleteApiView(APIView):
 class ModelParamDetailApiView(mixins.ListModelMixin,
                   mixins.CreateModelMixin,
                   generics.GenericAPIView):
-    serializer_class = KgModelParamResponseSerializer
+    serializer_class = KgModelParamSerializer
     @swagger_auto_schema(
             operation_description='GET /modelapp/kgmodelparam/detail/',
             operation_summary="获取单个模型参数详情",

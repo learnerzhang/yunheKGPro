@@ -49,17 +49,14 @@ urlpatterns = [
     path('admin/', admin.site.urls),
     path('xadmin/', xadmin.site.urls),
     path('ueditor/', include('DjangoUeditor.urls')),
-    # 配置django-rest-framwork API路由
-    # path('api/', include('api.urls')),
+    path('apiapp/', include('apiapp.urls')),
     path('logapp/', include('logapp.urls')),
     path('userapp/', include('userapp.urls')),
-    path('apiapp/', include('apiapp.urls')),
     path('yaapp/', include('yaapp.urls')),
     path('kgapp/', include('kgapp.urls')),
     path('modelapp/', include('modelapp.urls')),
     path('dataapp/', include('dataapp.urls')),
     path('api-auth/', include('rest_framework.urls', namespace='rest_framework')),
-    # 配置drf-yasg路由
     path('^swagger(?P<format>\.json|\.yaml)$', schema_view.without_ui(cache_timeout=0), name='schema-json'),
     path('swagger/', schema_view.with_ui('swagger', cache_timeout=0), name='schema-swagger-ui'),
     path('redoc/', schema_view.with_ui('redoc', cache_timeout=0), name='schema-redoc'),

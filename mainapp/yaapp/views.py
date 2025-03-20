@@ -53,14 +53,14 @@ from yaapp.plan import PlanFactory
 from yaapp.wordutils import set_landscape, writeParagraphs2Word, writeTitle2Word
 from yunheKGPro import CsrfExemptSessionAuthentication
 
-from apiapp.serializers import BaseApiResponseSerializer
+from yaapp.serializers import YuAnAppResponseSerializer
 
 
 class PTBusinessList(mixins.ListModelMixin,
                   mixins.CreateModelMixin,
                   generics.GenericAPIView):
     
-    serializer_class = BaseApiResponseSerializer
+    serializer_class = YuAnAppResponseSerializer
     @swagger_auto_schema(
             operation_description='GET /ptbusinesslist',
             operation_summary="预案的业务类型",
@@ -68,7 +68,7 @@ class PTBusinessList(mixins.ListModelMixin,
             manual_parameters=[
             ],
             responses={
-                200: BaseApiResponseSerializer(many=False),
+                200: YuAnAppResponseSerializer(many=False),
                 400: "请求失败",
             },
             tags = ['ya_api'])
@@ -76,7 +76,7 @@ class PTBusinessList(mixins.ListModelMixin,
         data = {"code": 200}
         bus_list = PtBusiness.objects.all()
         data['data'] = [model_to_dict(b) for b in bus_list]
-        serializers = BaseApiResponseSerializer(data=data, many=False)
+        serializers = YuAnAppResponseSerializer(data=data, many=False)
         serializers.is_valid()
         return Response(serializers.data,  status=status.HTTP_200_OK)
 
@@ -84,7 +84,7 @@ class PTBusinessList(mixins.ListModelMixin,
 class BlockList(mixins.ListModelMixin,
                            mixins.CreateModelMixin,
                            generics.GenericAPIView):
-    serializer_class = BaseApiResponseSerializer
+    serializer_class = YuAnAppResponseSerializer
 
     @swagger_auto_schema(
         operation_description='GET ///',
@@ -96,7 +96,7 @@ class BlockList(mixins.ListModelMixin,
             openapi.Parameter('pageSize', openapi.IN_QUERY, type=openapi.TYPE_NUMBER),
         ],
         responses={
-            200: BaseApiResponseSerializer(many=False),
+            200: YuAnAppResponseSerializer(many=False),
             400: "请求失败",
         },
         tags=['ya_api'])
@@ -127,14 +127,14 @@ class BlockList(mixins.ListModelMixin,
             results.append(tmpdict)
 
         data = {"code": 200, "msg": "success", "data": results, "success": True, "total": paginator.count, "page": paginator.num_pages, "pageSize": paginator.per_page}
-        bars = BaseApiResponseSerializer(data=data, many=False)
+        bars = YuAnAppResponseSerializer(data=data, many=False)
         bars.is_valid()
         return Response(bars.data, status=status.HTTP_200_OK)
 
 class BlockOptionList(mixins.ListModelMixin,
                            mixins.CreateModelMixin,
                            generics.GenericAPIView):
-    serializer_class = BaseApiResponseSerializer
+    serializer_class = YuAnAppResponseSerializer
 
     @swagger_auto_schema(
         operation_description='GET ///',
@@ -143,7 +143,7 @@ class BlockOptionList(mixins.ListModelMixin,
         manual_parameters=[
         ],
         responses={
-            200: BaseApiResponseSerializer(many=False),
+            200: YuAnAppResponseSerializer(many=False),
             400: "请求失败",
         },
         tags=['ya_api'])
@@ -153,7 +153,7 @@ class BlockOptionList(mixins.ListModelMixin,
         BlockOptionList.queryset = BlockOptionList.queryset.values('label').distinct()
         results = [ent.get('label') for ent in BlockOptionList.queryset]
         data = {"code": 200, "msg": "success", "data": results}
-        bars = BaseApiResponseSerializer(data=data, many=False)
+        bars = YuAnAppResponseSerializer(data=data, many=False)
         bars.is_valid()
         return Response(bars.data, status=status.HTTP_200_OK)
     
@@ -161,7 +161,7 @@ class BlockOptionList(mixins.ListModelMixin,
 class TemplateList(mixins.ListModelMixin,
                            mixins.CreateModelMixin,
                            generics.GenericAPIView):
-    serializer_class = BaseApiResponseSerializer
+    serializer_class = YuAnAppResponseSerializer
 
     @swagger_auto_schema(
         operation_description='GET ///',
@@ -173,7 +173,7 @@ class TemplateList(mixins.ListModelMixin,
             openapi.Parameter('pageSize', openapi.IN_QUERY, type=openapi.TYPE_NUMBER),
         ],
         responses={
-            200: BaseApiResponseSerializer(many=False),
+            200: YuAnAppResponseSerializer(many=False),
             400: "请求失败",
         },
         tags=['ya_api'])
@@ -204,7 +204,7 @@ class TemplateList(mixins.ListModelMixin,
             results.append(tmpdict)
 
         data = {"code": 200, "msg": "success", "data": results, "success": True, "total": paginator.count, "page": paginator.num_pages, "pageSize": paginator.per_page}
-        bars = BaseApiResponseSerializer(data=data, many=False)
+        bars = YuAnAppResponseSerializer(data=data, many=False)
         bars.is_valid()
         return Response(bars.data, status=status.HTTP_200_OK)
     
@@ -212,7 +212,7 @@ class TemplateList(mixins.ListModelMixin,
 class TemplateDetail(mixins.ListModelMixin,
                            mixins.CreateModelMixin,
                            generics.GenericAPIView):
-    serializer_class = BaseApiResponseSerializer
+    serializer_class = YuAnAppResponseSerializer
 
     @swagger_auto_schema(
         operation_description='GET ///',
@@ -222,7 +222,7 @@ class TemplateDetail(mixins.ListModelMixin,
             openapi.Parameter('id', openapi.IN_QUERY, type=openapi.TYPE_NUMBER),
         ],
         responses={
-            200: BaseApiResponseSerializer(many=False),
+            200: YuAnAppResponseSerializer(many=False),
             400: "请求失败",
         },
         tags=['ya_api'])
@@ -233,7 +233,7 @@ class TemplateDetail(mixins.ListModelMixin,
             pt = PlanTemplate.objects.get(id=ptId)
         except:
             data = {"code": 202, "data": {}, "msg": "系统不存在该数据", "success": False}
-            bars = BaseApiResponseSerializer(data=data, many=False)
+            bars = YuAnAppResponseSerializer(data=data, many=False)
             bars.is_valid()
             return Response(bars.data, status=status.HTTP_200_OK)
 
@@ -241,13 +241,13 @@ class TemplateDetail(mixins.ListModelMixin,
         tmpResult['node_list'] = pt.nodelist
         tmpResult['created_at'] = pt.created_at.strftime("%Y-%m-%d %H:%M:%S")
         data = {"code": 200, "msg": "success", "data": tmpResult, "success": True}
-        bars = BaseApiResponseSerializer(data=data, many=False)
+        bars = YuAnAppResponseSerializer(data=data, many=False)
         bars.is_valid()
         return Response(bars.data, status=status.HTTP_200_OK)
     
 class AddOrUpdateTemplate(generics.GenericAPIView):
     authentication_classes = (CsrfExemptSessionAuthentication, BasicAuthentication)
-    serializer_class = BaseApiResponseSerializer
+    serializer_class = YuAnAppResponseSerializer
 
     @swagger_auto_schema(
         operation_summary='POST 节点或者更新预案',
@@ -262,7 +262,7 @@ class AddOrUpdateTemplate(generics.GenericAPIView):
             },
         ),
         responses={
-            200: BaseApiResponseSerializer(many=False),
+            200: YuAnAppResponseSerializer(many=False),
             400: "请求失败",
         },
         tags=['ya_api']
@@ -294,13 +294,13 @@ class AddOrUpdateTemplate(generics.GenericAPIView):
                 data = {"code": 200, "data": tmpResult, "msg": "预案更新成功！"}
             except:
                 data = {"code": 201, "data": {}, "msg": "参数错误"}
-        serializers = BaseApiResponseSerializer(data=data, many=False)
+        serializers = YuAnAppResponseSerializer(data=data, many=False)
         serializers.is_valid()
         return Response(serializers.data, status=status.HTTP_200_OK)
     
 class DeleteTemplate(generics.GenericAPIView):
     authentication_classes = (CsrfExemptSessionAuthentication, BasicAuthentication)
-    serializer_class = BaseApiResponseSerializer
+    serializer_class = YuAnAppResponseSerializer
     @swagger_auto_schema(
         operation_summary='删除预案操作',
         operation_description='POST ///',
@@ -312,7 +312,7 @@ class DeleteTemplate(generics.GenericAPIView):
             },
         ),
         responses={
-            200: BaseApiResponseSerializer(many=False),
+            200: YuAnAppResponseSerializer(many=False),
             400: "请求失败",
         },
         tags=['ya_api']
@@ -327,7 +327,7 @@ class DeleteTemplate(generics.GenericAPIView):
         except:
             data = {"code": 202, "data": {}, "msg": "系统不存在该数据", "success": False}
 
-        serializers = BaseApiResponseSerializer(data=data, many=False)
+        serializers = YuAnAppResponseSerializer(data=data, many=False)
         serializers.is_valid()
         return Response(serializers.data, status=status.HTTP_200_OK)
     
@@ -335,7 +335,7 @@ class DeleteTemplate(generics.GenericAPIView):
 
 class AddOrUpdateTemplateByNode(generics.GenericAPIView):
     authentication_classes = (CsrfExemptSessionAuthentication, BasicAuthentication)
-    serializer_class = BaseApiResponseSerializer
+    serializer_class = YuAnAppResponseSerializer
 
     @swagger_auto_schema(
         operation_summary='POST',
@@ -353,7 +353,7 @@ class AddOrUpdateTemplateByNode(generics.GenericAPIView):
             },
         ),
         responses={
-            200: BaseApiResponseSerializer(many=False),
+            200: YuAnAppResponseSerializer(many=False),
             400: "请求失败",
         },
         tags=['ya_api']
@@ -371,7 +371,7 @@ class AddOrUpdateTemplateByNode(generics.GenericAPIView):
 
         if ptid is None:
             data = {"code": 201, "data": {}, "msg": "参数错误"}        
-            serializers = BaseApiResponseSerializer(data=data, many=False)
+            serializers = YuAnAppResponseSerializer(data=data, many=False)
             serializers.is_valid()
             return Response(serializers.data, status=status.HTTP_200_OK)
         else:
@@ -400,14 +400,14 @@ class AddOrUpdateTemplateByNode(generics.GenericAPIView):
                     data = {"code": 200, "data": tmpResult, "msg": "节点更新成功！"}
                 except:
                     data = {"code": 201, "data": {}, "msg": "参数错误"}
-        serializers = BaseApiResponseSerializer(data=data, many=False)
+        serializers = YuAnAppResponseSerializer(data=data, many=False)
         serializers.is_valid()
         return Response(serializers.data, status=status.HTTP_200_OK)
     
 
 class CreateSysTemplate(generics.GenericAPIView):
     authentication_classes = (CsrfExemptSessionAuthentication, BasicAuthentication)
-    serializer_class = BaseApiResponseSerializer
+    serializer_class = YuAnAppResponseSerializer
 
     @swagger_auto_schema(
         operation_summary='POST 【后台管理】新建模板',
@@ -420,11 +420,11 @@ class CreateSysTemplate(generics.GenericAPIView):
                 'description': openapi.Schema(type=openapi.TYPE_STRING, description="description"),
                 'created_at': openapi.Schema(type=openapi.TYPE_STRING, description="created_at"),
                 'businessid': openapi.Schema(type=openapi.TYPE_NUMBER, description="businessid 业务ID"),
-                'blockOpts': openapi.Schema(type=openapi.TYPE_ARRAY, items=openapi.Schema(type=openapi.TYPE_STRING, properties={}), description="blackids 涉及板块ID"),
+                # 'blockOpts': openapi.Schema(type=openapi.TYPE_ARRAY, items=openapi.Schema(type=openapi.TYPE_STRING, properties={}), description="blackids 涉及板块ID"),
             },
         ),
         responses={
-            200: BaseApiResponseSerializer(many=False),
+            200: YuAnAppResponseSerializer(many=False),
             400: "请求失败",
         },
         tags=['ya_api']
@@ -441,7 +441,7 @@ class CreateSysTemplate(generics.GenericAPIView):
 
         if not name or not businessid or not created_at or not blockOpts:
             data = {"code": 201, "data": {}, "msg": "参数错误"}        
-            serializers = BaseApiResponseSerializer(data=data, many=False)
+            serializers = YuAnAppResponseSerializer(data=data, many=False)
             serializers.is_valid()
             return Response(serializers.data, status=status.HTTP_200_OK)
         else:
@@ -456,14 +456,14 @@ class CreateSysTemplate(generics.GenericAPIView):
             retJson = model_to_dict(tmpPT, exclude=["nodes"])
             retJson['nodeOutlineList'] = tmpPT.nodeOutlineList
             data = {"code": 200, "data": retJson, "msg": "节点创建成功！"}
-        serializers = BaseApiResponseSerializer(data=data, many=False)
+        serializers = YuAnAppResponseSerializer(data=data, many=False)
         serializers.is_valid()
         return Response(serializers.data, status=status.HTTP_200_OK)
 
 
 class UpdateTemplateNode(generics.GenericAPIView):
     authentication_classes = (CsrfExemptSessionAuthentication, BasicAuthentication)
-    serializer_class = BaseApiResponseSerializer
+    serializer_class = YuAnAppResponseSerializer
 
     @swagger_auto_schema(
         operation_summary='POST 【板块配置信息】',
@@ -480,7 +480,7 @@ class UpdateTemplateNode(generics.GenericAPIView):
             },
         ),
         responses={
-            200: BaseApiResponseSerializer(many=False),
+            200: YuAnAppResponseSerializer(many=False),
             400: "请求失败",
         },
         tags=['ya_api']
@@ -497,7 +497,7 @@ class UpdateTemplateNode(generics.GenericAPIView):
 
         if nodeid is None:
             data = {"code": 201, "data": {}, "msg": "参数错误"}        
-            serializers = BaseApiResponseSerializer(data=data, many=False)
+            serializers = YuAnAppResponseSerializer(data=data, many=False)
             serializers.is_valid()
             return Response(serializers.data, status=status.HTTP_200_OK)
         else:
@@ -515,13 +515,13 @@ class UpdateTemplateNode(generics.GenericAPIView):
                 data = {"code": 200, "data": model_to_dict(nt, exclude=["wordParagraphs"]), "msg": "节点更新成功！"}
             except:
                 data = {"code": 201, "data": {}, "msg": "参数错误"}
-        serializers = BaseApiResponseSerializer(data=data, many=False)
+        serializers = YuAnAppResponseSerializer(data=data, many=False)
         serializers.is_valid()
         return Response(serializers.data, status=status.HTTP_200_OK)
 
 class DeleteNodeByTemplate(generics.GenericAPIView):
     authentication_classes = (CsrfExemptSessionAuthentication, BasicAuthentication)
-    serializer_class = BaseApiResponseSerializer
+    serializer_class = YuAnAppResponseSerializer
     @swagger_auto_schema(
         operation_summary='删除预案操作',
         operation_description='POST ///',
@@ -534,7 +534,7 @@ class DeleteNodeByTemplate(generics.GenericAPIView):
             },
         ),
         responses={
-            200: BaseApiResponseSerializer(many=False),
+            200: YuAnAppResponseSerializer(many=False),
             400: "请求失败",
         },
         tags=['ya_api']
@@ -546,7 +546,7 @@ class DeleteNodeByTemplate(generics.GenericAPIView):
 
         if ptId is None or ntId is None:
             data = {"code": 201, "data": {}, "msg": "参数错误"}
-            serializers = BaseApiResponseSerializer(data=data, many=False)
+            serializers = YuAnAppResponseSerializer(data=data, many=False)
             serializers.is_valid()
             return Response(serializers.data, status=status.HTTP_200_OK)
 
@@ -559,14 +559,14 @@ class DeleteNodeByTemplate(generics.GenericAPIView):
         except:
             data = {"code": 202, "data": {}, "msg": "系统不存在该数据", "success": False}
 
-        serializers = BaseApiResponseSerializer(data=data, many=False)
+        serializers = YuAnAppResponseSerializer(data=data, many=False)
         serializers.is_valid()
         return Response(serializers.data, status=status.HTTP_200_OK)
     
 
 class LLMSingleNodePlan(generics.GenericAPIView):
     authentication_classes = (CsrfExemptSessionAuthentication, BasicAuthentication)
-    serializer_class = BaseApiResponseSerializer
+    serializer_class = YuAnAppResponseSerializer
 
     @swagger_auto_schema(
         operation_summary='单章节节点预案生成',
@@ -580,7 +580,7 @@ class LLMSingleNodePlan(generics.GenericAPIView):
             },
         ),
         responses={
-            200: BaseApiResponseSerializer(many=False),
+            200: YuAnAppResponseSerializer(many=False),
             400: "请求失败",
         },
         tags=['ya_api']
@@ -599,7 +599,7 @@ class LLMSingleNodePlan(generics.GenericAPIView):
         tmp_param_path = getYuAnParamPath(userYuAnPlan.ctype, userYuAnPlan.yadate)
         if not os.path.exists(tmp_param_path):
             data = {"code": 201, "data": {}, "msg": "参数文件不存在, 请先搜集参数"}
-            serializers = BaseApiResponseSerializer(data=data, many=False)
+            serializers = YuAnAppResponseSerializer(data=data, many=False)
             serializers.is_valid()
             return Response(serializers.data, status=status.HTTP_200_OK)
         
@@ -615,14 +615,14 @@ class LLMSingleNodePlan(generics.GenericAPIView):
         # 生成对应描述
         pf.make_context()
         data = {"code": 200, "data": model_to_dict(node, exclude=['parent', 'wordParagraphs']), "msg": "生成成功！"}
-        serializers = BaseApiResponseSerializer(data=data, many=False)
+        serializers = YuAnAppResponseSerializer(data=data, many=False)
         serializers.is_valid()
         return Response(serializers.data, status=status.HTTP_200_OK)
     
 
 class RagSingleNodePlan(generics.GenericAPIView):
     authentication_classes = (CsrfExemptSessionAuthentication, BasicAuthentication)
-    serializer_class = BaseApiResponseSerializer
+    serializer_class = YuAnAppResponseSerializer
 
     @swagger_auto_schema(
         operation_summary='单章节节点预案生成',
@@ -636,7 +636,7 @@ class RagSingleNodePlan(generics.GenericAPIView):
             },
         ),
         responses={
-            200: BaseApiResponseSerializer(many=False),
+            200: YuAnAppResponseSerializer(many=False),
             400: "请求失败",
         },
         tags=['ya_api']
@@ -655,7 +655,7 @@ class RagSingleNodePlan(generics.GenericAPIView):
         tmp_param_path = getYuAnParamPath(userYuAnPlan.ctype, userYuAnPlan.yadate)
         if not os.path.exists(tmp_param_path):
             data = {"code": 201, "data": {}, "msg": "参数文件不存在, 请先搜集参数"}
-            serializers = BaseApiResponseSerializer(data=data, many=False)
+            serializers = YuAnAppResponseSerializer(data=data, many=False)
             serializers.is_valid()
             return Response(serializers.data, status=status.HTTP_200_OK)
         
@@ -671,14 +671,14 @@ class RagSingleNodePlan(generics.GenericAPIView):
         # 生成对应描述
         pf.make_context()
         data = {"code": 200, "data": model_to_dict(node, exclude=['parent', 'wordParagraphs']), "msg": "生成成功！"}
-        serializers = BaseApiResponseSerializer(data=data, many=False)
+        serializers = YuAnAppResponseSerializer(data=data, many=False)
         serializers.is_valid()
         return Response(serializers.data, status=status.HTTP_200_OK)
     
 
 class LLMNodePlan(generics.GenericAPIView):
     authentication_classes = (CsrfExemptSessionAuthentication, BasicAuthentication)
-    serializer_class = BaseApiResponseSerializer
+    serializer_class = YuAnAppResponseSerializer
 
     @swagger_auto_schema(
         operation_summary='预案生成',
@@ -691,7 +691,7 @@ class LLMNodePlan(generics.GenericAPIView):
             },
         ),
         responses={
-            200: BaseApiResponseSerializer(many=False),
+            200: YuAnAppResponseSerializer(many=False),
             400: "请求失败",
         },
         tags=['ya_api']
@@ -709,7 +709,7 @@ class LLMNodePlan(generics.GenericAPIView):
         print("tmp_param_path:", tmp_param_path)
         if not os.path.exists(tmp_param_path):
             data = {"code": 201, "data": {}, "msg": "参数文件不存在, 请先搜集参数"}
-            serializers = BaseApiResponseSerializer(data=data, many=False)
+            serializers = YuAnAppResponseSerializer(data=data, many=False)
             serializers.is_valid()
             return Response(serializers.data, status=status.HTTP_200_OK)
         
@@ -728,13 +728,13 @@ class LLMNodePlan(generics.GenericAPIView):
         resultJson =  model_to_dict(userYuAnPlan, exclude=['parent', "nodes"])
         resultJson['nodeList'] = userYuAnPlan.nodeDetailList
         data = {"code": 200, "data": resultJson, "msg": "生成成功！"}
-        serializers = BaseApiResponseSerializer(data=data, many=False)
+        serializers = YuAnAppResponseSerializer(data=data, many=False)
         serializers.is_valid()
         return Response(serializers.data, status=status.HTTP_200_OK)
 
 class MakePlanWord(generics.GenericAPIView):
     authentication_classes = (CsrfExemptSessionAuthentication, BasicAuthentication)
-    serializer_class = BaseApiResponseSerializer
+    serializer_class = YuAnAppResponseSerializer
 
     @swagger_auto_schema(
         operation_summary='POST 生成预案word',
@@ -747,7 +747,7 @@ class MakePlanWord(generics.GenericAPIView):
             },
         ),
         responses={
-            200: BaseApiResponseSerializer(many=False),
+            200: YuAnAppResponseSerializer(many=False),
             400: "请求失败",
         },
         tags=['ya_api']
@@ -758,7 +758,7 @@ class MakePlanWord(generics.GenericAPIView):
         pid = request.data.get("id", None)
         if pid is None:
             data = {"code": 201, "msg": "参数错误"}
-            bars = BaseApiResponseSerializer(data=data, many=False)
+            bars = YuAnAppResponseSerializer(data=data, many=False)
             bars.is_valid()
             return Response(bars.data, status=status.HTTP_200_OK)
 
@@ -781,14 +781,14 @@ class MakePlanWord(generics.GenericAPIView):
         tmpdict['created_at'] = tmpdoc.created_at.strftime("%Y-%m-%d %H:%M:%S")
         tmpdict['file_path'] = tmpdoc.document.url
         data = {"code": 200, "data": tmpdict, "msg": "生成Word成功！"}
-        serializers = BaseApiResponseSerializer(data=data, many=False)
+        serializers = YuAnAppResponseSerializer(data=data, many=False)
         serializers.is_valid()
         return Response(serializers.data, status=status.HTTP_200_OK)
 
 class UserTemplateDocumentList(mixins.ListModelMixin,
                            mixins.CreateModelMixin,
                            generics.GenericAPIView):
-    serializer_class = BaseApiResponseSerializer
+    serializer_class = YuAnAppResponseSerializer
 
     @swagger_auto_schema(
         operation_description='GET ///',
@@ -800,7 +800,7 @@ class UserTemplateDocumentList(mixins.ListModelMixin,
             openapi.Parameter('pageSize', openapi.IN_QUERY, type=openapi.TYPE_NUMBER),
         ],
         responses={
-            200: BaseApiResponseSerializer(many=False),
+            200: YuAnAppResponseSerializer(many=False),
             400: "请求失败",
         },
         tags=['ya_api'])
@@ -832,7 +832,7 @@ class UserTemplateDocumentList(mixins.ListModelMixin,
             results.append(tmpdict)
         print(results)
         data = {"code": 200, "msg": "success", "data": results, "success": True, "total": paginator.count, "page": paginator.num_pages, "pageSize": paginator.per_page}
-        bars = BaseApiResponseSerializer(data=data, many=False)
+        bars = YuAnAppResponseSerializer(data=data, many=False)
         bars.is_valid()
         return Response(bars.data, status=status.HTTP_200_OK)
 
@@ -859,7 +859,7 @@ def url_to_chinese(url):
 
 class DeleteUserPlanDocument(generics.GenericAPIView):
     authentication_classes = (CsrfExemptSessionAuthentication, BasicAuthentication)
-    serializer_class = BaseApiResponseSerializer
+    serializer_class = YuAnAppResponseSerializer
     @swagger_auto_schema(
         operation_summary='删除用户预案文档操作',
         operation_description='POST ///',
@@ -871,7 +871,7 @@ class DeleteUserPlanDocument(generics.GenericAPIView):
             },
         ),
         responses={
-            200: BaseApiResponseSerializer(many=False),
+            200: YuAnAppResponseSerializer(many=False),
             400: "请求失败",
         },
         tags=['ya_api']
@@ -882,7 +882,7 @@ class DeleteUserPlanDocument(generics.GenericAPIView):
 
         if ptDocId is None:
             data = {"code": 201, "data": {}, "msg": "参数错误"}
-            serializers = BaseApiResponseSerializer(data=data, many=False)
+            serializers = YuAnAppResponseSerializer(data=data, many=False)
             serializers.is_valid()
             return Response(serializers.data, status=status.HTTP_200_OK)
 
@@ -908,7 +908,7 @@ class DeleteUserPlanDocument(generics.GenericAPIView):
         except:
             data = {"code": 202, "data": {}, "msg": "系统不存在该数据", "success": False}
 
-        serializers = BaseApiResponseSerializer(data=data, many=False)
+        serializers = YuAnAppResponseSerializer(data=data, many=False)
         serializers.is_valid()
         return Response(serializers.data, status=status.HTTP_200_OK)
     
@@ -916,7 +916,7 @@ class DeleteUserPlanDocument(generics.GenericAPIView):
 
 class UpdateUserPlanDocument(generics.GenericAPIView):
     authentication_classes = (CsrfExemptSessionAuthentication, BasicAuthentication)
-    serializer_class = BaseApiResponseSerializer
+    serializer_class = YuAnAppResponseSerializer
     @swagger_auto_schema(
         operation_summary='更新用户预案文档操作',
         operation_description='POST ///',
@@ -929,7 +929,7 @@ class UpdateUserPlanDocument(generics.GenericAPIView):
             },
         ),
         responses={
-            200: BaseApiResponseSerializer(many=False),
+            200: YuAnAppResponseSerializer(many=False),
             400: "请求失败",
         },
         tags=['ya_api']
@@ -941,7 +941,7 @@ class UpdateUserPlanDocument(generics.GenericAPIView):
 
         if ptDocId is None or name is None:
             data = {"code": 201, "data": {}, "msg": "参数错误"}
-            serializers = BaseApiResponseSerializer(data=data, many=False)
+            serializers = YuAnAppResponseSerializer(data=data, many=False)
             serializers.is_valid()
             return Response(serializers.data, status=status.HTTP_200_OK)
 
@@ -954,7 +954,7 @@ class UpdateUserPlanDocument(generics.GenericAPIView):
         except:
             data = {"code": 202, "data": {}, "msg": "系统不存在该数据", "success": False}
 
-        serializers = BaseApiResponseSerializer(data=data, many=False)
+        serializers = YuAnAppResponseSerializer(data=data, many=False)
         serializers.is_valid()
         return Response(serializers.data, status=status.HTTP_200_OK)
     
@@ -979,7 +979,7 @@ def deep_copy_model(instance:PlanTemplate, mydate: str, user: User=None):
 
 class YuAnRecomApiPost(generics.GenericAPIView):
     authentication_classes = (CsrfExemptSessionAuthentication, BasicAuthentication)
-    serializer_class = BaseApiResponseSerializer
+    serializer_class = YuAnAppResponseSerializer
 
     @swagger_auto_schema(
         operation_summary='用户输入预案，动态推荐预览模板',
@@ -994,7 +994,7 @@ class YuAnRecomApiPost(generics.GenericAPIView):
             },
         ),
         responses={
-            200: BaseApiResponseSerializer(many=False),
+            200: YuAnAppResponseSerializer(many=False),
             400: "请求失败",
         },
         tags=['ya_api']
@@ -1033,7 +1033,7 @@ class YuAnRecomApiPost(generics.GenericAPIView):
                 pt = PlanTemplate.objects.get(id=ptId)
             except:
                 data = {"code": 202, "data": {}, "msg": "系统不存在该数据", "success": False}
-                bars = BaseApiResponseSerializer(data=data, many=False)
+                bars = YuAnAppResponseSerializer(data=data, many=False)
                 bars.is_valid()
                 return Response(bars.data, status=status.HTTP_200_OK)
             
@@ -1047,14 +1047,14 @@ class YuAnRecomApiPost(generics.GenericAPIView):
             data = {"code": 200, "msg": "success", "data": tmpResult, "success": True}
         else:
             data = {"code": 201, "data": {}, "msg": "暂无推荐数据", "success": False}
-        serializers = BaseApiResponseSerializer(data=data, many=False)
+        serializers = YuAnAppResponseSerializer(data=data, many=False)
         serializers.is_valid()
         return Response(serializers.data, status=status.HTTP_200_OK)
 
 class YuAnRecomPtDetailApiGet(mixins.ListModelMixin,
                            mixins.CreateModelMixin,
                            generics.GenericAPIView):
-    serializer_class = BaseApiResponseSerializer
+    serializer_class = YuAnAppResponseSerializer
 
     @swagger_auto_schema(
         operation_description='GET ///',
@@ -1064,7 +1064,7 @@ class YuAnRecomPtDetailApiGet(mixins.ListModelMixin,
             openapi.Parameter('id', openapi.IN_QUERY, type=openapi.TYPE_NUMBER),
         ],
         responses={
-            200: BaseApiResponseSerializer(many=False),
+            200: YuAnAppResponseSerializer(many=False),
             400: "请求失败",
         },
         tags=['ya_api'])
@@ -1075,7 +1075,7 @@ class YuAnRecomPtDetailApiGet(mixins.ListModelMixin,
             pt = PlanTemplate.objects.get(id=ptId)
         except:
             data = {"code": 202, "data": {}, "msg": "系统不存在该数据", "success": False}
-            bars = BaseApiResponseSerializer(data=data, many=False)
+            bars = YuAnAppResponseSerializer(data=data, many=False)
             bars.is_valid()
             return Response(bars.data, status=status.HTTP_200_OK)
 
@@ -1083,7 +1083,7 @@ class YuAnRecomPtDetailApiGet(mixins.ListModelMixin,
         tmpResult['nodeOutlineList'] = pt.nodeOutlineList
         tmpResult['created_at'] = pt.created_at.strftime("%Y-%m-%d %H:%M:%S")
         data = {"code": 200, "msg": "success", "data": tmpResult, "success": True}
-        bars = BaseApiResponseSerializer(data=data, many=False)
+        bars = YuAnAppResponseSerializer(data=data, many=False)
         bars.is_valid()
         return Response(bars.data, status=status.HTTP_200_OK)
     
@@ -1091,7 +1091,7 @@ class YuAnRecomPtDetailApiGet(mixins.ListModelMixin,
 
 class YuAnUserPtSaveApiPost(generics.GenericAPIView):
     authentication_classes = (CsrfExemptSessionAuthentication, BasicAuthentication)
-    serializer_class = BaseApiResponseSerializer
+    serializer_class = YuAnAppResponseSerializer
 
     @swagger_auto_schema(
         operation_summary='用户保存预案结构',
@@ -1105,13 +1105,11 @@ class YuAnUserPtSaveApiPost(generics.GenericAPIView):
                 'name': openapi.Schema(type=openapi.TYPE_STRING, description="name"),
                 'yadate': openapi.Schema(type=openapi.TYPE_STRING, description="yadate"),
                 'ctype': openapi.Schema(type=openapi.TYPE_NUMBER, description="ctype"),
-                'nodeList': openapi.Schema(type=openapi.TYPE_ARRAY, 
-                                           description="节点列表", 
-                                           items=openapi.Schema(type=openapi.TYPE_OBJECT, properties={})),
+                # 'nodeList': openapi.Schema(type=openapi.TYPE_ARRAY,  description="节点列表",  items=openapi.Schema(type=openapi.TYPE_OBJECT, properties={})),
             },
         ),
         responses={
-            200: BaseApiResponseSerializer(many=False),
+            200: YuAnAppResponseSerializer(many=False),
             400: "请求失败",
         },
         tags=['ya_api']
@@ -1155,13 +1153,13 @@ class YuAnUserPtSaveApiPost(generics.GenericAPIView):
         result['nodeOutlineList'] = tmpP.nodeOutlineList
         result['created_at'] = tmpP.created_at.strftime("%Y-%m-%d %H:%M:%S")
         data = {"code": 200, "data": result, "msg": "success"}
-        serializers = BaseApiResponseSerializer(data=data, many=False)
+        serializers = YuAnAppResponseSerializer(data=data, many=False)
         serializers.is_valid()
         return Response(serializers.data, status=status.HTTP_200_OK)
 
 class YuAnUserPtNodeAddOrUpdateApiPost(generics.GenericAPIView):
     authentication_classes = (CsrfExemptSessionAuthentication, BasicAuthentication)
-    serializer_class = BaseApiResponseSerializer
+    serializer_class = YuAnAppResponseSerializer
 
     @swagger_auto_schema(
         operation_summary='用户增/修改某个节点',
@@ -1180,7 +1178,7 @@ class YuAnUserPtNodeAddOrUpdateApiPost(generics.GenericAPIView):
             },
         ),
         responses={
-            200: BaseApiResponseSerializer(many=False),
+            200: YuAnAppResponseSerializer(many=False),
             400: "请求失败",
         },
         tags=['ya_api']
@@ -1202,7 +1200,7 @@ class YuAnUserPtNodeAddOrUpdateApiPost(generics.GenericAPIView):
             pt = PlanByUser.objects.get(id=pid)
         except:
             data = {"code": 202, "data": {}, "msg": "系统不存在该数据", "success": False}
-            bars = BaseApiResponseSerializer(data=data, many=False)
+            bars = YuAnAppResponseSerializer(data=data, many=False)
             bars.is_valid()
             return Response(bars.data, status=status.HTTP_200_OK)
         
@@ -1231,14 +1229,14 @@ class YuAnUserPtNodeAddOrUpdateApiPost(generics.GenericAPIView):
         tmpdict['prompt'] = tmpN.template
         tmpdict['created_at'] = tmpN.created_at.strftime("%Y-%m-%d %H:%M:%S")
         data['data'] = tmpdict
-        serializers = BaseApiResponseSerializer(data=data, many=False)
+        serializers = YuAnAppResponseSerializer(data=data, many=False)
         serializers.is_valid()
         return Response(serializers.data, status=status.HTTP_200_OK)
 
 
 class YuAnUserPtDeleteApiPost(generics.GenericAPIView):
     authentication_classes = (CsrfExemptSessionAuthentication, BasicAuthentication)
-    serializer_class = BaseApiResponseSerializer
+    serializer_class = YuAnAppResponseSerializer
 
     @swagger_auto_schema(
         operation_summary='用户删除某个节点',
@@ -1252,7 +1250,7 @@ class YuAnUserPtDeleteApiPost(generics.GenericAPIView):
             },
         ),
         responses={
-            200: BaseApiResponseSerializer(many=False),
+            200: YuAnAppResponseSerializer(many=False),
             400: "请求失败",
         },
         tags=['ya_api']
@@ -1273,7 +1271,7 @@ class YuAnUserPtDeleteApiPost(generics.GenericAPIView):
             data = {"code": 200, "data": {}, "msg": "success", "success": True}
         except:
             data = {"code": 202, "data": {}, "msg": "系统不存在该数据", "success": False}
-        serializers = BaseApiResponseSerializer(data=data, many=False)
+        serializers = YuAnAppResponseSerializer(data=data, many=False)
         serializers.is_valid()
         return Response(serializers.data, status=status.HTTP_200_OK)
     
@@ -1281,7 +1279,7 @@ class YuAnUserPtDeleteApiPost(generics.GenericAPIView):
 class YuAnUserPtDetailApiGet(mixins.ListModelMixin,
                            mixins.CreateModelMixin,
                            generics.GenericAPIView):
-    serializer_class = BaseApiResponseSerializer
+    serializer_class = YuAnAppResponseSerializer
 
     @swagger_auto_schema(
         operation_description='GET ///',
@@ -1291,7 +1289,7 @@ class YuAnUserPtDetailApiGet(mixins.ListModelMixin,
             openapi.Parameter('id', openapi.IN_QUERY, type=openapi.TYPE_NUMBER),
         ],
         responses={
-            200: BaseApiResponseSerializer(many=False),
+            200: YuAnAppResponseSerializer(many=False),
             400: "请求失败",
         },
         tags=['ya_api'])
@@ -1302,7 +1300,7 @@ class YuAnUserPtDetailApiGet(mixins.ListModelMixin,
             pt = PlanByUser.objects.get(id=ptId)
         except:
             data = {"code": 202, "data": {}, "msg": "系统不存在该数据", "success": False}
-            bars = BaseApiResponseSerializer(data=data, many=False)
+            bars = YuAnAppResponseSerializer(data=data, many=False)
             bars.is_valid()
             return Response(bars.data, status=status.HTTP_200_OK)
 
@@ -1310,7 +1308,7 @@ class YuAnUserPtDetailApiGet(mixins.ListModelMixin,
         tmpResult['nodeOutlineList'] = pt.nodeOutlineList
         tmpResult['created_at'] = pt.created_at.strftime("%Y-%m-%d %H:%M:%S")
         data = {"code": 200, "msg": "success", "data": tmpResult, "success": True}
-        bars = BaseApiResponseSerializer(data=data, many=False)
+        bars = YuAnAppResponseSerializer(data=data, many=False)
         bars.is_valid()
         return Response(bars.data, status=status.HTTP_200_OK)
 
@@ -1318,7 +1316,7 @@ class YuAnUserPtDetailApiGet(mixins.ListModelMixin,
 class YuAnUserPtListApiGet(mixins.ListModelMixin,
                            mixins.CreateModelMixin,
                            generics.GenericAPIView):
-    serializer_class = BaseApiResponseSerializer
+    serializer_class = YuAnAppResponseSerializer
 
     @swagger_auto_schema(
         operation_description='GET ///',
@@ -1331,7 +1329,7 @@ class YuAnUserPtListApiGet(mixins.ListModelMixin,
             openapi.Parameter('pageSize', openapi.IN_QUERY, type=openapi.TYPE_NUMBER),
         ],
         responses={
-            200: BaseApiResponseSerializer(many=False),
+            200: YuAnAppResponseSerializer(many=False),
             400: "请求失败",
         },
         tags=['ya_api'])
@@ -1367,7 +1365,7 @@ class YuAnUserPtListApiGet(mixins.ListModelMixin,
             results.append(tmpdict)
         print(results)
         data = {"code": 200, "msg": "success", "data": results, "success": True, "total": paginator.count, "page": paginator.num_pages, "pageSize": paginator.per_page}
-        bars = BaseApiResponseSerializer(data=data, many=False)
+        bars = YuAnAppResponseSerializer(data=data, many=False)
         bars.is_valid()
         return Response(bars.data, status=status.HTTP_200_OK)
     
@@ -1375,7 +1373,7 @@ class YuAnUserPtListApiGet(mixins.ListModelMixin,
 class RecentlyYuAnUserPtApiGet(mixins.ListModelMixin,
                            mixins.CreateModelMixin,
                            generics.GenericAPIView):
-    serializer_class = BaseApiResponseSerializer
+    serializer_class = YuAnAppResponseSerializer
 
     @swagger_auto_schema(
         operation_description='GET ///',
@@ -1384,7 +1382,7 @@ class RecentlyYuAnUserPtApiGet(mixins.ListModelMixin,
         manual_parameters=[
         ],
         responses={
-            200: BaseApiResponseSerializer(many=False),
+            200: YuAnAppResponseSerializer(many=False),
             400: "请求失败",
         },
         tags=['ya_api'])
@@ -1402,21 +1400,21 @@ class RecentlyYuAnUserPtApiGet(mixins.ListModelMixin,
         recentUserPt = YuAnUserPtListApiGet.queryset.order_by('-created_at').first()
         if recentUserPt is None:
             data = {"code": 202, "data": {}, "msg": "系统不存在该数据", "success": False}
-            bars = BaseApiResponseSerializer(data=data, many=False)
+            bars = YuAnAppResponseSerializer(data=data, many=False)
             bars.is_valid()
             return Response(bars.data, status=status.HTTP_200_OK)
         result = model_to_dict(recentUserPt, exclude=["plan", "nodes"])
         result['nodeOutlineList'] = recentUserPt.nodeOutlineList
         result['created_at'] = recentUserPt.created_at.strftime("%Y-%m-%d %H:%M:%S")
         data = {"code": 200, "msg": "success", "data": result, "success": True}
-        bars = BaseApiResponseSerializer(data=data, many=False)
+        bars = YuAnAppResponseSerializer(data=data, many=False)
         bars.is_valid()
         return Response(bars.data, status=status.HTTP_200_OK)
     
     
 class YuAnUserPlanDeleteApiPost(generics.GenericAPIView):
     authentication_classes = (CsrfExemptSessionAuthentication, BasicAuthentication)
-    serializer_class = BaseApiResponseSerializer
+    serializer_class = YuAnAppResponseSerializer
 
     @swagger_auto_schema(
         operation_summary='用户删除预案',
@@ -1429,7 +1427,7 @@ class YuAnUserPlanDeleteApiPost(generics.GenericAPIView):
             },
         ),
         responses={
-            200: BaseApiResponseSerializer(many=False),
+            200: YuAnAppResponseSerializer(many=False),
             400: "请求失败",
         },
         tags=['ya_api']
@@ -1447,14 +1445,14 @@ class YuAnUserPlanDeleteApiPost(generics.GenericAPIView):
             data = {"code": 200, "data": {}, "msg": "success", "success": True}
         except:
             data = {"code": 202, "data": {}, "msg": "系统不存在该数据", "success": False}
-        serializers = BaseApiResponseSerializer(data=data, many=False)
+        serializers = YuAnAppResponseSerializer(data=data, many=False)
         serializers.is_valid()
         return Response(serializers.data, status=status.HTTP_200_OK)
     
 class DDFAUploadApiPost(generics.GenericAPIView):
     parser_classes = (FormParser, MultiPartParser)
     authentication_classes = (CsrfExemptSessionAuthentication, BasicAuthentication)
-    # serializer_class = BaseApiResponseSerializer
+    serializer_class = YuAnAppResponseSerializer
 
     @swagger_auto_schema(
         operation_summary='POST 调度方案单上传',
@@ -1470,7 +1468,7 @@ class DDFAUploadApiPost(generics.GenericAPIView):
             openapi.Parameter('mytype', openapi.IN_QUERY, type=openapi.TYPE_STRING, description='方案类型',),
         ],
         responses={
-            200: BaseApiResponseSerializer(many=False),
+            200: YuAnAppResponseSerializer(many=False),
             400: "请求失败",
         },
         tags=['ya_api']
@@ -1482,7 +1480,7 @@ class DDFAUploadApiPost(generics.GenericAPIView):
         myType = request.GET.get("mytype", 0)
         myDate = request.GET.get("mydate", str(datetime.now().strftime("%Y-%m-%d")))
         if not myFile:
-            krrs = BaseApiResponseSerializer(data={"code": 200, "msg": "No document provided.!"}, many=False)
+            krrs = YuAnAppResponseSerializer(data={"code": 200, "msg": "No document provided.!"}, many=False)
             krrs.is_valid()
             return Response(krrs.data, status=status.HTTP_400_BAD_REQUEST)
         
@@ -1498,7 +1496,7 @@ class DDFAUploadApiPost(generics.GenericAPIView):
         print("调度方案单写入:", df_path, flush=True)
         yautils.plot_save_html(df_path, business_type=myType, myDate=myDate)
         print("绘图完成")
-        krrs = BaseApiResponseSerializer(data={"code": 200, "msg": "上传调度方案单成功", "success": True}, many=False)
+        krrs = YuAnAppResponseSerializer(data={"code": 200, "msg": "上传调度方案单成功", "success": True}, many=False)
         krrs.is_valid()
         return Response(krrs.data, status=status.HTTP_200_OK)
 
@@ -1522,7 +1520,7 @@ def downloadPlan(request):
 class LLMYuAnTaskApiView(generics.GenericAPIView):
 
     authentication_classes = (CsrfExemptSessionAuthentication, BasicAuthentication)
-    serializer_class = BaseApiResponseSerializer
+    serializer_class = YuAnAppResponseSerializer
 
     @swagger_auto_schema(
         operation_summary='[可用] 预案生成任务',
@@ -1540,7 +1538,7 @@ class LLMYuAnTaskApiView(generics.GenericAPIView):
             },
         ),
         responses={
-            200: BaseApiResponseSerializer(many=False),
+            200: YuAnAppResponseSerializer(many=False),
             400: "请求失败",
         },
         tags = ['ya_api']
@@ -1557,7 +1555,7 @@ class LLMYuAnTaskApiView(generics.GenericAPIView):
         if name is None or user_id is None or not planId:
             data['code'] = 201
             data['msg'] = '请求参数错误, 缺少参数！！！'
-            serializers = BaseApiResponseSerializer(data=data, many=False)
+            serializers = YuAnAppResponseSerializer(data=data, many=False)
             serializers.is_valid()
             return Response(serializers.data,  status=status.HTTP_200_OK)
         else:
@@ -1566,7 +1564,7 @@ class LLMYuAnTaskApiView(generics.GenericAPIView):
                 tmpuser = User.objects.get(id=user_id)
             except:
                 data = {"code": 202, "msg": "用户ID不存在！！！" }
-                serializers = BaseApiResponseSerializer(data=data, many=False)
+                serializers = YuAnAppResponseSerializer(data=data, many=False)
                 serializers.is_valid()
                 return Response(serializers.data, status=status.HTTP_200_OK)
             
@@ -1594,7 +1592,7 @@ class LLMYuAnTaskApiView(generics.GenericAPIView):
 
             data = {"code": 200, "msg": "预案生产任务新建成功", "success": True, "data": model_to_dict(subtask)}
             data['data'] = model_to_dict(subtask)
-            serializers = BaseApiResponseSerializer(data=data, many=False)
+            serializers = YuAnAppResponseSerializer(data=data, many=False)
             serializers.is_valid()
             return Response(serializers.data, status=status.HTTP_200_OK)
 
@@ -1604,7 +1602,7 @@ class LLMYuAnTaskStatusApiView(mixins.ListModelMixin,
                   mixins.CreateModelMixin,
                   generics.GenericAPIView):
     
-    serializer_class = BaseApiResponseSerializer
+    serializer_class = YuAnAppResponseSerializer
     @swagger_auto_schema(
             operation_description='GET /llmYuAnTaskStatus',
             operation_summary="异步任务状态",
@@ -1619,7 +1617,7 @@ class LLMYuAnTaskStatusApiView(mixins.ListModelMixin,
                 ),
             ],
             responses={
-                200: BaseApiResponseSerializer(many=False),
+                200: YuAnAppResponseSerializer(many=False),
                 400: "请求失败",
             },
             tags = ['ya_api'])
@@ -1627,7 +1625,7 @@ class LLMYuAnTaskStatusApiView(mixins.ListModelMixin,
         taskid = request.GET.get("taskid", None)
         if taskid is None:
             data = {"code": 201, "msg": "参数错误！！！" }
-            serializers = BaseApiResponseSerializer(data=data, many=False)
+            serializers = YuAnAppResponseSerializer(data=data, many=False)
             serializers.is_valid()
             return Response(serializers.data, status=status.HTTP_200_OK)
         
@@ -1639,7 +1637,7 @@ class LLMYuAnTaskStatusApiView(mixins.ListModelMixin,
         else:
             celery_status = 'TASK_NOT_FOUND'
         data = {"code": 200, "msg": "", "status":  celery_status}
-        serializers = BaseApiResponseSerializer(data=data, many=False)
+        serializers = YuAnAppResponseSerializer(data=data, many=False)
         serializers.is_valid()
         return Response(serializers.data, status=status.HTTP_200_OK)
 
@@ -1651,7 +1649,7 @@ class ResultFromTaskApiView(mixins.ListModelMixin,
                   generics.GenericAPIView):
     
     authentication_classes = (CsrfExemptSessionAuthentication, BasicAuthentication)
-    serializer_class = BaseApiResponseSerializer
+    serializer_class = YuAnAppResponseSerializer
     
     
     @swagger_auto_schema(
@@ -1666,7 +1664,7 @@ class ResultFromTaskApiView(mixins.ListModelMixin,
             },
         ),
             responses={
-                200: BaseApiResponseSerializer(many=False),
+                200: YuAnAppResponseSerializer(many=False),
                 400: "请求失败",
             },
             tags = ['ya_api'])
@@ -1677,7 +1675,7 @@ class ResultFromTaskApiView(mixins.ListModelMixin,
         tmptask = KgTask.objects.get(id=task_id)
         if tmptask is None:
             data = {"code": 202, "msg": "暂无生产子任务失败" }
-            serializers = BaseApiResponseSerializer(data=data, many=False)
+            serializers = YuAnAppResponseSerializer(data=data, many=False)
             serializers.is_valid()
             return Response(serializers.data, status=status.HTTP_200_OK)
         
@@ -1686,11 +1684,11 @@ class ResultFromTaskApiView(mixins.ListModelMixin,
         res = AsyncResult(tmptask.celery_id) # 参数为task id
         if not res:
             data = {"code": 200, "msg": "任务ID结果不存在" }
-            serializers = BaseApiResponseSerializer(data=data, many=False)
+            serializers = YuAnAppResponseSerializer(data=data, many=False)
             serializers.is_valid()
             return Response(serializers.data, status=status.HTTP_200_OK)
         print("res.result:", res.result)
         resultSet = res.result['data']
-        serializers = BaseApiResponseSerializer(data=resultSet, many=False)
+        serializers = YuAnAppResponseSerializer(data=resultSet, many=False)
         serializers.is_valid()
         return Response(serializers.data,  status=status.HTTP_200_OK)

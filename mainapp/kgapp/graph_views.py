@@ -9,8 +9,6 @@ from rest_framework.views import APIView
 from rest_framework.decorators import action
 from django.http.multipartparser import MultiPartParser
 from rest_framework.response import Response
-
-from apiapp.serializers import BaseApiResponseSerializer
 from kgapp.serializers import *
 from kgapp.models import *
 from django.http import HttpResponse
@@ -973,8 +971,6 @@ class KgEntityUpdateAttrApiView(generics.GenericAPIView):
             properties={
                 'id': openapi.Schema(type=openapi.TYPE_INTEGER, description="实体ID"),
                 'name': openapi.Schema(type=openapi.TYPE_STRING, description="实体名称"),
-                'attrs': openapi.Schema(type=openapi.TYPE_ARRAY, items=openapi.Items(openapi.TYPE_STRING),
-                                        description="属性值 => [{'id': 'xx', 'name': 'xx', 'value': 'xxx'}, ]"),
             },
         ),
         responses={
