@@ -1084,3 +1084,4 @@ if __name__ == '__main__':
 #     # 显示图表
 #     plt.tight_layout()
 #     plt.show()
+print("测试MR")
