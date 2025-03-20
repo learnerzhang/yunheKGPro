@@ -37,6 +37,7 @@ from django.views.decorators.csrf import csrf_exempt
 from django.core.files.base import ContentFile
 from rest_framework.decorators import api_view
 from docx import Document  
+import logging
 
 from rest_framework.parsers import (
     FormParser,
@@ -52,9 +53,9 @@ from yaapp.models import PlanByUser, PlanByUserDocument, PlanTemplate, PtBusines
 from yaapp.plan import PlanFactory
 from yaapp.wordutils import set_landscape, writeParagraphs2Word, writeTitle2Word
 from yunheKGPro import CsrfExemptSessionAuthentication
-
 from yaapp.serializers import YuAnAppResponseSerializer
 
+logger = logging.getLogger('kgproj')
 
 class PTBusinessList(mixins.ListModelMixin,
                   mixins.CreateModelMixin,
@@ -587,17 +588,18 @@ class LLMSingleNodePlan(generics.GenericAPIView):
     )
     @csrf_exempt
     def post(self, request, *args, **krgs):
-        print("params:", request.data)
         nodeId = request.data.get("nodeid", None)
         planId = request.data.get("ptid", None)
 
         userYuAnPlan = PlanByUser.objects.get(id=planId)
         node = TemplateNode.objects.get(id=nodeId)
         print("planTemp:", userYuAnPlan, "\n", node)
+        logger.debug(f"userPlanTemp: {str(userYuAnPlan)}  execute: {node.label}")
         # 通用生成方法
         # node.result = qwty(node.description)
         tmp_param_path = getYuAnParamPath(userYuAnPlan.ctype, userYuAnPlan.yadate)
         if not os.path.exists(tmp_param_path):
+            logger.error("参数文件不存在, 请先搜集当然参数参数")
             data = {"code": 201, "data": {}, "msg": "参数文件不存在, 请先搜集参数"}
             serializers = YuAnAppResponseSerializer(data=data, many=False)
             serializers.is_valid()
@@ -609,7 +611,7 @@ class LLMSingleNodePlan(generics.GenericAPIView):
             "plan": model_to_dict(userYuAnPlan, exclude=["html_data", "html_data", "created_at", "updated_at", "nodes"]),
             "param_path": tmp_param_path
         }
-        print("PlanFactory ctx:", ctx)
+        logger.debug(f"PlanFactory ctx: {str(ctx)}")
         # 制作预案工厂类
         pf = PlanFactory(context=ctx, node=node)
         # 生成对应描述
@@ -1450,20 +1452,15 @@ class YuAnUserPlanDeleteApiPost(generics.GenericAPIView):
         return Response(serializers.data, status=status.HTTP_200_OK)
     
 class DDFAUploadApiPost(generics.GenericAPIView):
+    serializer_class = YuAnAppResponseSerializer
     parser_classes = (FormParser, MultiPartParser)
     authentication_classes = (CsrfExemptSessionAuthentication, BasicAuthentication)
-    serializer_class = YuAnAppResponseSerializer
 
     @swagger_auto_schema(
         operation_summary='POST 调度方案单上传',
         operation_description='POST /ddfadUpload',
         manual_parameters=[
-            openapi.Parameter(
-                name='myfile',
-                in_=openapi.IN_FORM,
-                description='调度方案单',
-                type=openapi.TYPE_FILE
-            ),
+            openapi.Parameter(name='myfile', in_=openapi.IN_FORM, description='调度方案单',type=openapi.TYPE_FILE),
             openapi.Parameter('mydate', openapi.IN_QUERY, type=openapi.TYPE_STRING, description='方案日期',),
             openapi.Parameter('mytype', openapi.IN_QUERY, type=openapi.TYPE_STRING, description='方案类型',),
         ],
@@ -1475,10 +1472,10 @@ class DDFAUploadApiPost(generics.GenericAPIView):
     )
     @csrf_exempt
     def post(self, request, *args, **krgs):
-        print(request.FILES, flush=True)
+        logger.debug(f"req:DDFAUploadApiPost")
         myFile = request.FILES.get("myfile", None)
-        myType = request.GET.get("mytype", 0)
-        myDate = request.GET.get("mydate", str(datetime.now().strftime("%Y-%m-%d")))
+        myType = request.data.get("mytype", 0)
+        myDate = request.data.get("mydate", str(datetime.now().strftime("%Y-%m-%d")))
         if not myFile:
             krrs = YuAnAppResponseSerializer(data={"code": 200, "msg": "No document provided.!"}, many=False)
             krrs.is_valid()
@@ -1493,9 +1490,9 @@ class DDFAUploadApiPost(generics.GenericAPIView):
         for chunk in myFile.chunks():
             f.write(chunk)
         f.close()
-        print("调度方案单写入:", df_path, flush=True)
+        logger.debug(f"{myDate}调度方案单路径: {df_path}")
         yautils.plot_save_html(df_path, business_type=myType, myDate=myDate)
-        print("绘图完成")
+        logger.debug(f"{myDate}调度方案单绘制图片")
         krrs = YuAnAppResponseSerializer(data={"code": 200, "msg": "上传调度方案单成功", "success": True}, many=False)
         krrs.is_valid()
         return Response(krrs.data, status=status.HTTP_200_OK)

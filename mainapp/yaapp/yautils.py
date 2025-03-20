@@ -14,6 +14,9 @@ from pyecharts import options as opts
 #import rule
 from . import rule
 #from yaapp import rule
+import logging
+logger = logging.getLogger('kgproj')
+
 idx_list = ['水位', '入库', '出库', '蓄量', "流量"]
 sknames = { '三门峡', '小浪底',  '陆浑', '故县', '河口村', '西霞院', '万家寨', '龙口'}
 swznames = { '花园口', '小花间',"潼关"}
@@ -73,7 +76,7 @@ def process_complex_header(file_path):
         return data_df
         
     except Exception as e:
-        print(f"Error processing complex header: {str(e)}")
+        logger.error(f"Error processing complex header: {str(e)}")
         return pd.DataFrame()  # 返回空的 DataFrame 而不是错误信息字符串
 
 def excel_to_json(file_path):
@@ -159,7 +162,7 @@ def plot_save_html(ddfa_file_path, business_type=0, myDate=None):
             new_record_keys = [ "".join(k.split("_")[:2]) for k in record_keys]
             # print(record_keys)
             # print(new_record_keys)
-            print(len(record_keys), len(new_record_keys))
+            # print(len(record_keys), len(new_record_keys))
             for skname in sknames:
                 for idx in idx_list:
                     for key in record_keys:
@@ -178,14 +181,13 @@ def plot_save_html(ddfa_file_path, business_type=0, myDate=None):
             elif '月.日' in record_keys:
                 date_list.append(record['月.日'])
         
-        print(date_list)
-        pprint.pprint(swMapData)       
-        print("开始绘图")
+        # pprint.pprint(swMapData)       
+        logger.debug("开始绘图")
         if myDate is None:
             myDate = str(date.today())
 
-        htmls_dir = os.path.join("data", "ddfaouts", str(business_type), myDate, "html")
-        imgs_dir = os.path.join("data", "ddfaouts", str(business_type), myDate, "imgs")
+        htmls_dir = os.path.join("data", "yuan_data" ,str(business_type), "ddfadouts",  myDate, "html")
+        imgs_dir = os.path.join("data", "yuan_data", str(business_type), "ddfadouts", myDate, "imgs")
         if not os.path.exists(htmls_dir):
             os.makedirs(htmls_dir)
         if not os.path.exists(imgs_dir):
@@ -198,8 +200,8 @@ def plot_save_html(ddfa_file_path, business_type=0, myDate=None):
             ]
         )
         if sys.platform.startswith('win'):
-            #path_wkimg = r'D:\\Program Files\\wkhtmltopdf\\bin\\wkhtmltoimage.exe'  # 工具路径
-            path_wkimg = r'D:\\software\\wkhtmltopdf\\bin\\wkhtmltoimage.exe'
+            path_wkimg = r'D:\\Program Files\\wkhtmltopdf\\bin\\wkhtmltoimage.exe'  # 工具路径
+            # path_wkimg = r'D:\\software\\wkhtmltopdf\\bin\\wkhtmltoimage.exe'
         else:
             path_wkimg = r'/usr/bin/wkhtmltoimage'
 
@@ -247,7 +249,8 @@ def plot_save_html(ddfa_file_path, business_type=0, myDate=None):
             )
             line.render(html_filepath)
             imgkit.from_file(html_filepath, image_filepath, config=cfg, options=options)
-        print("开始绘制小浪底调度过程曲线", list(skMapData.keys()))
+        # print("开始绘制小浪底调度过程曲线", list(skMapData.keys()))
+        logger.debug(f"开始绘制小浪底调度过程曲线{list(skMapData.keys())}")
         for sk in sknames:
             if sk not in skMapData:
                 continue
@@ -258,12 +261,10 @@ def plot_save_html(ddfa_file_path, business_type=0, myDate=None):
             # 创建折线图
             line = Line(init_opts=opts.InitOpts(theme='white'))
             line.add_xaxis(xaxis_data=date_list)
-
-            print("data key:", list(record_data.keys()))
+            logger.debug(f"data key: {list(record_data.keys())}")
             if '水位' in record_data:
                 # 添加 Y 轴数据（温度）
                 swdatas = record_data['水位']
-                print("水位:", len(swdatas))
                 line.add_yaxis(
                     series_name="水位(m)",
                     y_axis=swdatas,
@@ -326,7 +327,6 @@ def plot_save_html(ddfa_file_path, business_type=0, myDate=None):
 
             if '出库' in record_data:
                 outflowdatas = record_data['出库']
-                print("出库:", len(outflowdatas))
                 line.add_yaxis(
                     series_name="出库流量(m3/s)",
                     y_axis=outflowdatas,
@@ -359,11 +359,11 @@ def plot_save_html(ddfa_file_path, business_type=0, myDate=None):
             # imgkit.from_url('https://httpbin.org/ip', 'ip.jpg', config=cfg) # 从url获取html，再转为图片
             # imgkit.from_string('Hello!','hello.jpg', config=cfg)  #将字符串转为图片
 
-        print("绘图完成")
+        logger.debug("绘图完成")
         # 创建临时文件夹
     except Exception as e:
         print(e)
-        print(f"Error plotting and saving HTML: {str(e)}")
+        logger.error(f"Error plotting and saving HTML: {str(e)}")
         return f"Error plotting and saving HTML: {str(e)}"
 
 def skddjy(filepath):
