@@ -27,6 +27,7 @@ cryptography==44.0.0
 crispy_bootstrap3
 dataclasses-json==0.6.7
 decorator==5.1.1
+colorlog
 Django==3.2.18
 django-apscheduler==0.6.2
 django-celery-beat==2.2.0

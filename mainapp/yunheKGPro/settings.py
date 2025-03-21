@@ -10,14 +10,72 @@ For the full list of settings and their values, see
 https://docs.djangoproject.com/en/3.2/ref/settings/
 """
 from pathlib import Path
+import colorlog
 import pymysql
 import sys
 import os
+import logging
+DEBUG = True
+LOGGING = {
+    'version': 1,
+    'disable_existing_loggers': False,
+    'formatters': {
+        'colored': {
+            '()': 'colorlog.ColoredFormatter',
+            'format': '%(log_color)s%(asctime)s %(levelname)s [%(module)s] [%(process)d-%(thread)d] %(message)s',
+            'log_colors': {
+                'DEBUG': 'cyan',
+                'INFO': 'green',
+                'WARNING': 'yellow',
+                'ERROR': 'red',
+                'CRITICAL': 'red,bg_white',
+            },
+        },
+        'verbose': {
+            'format': '%(asctime)s %(levelname)s [%(module)s] [%(process)d-%(thread)d] %(message)s',
+        },
+    },
+    'filters': {
+        'require_debug_true': {
+            '()': 'django.utils.log.RequireDebugTrue',
+        },
+    },
+    'handlers': {
+        'console': {
+            'level': 'DEBUG',
+            'filters': ['require_debug_true'],
+            'class': 'logging.StreamHandler',
+            'formatter': 'colored'
+        },
+        'file': {
+            'level': 'DEBUG',
+            'class': 'logging.handlers.RotatingFileHandler',
+            'filename': 'debug.log',
+            'maxBytes': 1024 * 1024 * 5,  # 5 MB
+            'backupCount': 5,
+            'formatter': 'verbose',
+        },
+    },
+    'loggers': {
+        'django': {
+            'handlers': ['console', 'file'],
+            'propagate': True,
+        },
+        'kgproj': {
+            'handlers': ['console', 'file'],
+            'level': 'DEBUG',
+        },
+    }
+}
+
+logger = logging.getLogger('kgproj')
+
 os.environ["DJANGO_ALLOW_ASYNC_UNSAFE"] = "true"
 
 pymysql.install_as_MySQLdb()
 
 DATA_UPLOAD_MAX_MEMORY_SIZE = 52428800
+FILE_UPLOAD_MAX_MEMORY_SIZE = 10485760  # 10MB
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -208,7 +266,9 @@ ELASTICSEARCH_DSL = {
 
 TTF_PATH = "arial.ttf"
 MODEL_PATH = "D:\\data\\models\\bge-large-zh"
+WKING_PATH = "D:\\Program Files\\wkhtmltopdf\\bin\\wkhtmltoimage.exe"
 if sys.platform.startswith('linux'):
+    WKING_PATH = r'/usr/bin/wkhtmltoimage'
     MODEL_PATH = "/data/bge-large-zh"
     DATA_DIR_PATH = "/data/nmc"
     TTF_PATH = "/usr/share/fonts/dejavu/DejaVuSans.ttf"
@@ -229,46 +289,67 @@ if sys.platform.startswith('linux'):
             'http_auth': (ES_USER, ES_PWD)
         },
     }
-
-    print('当前系统为 Linux')
+    from langchain.embeddings import HuggingFaceEmbeddings
+    embedding = HuggingFaceEmbeddings(
+        # model_name="BAAI/bge-small-zh-v1.5",
+        model_name=MODEL_PATH,
+        model_kwargs={'device': 'cpu'},
+        encode_kwargs={
+            'batch_size': 64,
+            'normalize_embeddings': True
+        }
+    )
+    logger.debug('当前系统为 Linux')
 elif sys.platform.startswith('win'):
+    WKING_PATH = "D:\\software\\wkhtmltopdf\\bin\\wkhtmltoimage.exe"
     # D:\data\models\bge-large-zh
-    MODEL_PATH = "D:\\data\\models\\bge-large-zh"
+    MODEL_PATH = "D:\\data\\models\\bge-large-zh-v1.5"
     DATA_DIR_PATH = "D:\\data\\nmc\\"
     TTF_PATH = "arial.ttf"
     DATABASES = {
         'default': {
             'ENGINE': 'django.db.backends.mysql',
-            'NAME': 'kgproj',
+            'NAME': 'test_kgproj',
             'USER': 'root',
-            'PASSWORD': '123456', #'123456',
+            'PASSWORD': 'root', #'123456',
             'HOST': '127.0.0.1',
             'PORT': '3306',
         }
     }
 
-    DATABASES = {
-        'default': {
-            'ENGINE': 'django.db.backends.mysql',
-            'NAME': 'kgproj',
-            'USER': 'root',
-            'PASSWORD': '20221qaz@WSX',
-            'HOST': '192.168.2.182',
-            'PORT': '3306',
-        }
-    }
+    # DATABASES = {
+    #     'default': {
+    #         'ENGINE': 'django.db.backends.mysql',
+    #         'NAME': 'kgproj',
+    #         'USER': 'root',
+    #         'PASSWORD': '20221qaz@WSX',
+    #         'HOST': '192.168.2.182',
+    #         'PORT': '3306',
+    #     }
+    # }
 
     ELASTICSEARCH_DSL = {
-    'default': {
-        'hosts': 'http://localhost:9200',
-        'http_auth': (ES_USER, ES_PWD)
-    },
-}
-    print('当前系统为 Windows')
+        'default': {
+            'hosts': 'http://localhost:9200',
+            'http_auth': (ES_USER, ES_PWD)
+        },
+    }
+    from langchain.embeddings import HuggingFaceEmbeddings
+    # embedding = HuggingFaceEmbeddings(
+    #     # model_name="BAAI/bge-small-zh-v1.5",
+    #     model_name=MODEL_PATH,
+    #     model_kwargs={'device': 'cpu'},
+    #     encode_kwargs={
+    #         'batch_size': 64,
+    #         'normalize_embeddings': True
+    #     }
+    # )
+    embedding = None
+    logger.debug('当前系统为 Windows')
 elif sys.platform.startswith('darwin'):
-    print('当前系统为 macOS')
+    logger.debug('当前系统为 macOS')
 else:
-    print('无法识别当前系统')
+    logger.debug('无法识别当前系统')
 
 # Password validation
 # https://docs.djangoproject.com/en/3.2/ref/settings/#auth-password-validators
@@ -287,6 +368,7 @@ AUTH_PASSWORD_VALIDATORS = [
         'NAME': 'django.contrib.auth.password_validation.NumericPasswordValidator',
     },
 ]
+
 
 
 # Internationalization
