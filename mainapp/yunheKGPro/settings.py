@@ -14,6 +14,62 @@ import colorlog
 import pymysql
 import sys
 import os
+import logging
+DEBUG = True
+LOGGING = {
+    'version': 1,
+    'disable_existing_loggers': False,
+    'formatters': {
+        'colored': {
+            '()': 'colorlog.ColoredFormatter',
+            'format': '%(log_color)s%(asctime)s %(levelname)s [%(module)s] [%(process)d-%(thread)d] %(message)s',
+            'log_colors': {
+                'DEBUG': 'cyan',
+                'INFO': 'green',
+                'WARNING': 'yellow',
+                'ERROR': 'red',
+                'CRITICAL': 'red,bg_white',
+            },
+        },
+        'verbose': {
+            'format': '%(asctime)s %(levelname)s [%(module)s] [%(process)d-%(thread)d] %(message)s',
+        },
+    },
+    'filters': {
+        'require_debug_true': {
+            '()': 'django.utils.log.RequireDebugTrue',
+        },
+    },
+    'handlers': {
+        'console': {
+            'level': 'DEBUG',
+            'filters': ['require_debug_true'],
+            'class': 'logging.StreamHandler',
+            'formatter': 'colored'
+        },
+        'file': {
+            'level': 'DEBUG',
+            'class': 'logging.handlers.RotatingFileHandler',
+            'filename': 'debug.log',
+            'maxBytes': 1024 * 1024 * 5,  # 5 MB
+            'backupCount': 5,
+            'formatter': 'verbose',
+        },
+    },
+    'loggers': {
+        'django': {
+            'handlers': ['console', 'file'],
+            'propagate': True,
+        },
+        'kgproj': {
+            'handlers': ['console', 'file'],
+            'level': 'DEBUG',
+        },
+    }
+}
+
+logger = logging.getLogger('kgproj')
+
 os.environ["DJANGO_ALLOW_ASYNC_UNSAFE"] = "true"
 
 pymysql.install_as_MySQLdb()
@@ -217,7 +273,9 @@ ELASTICSEARCH_DSL = {
 
 TTF_PATH = "arial.ttf"
 MODEL_PATH = "D:\\data\\models\\bge-large-zh"
+WKING_PATH = "D:\\Program Files\\wkhtmltopdf\\bin\\wkhtmltoimage.exe"
 if sys.platform.startswith('linux'):
+    WKING_PATH = r'/usr/bin/wkhtmltoimage'
     MODEL_PATH = "/data/bge-large-zh"
     DATA_DIR_PATH = "/data/nmc"
     TTF_PATH = "/usr/share/fonts/dejavu/DejaVuSans.ttf"
@@ -248,8 +306,9 @@ if sys.platform.startswith('linux'):
             'normalize_embeddings': True
         }
     )
-    print('当前系统为 Linux')
+    logger.debug('当前系统为 Linux')
 elif sys.platform.startswith('win'):
+    WKING_PATH = "D:\\Program Files\\wkhtmltopdf\\bin\\wkhtmltoimage.exe"
     # D:\data\models\bge-large-zh
     MODEL_PATH = "D:\\data\\models\\bge-large-zh"
     DATA_DIR_PATH = "D:\\data\\nmc\\"
@@ -293,11 +352,11 @@ elif sys.platform.startswith('win'):
     #     }
     # )
     embedding = None
-    print('当前系统为 Windows')
+    logger.debug('当前系统为 Windows')
 elif sys.platform.startswith('darwin'):
-    print('当前系统为 macOS')
+    logger.debug('当前系统为 macOS')
 else:
-    print('无法识别当前系统')
+    logger.debug('无法识别当前系统')
 
 # Password validation
 # https://docs.djangoproject.com/en/3.2/ref/settings/#auth-password-validators
@@ -317,61 +376,7 @@ AUTH_PASSWORD_VALIDATORS = [
     },
 ]
 
-# settings.py
-DEBUG = True
-# settings.py
 
-LOGGING = {
-    'version': 1,
-    'disable_existing_loggers': False,
-    'formatters': {
-        'colored': {
-            '()': 'colorlog.ColoredFormatter',
-            'format': '%(log_color)s%(asctime)s %(levelname)s [%(module)s] [%(process)d-%(thread)d] %(message)s',
-            'log_colors': {
-                'DEBUG': 'cyan',
-                'INFO': 'green',
-                'WARNING': 'yellow',
-                'ERROR': 'red',
-                'CRITICAL': 'red,bg_white',
-            },
-        },
-        'verbose': {
-            'format': '%(asctime)s %(levelname)s [%(module)s] [%(process)d-%(thread)d] %(message)s',
-        },
-    },
-    'filters': {
-        'require_debug_true': {
-            '()': 'django.utils.log.RequireDebugTrue',
-        },
-    },
-    'handlers': {
-        'console': {
-            'level': 'DEBUG',
-            'filters': ['require_debug_true'],
-            'class': 'logging.StreamHandler',
-            'formatter': 'colored'
-        },
-        'file': {
-            'level': 'DEBUG',
-            'class': 'logging.handlers.RotatingFileHandler',
-            'filename': 'debug.log',
-            'maxBytes': 1024 * 1024 * 5,  # 5 MB
-            'backupCount': 5,
-            'formatter': 'verbose',
-        },
-    },
-    'loggers': {
-        'django': {
-            'handlers': ['console', 'file'],
-            'propagate': True,
-        },
-        'kgproj': {
-            'handlers': ['console', 'file'],
-            'level': 'DEBUG',
-        },
-    }
-}
 
 # Internationalization
 # https://docs.djangoproject.com/en/3.2/topics/i18n/

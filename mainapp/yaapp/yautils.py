@@ -11,6 +11,7 @@ import json
 from collections import defaultdict
 from pyecharts.charts import Line
 from pyecharts import options as opts
+from yunheKGPro import settings
 #import rule
 from . import rule
 #from yaapp import rule
@@ -199,13 +200,8 @@ def plot_save_html(ddfa_file_path, business_type=0, myDate=None):
                 opts.MarkPointItem(type_="min", name="最小值"),
             ]
         )
-        if sys.platform.startswith('win'):
-            path_wkimg = r'D:\\Program Files\\wkhtmltopdf\\bin\\wkhtmltoimage.exe'  # 工具路径
-            # path_wkimg = r'D:\\software\\wkhtmltopdf\\bin\\wkhtmltoimage.exe'
-        else:
-            path_wkimg = r'/usr/bin/wkhtmltoimage'
 
-        cfg = imgkit.config(wkhtmltoimage=path_wkimg)
+        cfg = imgkit.config(wkhtmltoimage=settings.WKING_PATH)
         options = {
             'load-error-handling': 'ignore',
             'javascript-delay': 1100,  # 延迟 1000 毫秒，根据需要调整
