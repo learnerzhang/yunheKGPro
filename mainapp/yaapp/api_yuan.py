@@ -157,7 +157,7 @@ def huanghe_yuqing_generate(context=None):
     if isinstance(context, dict):
         huanghe_weather = context.get("huanghe_weather")  # 从 context 中获取值
         sanhuanjian_weather = context.get("sanhuanjian_weather")
-        yuliang_yiluo = context.get("yuliang_yiluo")
+        yuliang_yiluo = context.get("yuliang")
 
         information = (
             f"黄河中下游天气情况：{huanghe_weather}，"
@@ -174,6 +174,33 @@ def huanghe_yuqing_generate(context=None):
         )
         res = query_question(prompt)
         # print("res:",res)
+        return res
+    else:
+        # 如果 context 不是字典，则使用默认上下文
+        return default_context
+
+def yiluohe_yuqing_generate(context=None):
+    default_context = "7月24日，伊洛河流域中游大部地区降小雨，其中伊河下游、洛河部分地区大部降中到大雨、部分站暴雨，最大点雨量伊洛河古城站87毫"
+    frag = search_fragpacks("实时雨水工险情")
+    if frag:
+        default_context = frag
+    if isinstance(context, dict):
+        yiluohe_weather = context.get("yiluohe_weather")  # 从 context 中获取值
+        yiluohexiayou_weather = context.get("yiluohexiayou_weather")
+        yuliang_yiluo = context.get("yuliang")
+        information = (
+            f"黄河中下游天气情况：{yiluohe_weather}，"
+            f"渭河下游天气情况：{yiluohexiayou_weather}，"
+            f"伊洛河降雨量：{yuliang_yiluo}"
+        )
+        prompt = (
+            f"参考描述：{default_context}\n"
+            f"请模仿上述描述，根据以下已知信息生成雨水实况，并进行优化，不要生成无关信息提示，"
+            f"也请不要使用'优化后的描述：'这样的字样。"
+            f"确保不包含任何说明性文字。"
+            f"\n已知信息：{information}，没有时间信息则不显示时间信息。"
+        )
+        res = query_question(prompt)
         return res
     else:
         # 如果 context 不是字典，则使用默认上下文
@@ -460,13 +487,24 @@ def huanghe_fenqu_jiangyu_forecast(context=None):
         res = query_question(context)
     return res
 
-
-def huanghe_fenqu_jiangyu_forecast_json(context=None):
+def yiluohe_fenqu_jiangyu_forecast(context=None):
     if isinstance(context, dict):
-        default_list = context['hhlyjyyb']
-        print("default_list:",default_list)
-        df = pd.DataFrame(default_list, columns=["区域", "0-24小时", "24-48小时", "48-72小时"])
-        res = df.to_json(orient='records', force_ascii=False)  # 转换为 JSON 格式
+        default_list = context["ylhjyyb"],
+        df = pd.DataFrame(default_list)
+        res = pd2HtmlCSS() + df.to_html(index=False)
+    else:
+        res = query_question(context)
+    return res
+
+def yiluohe_future_7_forecast(context=None):
+    if isinstance(context, dict):
+        default_list = context["hhfloodforecast"],
+        df = pd.DataFrame(default_list)
+        res = pd2HtmlCSS() + df.to_html(index=False)
+    else:
+        res = query_question(context)
+    return res
+
 def huanghe_fenqu_jiangyu_forecast_dfjson(context=None):
     if isinstance(context, dict):
         default_list = context["hhlyjyyb"]

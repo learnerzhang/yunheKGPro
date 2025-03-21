@@ -16,6 +16,8 @@ def getYuAnParamPath(ctype, mydate):
         return f"data/yuan_data/2/plans/XLDTSTS_api_data_{mydate}.json"
     elif ctype == 3:
         return f"data/yuan_data/3/plans/HHXQ_api_data_{mydate}.json"
+    elif ctype == 4:
+        return f"data/yuan_data/4/plans/YLH_api_data_{mydate}.json"
     return "data/yuan_data/0/plans/HHZXY_api_data_2023-07-23.json"
 
 
@@ -30,6 +32,8 @@ def getYuAnName(ctype, mydate):
         format_name = f"{mydate}小浪底调水调沙防汛调度预案"
     elif ctype == 3:
         format_name = f"{mydate}黄河汛情及水库调度方案单"
+    elif ctype == 4:
+        format_name = f"{mydate}伊洛河防汛预案"
     return format_name
 
 
@@ -51,6 +55,8 @@ def divHtml(text):
     paraHtmlText = "<div style='text-align: center;'>" + text +  "</div>"
     return paraHtmlText
 
+def bold_left_align(text):
+    return f"<div style='text-align: left;'><strong>{text}</strong></div>"
 
 
 def pd2HtmlCSS():
