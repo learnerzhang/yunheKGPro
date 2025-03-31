@@ -96,10 +96,10 @@ def m2():
     dot.edge("C", "C3")
     dot.edge("C", "C4")
 
-    dot.render("output/防汛组织流程图", format='png', cleanup=True, view=False)
+    dot.render("output/防汛组织流程图", cleanup=True, view=False)
 
 
 if __name__ == "__main__":
-    # m1()
+    m1()
     m2()
     pass
