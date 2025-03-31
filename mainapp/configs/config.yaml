@@ -13,7 +13,7 @@ NEO4J_PASSWORD: '12345678'
 REDIS_URL: 'redis://localhost:6379/0'
 
 SECRET_KEY: 'django-insecure-r&6c!_n9591qjq1&h6w4&!b%yk7l_%$dw2n8_k&++q#@0nh&vc'
-DEBUG: true
+DEBUG: false
 ALLOWED_HOSTS:
   - '*'
 
