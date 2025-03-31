@@ -1859,33 +1859,29 @@ def map_input_to_label(user_input):
     else:
         return user_input
 
-def recommend_plan(text, plans: List[PlanTemplate] = [], user: User=None):
+
+import difflib
+
+
+def find_most_similar_phrase(target_phrase, phrase_list):
+    """
+    此函数用于在短语列表中找到与目标短语最相似的短语。
+    :param target_phrase: 目标短语
+    :param phrase_list: 短语列表
+    :return: 最相似的短语
+    """
+    # 使用 difflib 的 get_close_matches 函数找到最相似的短语
+    similar_phrases = difflib.get_close_matches(target_phrase, phrase_list)
+    if similar_phrases:
+        return similar_phrases[0]
+    else:
+        return None
+    
+def recommend_plan(text:str, yuannames: List[str] = [], cutoff=0.1, n=3):
     """
         基于用户行为, 推荐合适的模板, 相似打分
     """
-    results = []
-    # if user:
-    #     # TODO 实现基于历史推荐算法
-    #     for plan in plans:
-    #         results.append(model_to_dict(plan, exclude=['nodes']))
-    #     return results
-    # else:
-    if text:
-        # TODO 关键词匹配算法  优化
-        for plan in plans:
-            if plan.name.find(text) != -1:
-                tmp = model_to_dict(plan, exclude=[])
-                tmp['keywords'] = text
-                tmp['score'] = 1
-                results.append(model_to_dict(plan, exclude=['nodes']))
-    else:
-        # 默认推荐
-        for plan in plans:
-            tmp = model_to_dict(plan, exclude=[])
-            tmp['keywords'] = text
-            tmp['score'] = 0.0
-            results.append(model_to_dict(plan, exclude=['nodes']))
-    return results
+    return difflib.get_close_matches(text, yuannames, n=n, cutoff=cutoff)
 
 def map_input_to_template(user_input, templates):
     user_input = user_input.lower()

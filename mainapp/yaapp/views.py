@@ -3,6 +3,7 @@ from typing import List
 from django.shortcuts import render
 import json
 import pprint
+import codecs
 import time
 from django.shortcuts import render
 from drf_yasg import openapi
@@ -962,17 +963,17 @@ class UpdateUserPlanDocument(generics.GenericAPIView):
     
 
 
-def deep_copy_model(instance:PlanTemplate, mydate: str, user: User=None):
+def deep_copy_model(instance:dict, mydate: str, user: User=None):
     # 获取模型类
-    new_instance = PlanByUser.objects.create(ctype=instance.ctype, 
+    new_instance = PlanByUser.objects.create(ctype=instance['ctype'], 
                                              yadate=mydate,
                                              user=user,
-                                             name=getYuAnName(instance.ctype, mydate),)
+                                             name=getYuAnName(instance['ctype'], mydate),)
     # 保存新实例，生成新的主键
     new_instance.save()
-    for node in instance.nodeOutlineList:
+    for i, node in enumerate(instance['nodes']):
         # 处理节点外键字段
-        new_instance_node = TemplateNode.objects.create(label=node['label'], description=node['description'], template=node['template'], order=node['order'])
+        new_instance_node = TemplateNode.objects.create(label=node['label'], description=node['description'], template=node['template'], order=i + 1)
         new_instance.nodes.add(new_instance_node)
     # 保存更新后的新实例
     new_instance.save()
@@ -1006,46 +1007,36 @@ class YuAnRecomApiPost(generics.GenericAPIView):
         """
             针对用户输入,动态推荐预案摸板
         """
+        from yunheKGPro.settings import YUAN_TEMPLET_PATH
         uid = request.data.get("uid", None)
         text = request.data.get("text", None)
         mydate = request.data.get("date", str(datetime.now().strftime("%Y-%m-%d")))
-
+        # 读取模板
+        yuanlist = {}
+        with codecs.open(YUAN_TEMPLET_PATH, 'r', encoding='utf-8') as f:
+            yuanlist = json.load(f)
         # TODO
-        pts = PlanTemplate.objects.all()
-        all_templates = [
-            pt.name for pt in PlanTemplate.objects.all()
-        ]
-        # template_name = map_input_to_template(text, all_templates)
-        # if template_name:
-        #     data = model_to_dict(PlanTemplate.objects.get(name=template_name))
-        # else:
-        #     data = {text}
+        yuannames = list(yuanlist.keys())
+        
         try:
             tmpUser = User.objects.get(id=uid)
             logger.debug("用户信息为：",tmpUser)
         except:
             tmpUser = None
-
-        results = recommend_plan(text, plans=pts, user=tmpUser)
+        logger.debug(f"text:{text}, system yuan names:{yuannames}")
+        results = recommend_plan(text, yuannames=yuannames)
+        logger.info(f"recom yuan struct results:{results}")
         if results:
-            target_plan = results[0]
-            ptId = target_plan['id']
-            ptType = target_plan['ctype']
-
-            try:
-                pt = PlanTemplate.objects.get(id=ptId)
-            except:
-                data = {"code": 202, "data": {}, "msg": "系统不存在该数据", "success": False}
-                bars = YuAnAppResponseSerializer(data=data, many=False)
-                bars.is_valid()
-                return Response(bars.data, status=status.HTTP_200_OK)
+            yuanname = results[0]
+            yuanstruct = yuanlist[yuanname]
+            yuanType = yuanstruct['ctype']
             
             # 深拷贝模型实例
-            new_pt = deep_copy_model(pt, mydate, user=tmpUser)
+            new_pt = deep_copy_model(yuanstruct, mydate, user=tmpUser)
             tmpResult = model_to_dict(new_pt, exclude=["nodes"])
             tmpResult['nodeOutlineList'] = new_pt.nodeOutlineList
             tmpResult['created_at'] = new_pt.created_at.strftime("%Y-%m-%d %H:%M:%S")
-            tmpResult['name'] = getYuAnName(ptType, mydate)
+            tmpResult['name'] = getYuAnName(yuanType, mydate)
             tmpResult['yadate'] = mydate
             data = {"code": 200, "msg": "success", "data": tmpResult, "success": True}
         else:

@@ -39,7 +39,7 @@ def batch_upload_docs(folder_path):
         ext = filename.split('.')[-1].lower()
         return mime_types.get(ext, 'application/octet-stream')
 
-    for filepath in browse_folder_files('E:\desktop\WOR\数字孪生三门峡\三门峡资料整理-规整文本\矩阵'):
+    for filepath in browse_folder_files('D://三门峡使用到的资料v2'):
         if filepath.endswith('.png') or filepath.endswith('.jpg') or filepath.endswith('.jpeg') or filepath.endswith('.gif') or filepath.endswith('.bmp') or filepath.endswith('.zip'):
             continue
         #  c4156447ce35e15447b3da91ac4f65aa
@@ -96,6 +96,4 @@ def upload_ragkg(qa_pairs):
 
 
 if  __name__ == '__main__':
-    print("开始运行")
-    batch_upload_docs('E:\desktop\WOR\数字孪生三门峡\三门峡资料整理-规整文本\矩阵')
-    print("运行结束")
+    batch_upload_docs('D://三门峡使用到的资料v2')

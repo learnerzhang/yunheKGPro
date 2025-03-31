@@ -704,7 +704,7 @@ def query_question(text):
     else:
         # 返回错误信息
         return f"Error: {response.status_code}, {response.text}"
-
+from yaapp.api_ylh_data import LYHDataFactory
 if __name__ == "__main__":
     # 输入参数
     # input_pdf = "media/plans/黄河汛情及水库调度方案单.pdf"  # 输入PDF文件路径
@@ -723,5 +723,32 @@ if __name__ == "__main__":
     #
     # except Exception as e:
     #     print(f"程序执行出错: {str(e)}")
-    res = query_question("如何构建大模型")
-    print(res)
+
+    #LYHDataFactory(dataType=4).buildJsonData()
+    import matplotlib.pyplot as plt
+    import networkx as nx
+
+
+    def draw_mind_map():
+        # 创建有向图
+        G = nx.DiGraph()
+
+        # 添加节点和边（中心主题 -> 分支）
+        G.add_node("Core", pos=(0, 0), size=3000)
+        G.add_node("Sub1", pos=(-1, 1), size=2000)
+        G.add_node("Sub2", pos=(1, 1), size=2000)
+        G.add_edges_from([("Core", "Sub1"), ("Core", "Sub2")])
+
+        # 获取布局位置
+        pos = nx.get_node_attributes(G, 'pos')
+        sizes = [G.nodes[n]['size'] for n in G.nodes()]
+
+        # 绘制
+        nx.draw(G, pos, with_labels=True, node_size=sizes,
+                node_color="skyblue", font_size=10,
+                arrowsize=20, edge_color="gray")
+        plt.title("Mind Map Demo")
+        plt.show()
+
+
+    draw_mind_map()

@@ -1,0 +1,13 @@
+DATABASES:
+  default:
+    ENGINE: 'django.db.backends.sqlite3'
+    NAME: 'db.sqlite3'
+
+SECRET_KEY: 'your_secret_key'
+
+DEBUG: true
+
+ALLOWED_HOSTS:
+  - '*'
+
+YUAN_TEMPLET_PATH: data/yuan_templet/yuan_v1.json

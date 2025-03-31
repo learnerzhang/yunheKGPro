@@ -13,6 +13,7 @@ import re
 from yaapp.rule import *
 import logging
 logger = logging.getLogger('kgproj')
+import pandas as pd
 class PlanFactory:
     def __init__(self, node: TemplateNode, context={}):
         self.context = context
@@ -154,6 +155,7 @@ class PlanFactory:
             jyyb_imgs = context.get("jyyb_imgs", [])
             logger.debug(f" jyyb_imgs:{jyyb_imgs}")
             tmpHtml = ""
+            tmp_content = []
             for imgJson in jyyb_imgs:
                 logger.debug(f"jyyb img:{imgJson}")
                 tmpdesc = imgJson['desc']
@@ -166,12 +168,13 @@ class PlanFactory:
                     continue
                 logger.debug(f"降雨路径:{tmppath}")
                 encoded_string = img2base64(tmppath)
+                tmp_content.append({"content":encoded_string, "desc": tmpdesc})
                 wp = WordParagraph.objects.create(title="降雨预报", content=encoded_string, ctype=2)
                 self.node.wordParagraphs.add(wp)
                 wp = WordParagraph.objects.create(title="降雨预报", content=tmpdesc, ctype=1)
                 self.node.wordParagraphs.add(wp)
                 tmpHtml += divHtml("<img src='data:image/png;base64," + encoded_string + "' width='50%'>") + "\n" + paraHtml(tmpdesc) + "\n"
-            return tmpHtml
+            return tmpHtml,tmp_content
 
         if self.context['type'] == 0:
             # 黄河中下游
@@ -182,7 +185,7 @@ class PlanFactory:
             # self.node.wordParagraphs.add(wp)
             # wp = WordParagraph.objects.create(title="降雨预报", content=jiangyu13, ctype=1)
             # self.node.wordParagraphs.add(wp)
-            jyyb_img_html = jyyb_imgs(self.params)
+            jyyb_img_html,tmp_content = jyyb_imgs(self.params)
             # wp = WordParagraph.objects.create(title="降雨预报", content="2） 未来3天降水预报图   \n", ctype=0)
             # self.node.wordParagraphs.add(wp)
             jiangyu_table = huanghe_fenqu_jiangyu_forecast(self.params)
@@ -223,7 +226,7 @@ class PlanFactory:
             return ""
         elif self.context['type'] == 4:
             # 伊洛河
-            jyyb_img_html = jyyb_imgs(self.params)
+            jyyb_img_html,tmp_content = jyyb_imgs(self.params)
             jiangyu_table = yiluohe_fenqu_jiangyu_forecast(self.params)
             logger.debug(f"黄河流域分区面平均雨量预报（单位：mm）：{jiangyu_table}")
             tmpfname = self.params["jlyb"]
@@ -236,6 +239,15 @@ class PlanFactory:
             encoded_string = img2base64(tmppath)
             jlyb = divHtml("<img src='data:image/png;base64," + encoded_string + "' width='50%'>")
             llyb = yiluohe_future_7_forecast(self.params)
+            for n in self.node.wordParagraphs.all():
+                n.delete()
+            # 新增描述部分
+            wp = WordParagraph.objects.create(title="洪水预报", content= "未来七天径流预报", ctype=1)
+            self.node.wordParagraphs.add(wp)
+            # for item in self.params["jyyb_imgs"]:
+            #     wp = WordParagraph.objects.create(title=f"{swname}过程曲线", content=imgpath, ctype=2)
+            #     self.node.wordParagraphs.add(wp)
+
             return (bold_left_align("降雨预报")+"\n"+bold_left_align("未来7天降雨预报")+jyyb_img_html+ divHtml(f"黄河流域分区面平均雨量预报（单位：mm）  \n") + f"\t{jiangyu_table}\n"+"短时强降水预警\n"+self.params["qjsyj"]
                     +bold_left_align("洪水预报") +bold_left_align("未来7天径流预报") + jlyb+bold_left_align("未来7天日均流量预报")+llyb)
 
@@ -446,7 +458,6 @@ class PlanFactory:
                 ddjy_list.append([key, ckll])
             df = pd.DataFrame(ddjy_list, columns=["水库", "调度方式"])
             ddjy = pd2HtmlCSS() + df.to_html(index=False)
-            logger.debug(ddjy)
             # 将所有水库的调度建议合并为一个字符串
             #ddjy = "\n".join(ddjy_list)
             return (bold_left_align("调度运用方式")+ddjy+"\n"+bold_left_align("调度方案单")+ divHtml(f"伊洛河调度方案单\n")+ddfad)
@@ -923,11 +934,30 @@ class PlanFactory:
         elif self.context['type'] == 4:
             ylh_yuqing = yiluohe_yuqing_generate(self.params)
             hdsq = huanghe_hedaoshuiqing_generate(self.params)
-            sksq = huanghe_hedaoshuiqing_generate(self.params)
-            gqxq = huanghe_gongqing_generate_html(self.params)  # 返回网页表格数据
+            sksq = huanghe_shuikushuiqing_generate(self.params)
+            gqxq = huanghe_gongqing_generate_html(self.params)
+            # 返回网页表格数据
             for n in self.node.wordParagraphs.all():
                 n.delete()
+            wp = WordParagraph.objects.create(title="雨情实况", content="雨情", ctype=1)
+            self.node.wordParagraphs.add(wp)
             wp = WordParagraph.objects.create(title="雨情实况", content=ylh_yuqing, ctype=1)
+            self.node.wordParagraphs.add(wp)
+            wp = WordParagraph.objects.create(title="雨情实况", content="河道水情", ctype=1)
+            self.node.wordParagraphs.add(wp)
+            df = pd.DataFrame(self.params['hdsq'])
+            hdsq_json = df.to_json(orient='records')
+            wp = WordParagraph.objects.create(title="河道水情", content=json.dumps(hdsq_json), ctype=3)
+            self.node.wordParagraphs.add(wp)
+            wp = WordParagraph.objects.create(title="雨情实况", content="水库水情", ctype=1)
+            self.node.wordParagraphs.add(wp)
+            df = pd.DataFrame(self.params['sksq'])
+            sksq_json = df.to_json(orient='records')
+            wp = WordParagraph.objects.create(title="河道水情", content=json.dumps(sksq_json), ctype=3)
+            self.node.wordParagraphs.add(wp)
+            wp = WordParagraph.objects.create(title="雨情实况", content="工情险情", ctype=1)
+            self.node.wordParagraphs.add(wp)
+            wp = WordParagraph.objects.create(title="雨情实况", content=gqxq, ctype=1)
             self.node.wordParagraphs.add(wp)
             return bold_left_align("雨情")+"\n"+ylh_yuqing+bold_left_align("水情")+"\n"+bold_left_align("河道水情")+divHtml(f"黄河主要站点流量表\n") + hdsq+ bold_left_align("水库水情")+ divHtml(f"黄河主要水库蓄水情况表\n") + sksq +bold_left_align("工情险情") + gqxq
 
