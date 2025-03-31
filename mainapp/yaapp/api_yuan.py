@@ -489,16 +489,16 @@ def huanghe_fenqu_jiangyu_forecast(context=None):
 
 def yiluohe_fenqu_jiangyu_forecast(context=None):
     if isinstance(context, dict):
-        default_list = context["ylhjyyb"],
+        default_list = context["ylhjyyb"]
         df = pd.DataFrame(default_list)
-        res = pd2HtmlCSS() + df.to_html(index=False)
+        res = pd2HtmlCSS() + df.to_html(index=False, classes="dataframe")
     else:
         res = query_question(context)
     return res
 
 def yiluohe_future_7_forecast(context=None):
     if isinstance(context, dict):
-        default_list = context["hhfloodforecast"],
+        default_list = context["hhfloodforecast"]
         df = pd.DataFrame(default_list)
         res = pd2HtmlCSS() + df.to_html(index=False)
     else:

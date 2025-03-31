@@ -3,7 +3,9 @@ import datetime
 from . import yautils
 import os
 #import yautils
-
+import openpyxl
+from datetime import datetime, timedelta
+from openpyxl import load_workbook
 def getYuAnParamPath(ctype, mydate):
     """
         获取对应的参数路径
@@ -44,7 +46,73 @@ def img2base64(imgpath):
         encoded_string = base64.b64encode(data)
         return encoded_string.decode('utf-8')
 
+def excel_to_html_with_merged_cells(file_path):
+    """
+    将 Excel 文件转换为 HTML 表格，保留合并单元格，并格式化数值和时间
+    """
+    # 加载 Excel 文件
+    workbook = load_workbook(file_path)
+    sheet = workbook.active
 
+    # 创建 HTML 表格
+    html_table = '<table class="dataframe">\n'
+
+    # 遍历每一行
+    for row in sheet.iter_rows():
+        html_table += '<tr>\n'
+        for cell in row:
+            # 检查单元格是否被合并
+            is_merged = False
+            for merged_range in sheet.merged_cells.ranges:
+                if cell.coordinate in merged_range:
+                    is_merged = True
+                    # 如果是合并区域的第一个单元格，设置 rowspan 和 colspan
+                    if cell.coordinate == merged_range.start_cell.coordinate:
+                        value = cell.value
+                        if isinstance(value, (int, float)):
+                            value = round(value, 2)  # 保留两位小数
+                            # 添加单位并确保单位格式正确
+                            cell_value = sheet.cell(row=1, column=cell.column).value
+                            if cell_value is not None and "流量" in cell_value:
+                                unit = "m³/s"
+                            else:
+                                unit = ""
+                            value = f"{value} {unit}"
+                        elif isinstance(value, datetime):
+                            value = value.replace(microsecond=0)  # 去除微秒
+                            if value.second >= 30:
+                                value = (value + timedelta(minutes=1)).replace(second=0)  # 四舍五入到整点
+                            else:
+                                value = value.replace(second=0)  # 直接舍去秒数
+                            value = value.strftime('%Y-%m-%d %H:%M')  # 格式化为年月日 时分
+                        html_table += f'<th rowspan="{merged_range.size["rows"]}" colspan="{merged_range.size["columns"]}">{value}</th>\n'
+                    break
+            if not is_merged:
+                # 普通单元格
+                value = cell.value
+                if isinstance(value, (int, float)):
+                    value = round(value, 2)  # 保留两位小数
+                    # 添加单位并确保单位格式正确
+                    cell_value = sheet.cell(row=1, column=cell.column).value
+                    if cell_value is not None and "流量" in cell_value:
+                        unit = "m³/s"
+                    else:
+                        unit = ""
+                    value = f"{value} {unit}"
+                elif isinstance(value, datetime):
+                    value = value.replace(microsecond=0)  # 去除微秒
+                    if value.second >= 30:
+                        value = (value + timedelta(minutes=1)).replace(second=0)  # 四舍五入到整点
+                    else:
+                        value = value.replace(second=0)  # 直接舍去秒数
+                    value = value.strftime('%Y-%m-%d %H:%M')  # 格式化为年月日 时分
+                if cell.row == 1 or cell.column == 1:
+                    html_table += f'<th>{value}</th>\n'
+                else:
+                    html_table += f'<td>{value}</td>\n'
+        html_table += '</tr>\n'
+    html_table += '</table>'
+    return html_table
 
 def paraHtml(text):
     paraHtmlText = "<p>" + text +  "</p>"
@@ -122,42 +190,42 @@ def smx_sk(shuiku_shuiwei: dict, shuiwenzhan_liuliang: dict):
         return "适时控制运用"
 
 
-def xld_sk(shuiku_shuiwei: dict, shuiwenzhan_liuliang: dict):
-    sw = shuiku_shuiwei.get("小浪底", {}).get('level', 0)
-    hyk_liuliang = shuiwenzhan_liuliang.get("花园口", {}).get('flow', 0)
-    tongguan_liuliang = shuiwenzhan_liuliang.get("潼关", {}).get('flow', 0)
-    rate_p = float(tongguan_liuliang) / (float(hyk_liuliang) + 0.001)
-    print("小浪底SK", hyk_liuliang,tongguan_liuliang, sw)
-    """
-    小浪底库
-    :return:
-    """
-    if hyk_liuliang <= 4500:
-        return "适时调节水沙，按控制花园口站流量不大于4500m³/s的原则泄洪。西霞院水库配合小浪底水库泄洪排沙"
-    elif hyk_liuliang <= 8000:
-        return "原则上按控制花园口站4500m³/s方式运用。若洪水主要来源于三门峡以上，视来水来沙及水库淤积情况，适时按进出库平衡方式运用。控制水库最高运用水位不超过254m。西霞院水库配合小浪底水库泄洪排沙"
-    elif hyk_liuliang <= 10000:
-        if rate_p > 0.6:
-            return "小浪底：原则上按进出库平衡方式运用。西霞院水库配合小浪底水库泄洪排沙"
-        else:
-            return "小浪底：视下游汛情，适时按控制花园口站不大于8000m³/s的方式运用。西霞院水库配合小浪底水库泄洪排沙"
-    elif hyk_liuliang <= 22000:
-        if rate_p > 0.6:
-            return "小浪底：按控制花园口站10000m³/s方式运用。西霞院水库配合小浪底水库泄洪排沙"
-        else:
-            if hyk_liuliang - tongguan_liuliang < 9000:
-                return "小浪底：按控制花园口站10000m³/s方式运用。西霞院水库配合小浪底水库泄洪排沙"
-            else:
-                return "小浪底：按不大于1000m³/s（发电流量）下泄。西霞院水库配合小浪底水库泄洪排沙"
-    else:
-        # 潼关 花园口 流量大于60%
-        if rate_p > 0.6:
-            if sw < 273.5:
-                return "小浪底：按控制花园口站10000m³/s方式运用。西霞院水库配合小浪底水库泄洪排沙"
-            else:
-                return "小浪底：按进出库平衡或敞泄运用。西霞院水库配合小浪底水库泄洪排沙"
-        else:
-            return "小浪底：按控制花园口站10000m³/s方式运用。西霞院水库配合小浪底水库泄洪排沙"
+# def xld_sk(shuiku_shuiwei: dict, shuiwenzhan_liuliang: dict):
+#     sw = shuiku_shuiwei.get("小浪底", {}).get('level', 0)
+#     hyk_liuliang = shuiwenzhan_liuliang.get("花园口", {}).get('flow', 0)
+#     tongguan_liuliang = shuiwenzhan_liuliang.get("潼关", {}).get('flow', 0)
+#     rate_p = float(tongguan_liuliang) / (float(hyk_liuliang) + 0.001)
+#     print("小浪底SK", hyk_liuliang,tongguan_liuliang, sw)
+#     """
+#     小浪底库
+#     :return:
+#     """
+#     if hyk_liuliang <= 4500:
+#         return "适时调节水沙，按控制花园口站流量不大于4500m³/s的原则泄洪。西霞院水库配合小浪底水库泄洪排沙"
+#     elif hyk_liuliang <= 8000:
+#         return "原则上按控制花园口站4500m³/s方式运用。若洪水主要来源于三门峡以上，视来水来沙及水库淤积情况，适时按进出库平衡方式运用。控制水库最高运用水位不超过254m。西霞院水库配合小浪底水库泄洪排沙"
+#     elif hyk_liuliang <= 10000:
+#         if rate_p > 0.6:
+#             return "小浪底：原则上按进出库平衡方式运用。西霞院水库配合小浪底水库泄洪排沙"
+#         else:
+#             return "小浪底：视下游汛情，适时按控制花园口站不大于8000m³/s的方式运用。西霞院水库配合小浪底水库泄洪排沙"
+#     elif hyk_liuliang <= 22000:
+#         if rate_p > 0.6:
+#             return "小浪底：按控制花园口站10000m³/s方式运用。西霞院水库配合小浪底水库泄洪排沙"
+#         else:
+#             if hyk_liuliang - tongguan_liuliang < 9000:
+#                 return "小浪底：按控制花园口站10000m³/s方式运用。西霞院水库配合小浪底水库泄洪排沙"
+#             else:
+#                 return "小浪底：按不大于1000m³/s（发电流量）下泄。西霞院水库配合小浪底水库泄洪排沙"
+#     else:
+#         # 潼关 花园口 流量大于60%
+#         if rate_p > 0.6:
+#             if sw < 273.5:
+#                 return "小浪底：按控制花园口站10000m³/s方式运用。西霞院水库配合小浪底水库泄洪排沙"
+#             else:
+#                 return "小浪底：按进出库平衡或敞泄运用。西霞院水库配合小浪底水库泄洪排沙"
+#         else:
+#             return "小浪底：按控制花园口站10000m³/s方式运用。西霞院水库配合小浪底水库泄洪排沙"
 
 
 def lh_sk(shuiku_shuiwei: dict, shuiwenzhan_liuliang: dict):
