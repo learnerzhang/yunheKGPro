@@ -15,7 +15,30 @@ import pymysql
 import sys
 import os
 import logging
-DEBUG = True
+import yaml
+
+# 读取 yaml 配置文件
+CONFIG_FILE = os.path.join("configs", 'config.yaml')
+
+try:
+    with open(CONFIG_FILE, 'r') as f:
+        config = yaml.safe_load(f)
+except FileNotFoundError:
+    print("配置文件未找到，请检查路径。")
+    config = {}
+
+# 预案模板的位置
+YUAN_TEMPLET_PATH = config.get('YUAN_TEMPLET_PATH', 'data/yuan_templet/yuan_v1.json')
+
+# SECURITY WARNING: keep the secret key used in production secret!
+SECRET_KEY = config.get('SECRET_KEY', 'django-insecure-r&6c!_n9591qjq1&h6w4&!b%yk7l_%$dw2n8_k&++q#@0nh&vc')
+# SECURITY WARNING: don't run with debug turned on in production!
+CORS_ORIGIN_ALLOW_ALL = config.get('CORS_ORIGIN_ALLOW_ALL', True)
+CSRF_TRUSTED_ORIGINS = config.get('CSRF_TRUSTED_ORIGINS', ["*"])
+DATA_UPLOAD_MAX_NUMBER_FIELDS = config.get('DATA_UPLOAD_MAX_NUMBER_FIELDS', 10000)
+ALLOWED_HOSTS = config.get('ALLOWED_HOSTS', ["*"])
+DEBUG = config.get('DEBUG', False)
+
 LOGGING = {
     'version': 1,
     'disable_existing_loggers': False,
@@ -113,16 +136,6 @@ ES_PWD = os.environ.get('ES_PWD', "elastic")
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/3.2/howto/deployment/checklist/
 
-# SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = 'django-insecure-r&6c!_n9591qjq1&h6w4&!b%yk7l_%$dw2n8_k&++q#@0nh&vc'
-
-# SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True
-CORS_ORIGIN_ALLOW_ALL = True
-CSRF_TRUSTED_ORIGINS = ["*"]
-ALLOWED_HOSTS = ['*']
-
-DATA_UPLOAD_MAX_NUMBER_FIELDS = 10240
 
 # Application definition
 
