@@ -97,7 +97,6 @@ class KnowledgeListApiView(mixins.ListModelMixin,
                            mixins.CreateModelMixin,
                            generics.GenericAPIView):
     serializer_class = ApiAppResponseSerializer
-
     @swagger_auto_schema(
         operation_description='GET /knowledge/list',
         operation_summary="[可用] 获取知识库列表",
@@ -274,7 +273,6 @@ class KnowledgeUploadApiView(generics.GenericAPIView):
     parser_classes = (FormParser, MultiPartParser)
     serializer_class = ApiAppResponseSerializer
     authentication_classes = (CsrfExemptSessionAuthentication, BasicAuthentication)
-
     @swagger_auto_schema(
         operation_summary='[可用] 新增知识库文档上传功能',
         operation_description='POST /knowledge/upload',

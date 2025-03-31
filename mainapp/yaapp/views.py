@@ -1022,6 +1022,7 @@ class YuAnRecomApiPost(generics.GenericAPIView):
         #     data = {text}
         try:
             tmpUser = User.objects.get(id=uid)
+            logger.debug("用户信息为：",tmpUser)
         except:
             tmpUser = None
 

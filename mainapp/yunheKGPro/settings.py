@@ -146,15 +146,10 @@ INSTALLED_APPS = [
     # 'reversion',
     "drf_yasg",
     "django_elasticsearch_dsl",
-    'import_export',
     'userapp',
     'yaapp',
-    'common',
-    'apiapp', 
-    'kgapp', 
-    'modelapp', 
-    'logapp',
-    'dataapp',
+    'import_export',
+    'apiapp', 'kgapp', 'modelapp', 'logapp','dataapp',
     'django_celery_results',  # celery结果
     'django_celery_beat',     # celery定时任务
 ]
@@ -186,17 +181,6 @@ SWAGGER_SETTINGS = {
     # 方法列表字母排序
     'OPERATIONS_SORTER': 'alpha',
     'VALIDATOR_URL': None,
-     'DEFAULT_FIELD_INSPECTORS': [
-        'common.inspectors.CustomFieldInspector',  # 替换为实际的模块路径
-        'drf_yasg.inspectors.CamelCaseJSONFilter',
-        'drf_yasg.inspectors.InlineSerializerInspector',
-        'drf_yasg.inspectors.RelatedFieldInspector',
-        'drf_yasg.inspectors.ChoiceFieldInspector',
-        'drf_yasg.inspectors.FileFieldInspector',
-        'drf_yasg.inspectors.DictFieldInspector',
-        'drf_yasg.inspectors.SimpleFieldInspector',
-        'drf_yasg.inspectors.StringDefaultFieldInspector',
-    ],
 }
 
 MIDDLEWARE = [
@@ -250,17 +234,26 @@ WSGI_APPLICATION = 'yunheKGPro.wsgi.application'
 #     }
 # }
 #
+# DATABASES = {
+#     'default': {
+#         'ENGINE': 'django.db.backends.mysql',
+#         'NAME': 'kgproj',
+#         'USER': 'root',
+#         'PASSWORD': '20221qaz@WSX',
+#         'HOST': '127.0.0.1',
+#         'PORT': '3306',
+#     }
+# }
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.mysql',
         'NAME': 'kgproj',
         'USER': 'root',
         'PASSWORD': '20221qaz@WSX',
-        'HOST': '127.0.0.1',
+        'HOST': '192.168.2.182',
         'PORT': '3306',
     }
 }
-
 
 
 ELASTICSEARCH_DSL = {
@@ -308,32 +301,32 @@ if sys.platform.startswith('linux'):
     )
     logger.debug('当前系统为 Linux')
 elif sys.platform.startswith('win'):
-    WKING_PATH = "D:\\Program Files\\wkhtmltopdf\\bin\\wkhtmltoimage.exe"
+    WKING_PATH = "D:\\software\\wkhtmltopdf\\bin\\wkhtmltoimage.exe"
     # D:\data\models\bge-large-zh
-    MODEL_PATH = "D:\\data\\models\\bge-large-zh"
+    MODEL_PATH = "D:\\data\\models\\bge-large-zh-v1.5"
     DATA_DIR_PATH = "D:\\data\\nmc\\"
     TTF_PATH = "arial.ttf"
     DATABASES = {
         'default': {
             'ENGINE': 'django.db.backends.mysql',
-            'NAME': 'kgproj',
+            'NAME': 'test_kgproj',
             'USER': 'root',
-            'PASSWORD': '123456', #'123456',
+            'PASSWORD': 'root', #'123456',
             'HOST': '127.0.0.1',
             'PORT': '3306',
         }
     }
 
-    DATABASES = {
-        'default': {
-            'ENGINE': 'django.db.backends.mysql',
-            'NAME': 'kgproj',
-            'USER': 'root',
-            'PASSWORD': '20221qaz@WSX',
-            'HOST': '192.168.2.182',
-            'PORT': '3306',
-        }
-    }
+    # DATABASES = {
+    #     'default': {
+    #         'ENGINE': 'django.db.backends.mysql',
+    #         'NAME': 'kgproj',
+    #         'USER': 'root',
+    #         'PASSWORD': '20221qaz@WSX',
+    #         'HOST': '192.168.2.182',
+    #         'PORT': '3306',
+    #     }
+    # }
 
     ELASTICSEARCH_DSL = {
         'default': {

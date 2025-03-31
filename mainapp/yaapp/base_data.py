@@ -100,15 +100,16 @@ class BaseDataFactory():
         print("开始执行持久化操作")
         if self.dataType == 0:
             # 黄河中下游
-            jsonFileName = f"data/plans/HHZXY_api_data_{self.date}.json"
+            jsonFileName = f"data/yuan_data/0/plans/HHZXY_api_data_{self.date}.json"
         elif self.dataType ==1:
             # 小浪底秋汛
-            jsonFileName = f"data/plans/XLDQX_api_data_{self.date}.json"
+            jsonFileName = f"data/yuan_data/1/plans/XLDQX_api_data_{self.date}.json"
         elif self.dataType ==2:
-            jsonFileName = f"data/plans/XLDTSTS_api_data_{self.date}.json"
+            jsonFileName = f"data/yuan_data/2/plans/XLDTSTS_api_data_{self.date}.json"
         elif self.dataType ==3:
-            jsonFileName = f"../data/plans/HHXQ_api_data_{self.date}.json"
-
+            jsonFileName = f"data/yuan_data/3/plans/HHXQ_api_data_{self.date}.json"
+        elif self.dataType ==4:
+            jsonFileName = f"data/yuan_data/4/plans/YLH_api_data_{self.date}.json"
         with codecs.open(jsonFileName, "w", "utf-8") as f:
             json.dump(self.dataJsonPool, f, ensure_ascii=False, indent=4)
         print("持久化完成")
