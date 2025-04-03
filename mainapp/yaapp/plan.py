@@ -242,12 +242,32 @@ class PlanFactory:
             for n in self.node.wordParagraphs.all():
                 n.delete()
             # 新增描述部分
-            wp = WordParagraph.objects.create(title="洪水预报", content= "未来七天径流预报", ctype=1)
+            wp = WordParagraph.objects.create(title=f"未来7天降雨预报", content="降雨预报", ctype=1)
             self.node.wordParagraphs.add(wp)
-            # for item in self.params["jyyb_imgs"]:
-            #     wp = WordParagraph.objects.create(title=f"{swname}过程曲线", content=imgpath, ctype=2)
-            #     self.node.wordParagraphs.add(wp)
+            for item in tmp_content:
+                wp = WordParagraph.objects.create(title=f"降雨预报", content=item["content"], ctype=2)
+                self.node.wordParagraphs.add(wp)
+                wp = WordParagraph.objects.create(title=f"未来7天降雨预报", content=item["desc"], ctype=1)
+                self.node.wordParagraphs.add(wp)
 
+            wp = WordParagraph.objects.create(title="预报", content= "黄河流域分区面平均雨量预报（单位：mm）", ctype=1)
+            self.node.wordParagraphs.add(wp)
+            df = pd.DataFrame(self.params["ylhjyyb"])
+            ylhjyyb_json = df.to_json(orient='records')
+            wp = WordParagraph.objects.create(title="预报", content=json.dumps(ylhjyyb_json), ctype=3)
+            self.node.wordParagraphs.add(wp)
+            wp = WordParagraph.objects.create(title="预报", content=self.params['qjsyj'], ctype=1)
+            self.node.wordParagraphs.add(wp)
+            wp = WordParagraph.objects.create(title="预报", content="未来7天径流预报", ctype=1)
+            self.node.wordParagraphs.add(wp)
+            wp = WordParagraph.objects.create(title="预报", content=encoded_string, ctype=2)
+            self.node.wordParagraphs.add(wp)
+            wp = WordParagraph.objects.create(title="预报", content="未来7天径日均流量预报", ctype=1)
+            self.node.wordParagraphs.add(wp)
+            df = pd.DataFrame(self.params["hhfloodforecast"])
+            hhfloodforecast_json = df.to_json(orient='records')
+            wp = WordParagraph.objects.create(title="预报", content=json.dumps(hhfloodforecast_json), ctype=3)
+            self.node.wordParagraphs.add(wp)
             return (bold_left_align("降雨预报")+"\n"+bold_left_align("未来7天降雨预报")+jyyb_img_html+ divHtml(f"黄河流域分区面平均雨量预报（单位：mm）  \n") + f"\t{jiangyu_table}\n"+"短时强降水预警\n"+self.params["qjsyj"]
                     +bold_left_align("洪水预报") +bold_left_align("未来7天径流预报") + jlyb+bold_left_align("未来7天日均流量预报")+llyb)
 
@@ -458,6 +478,18 @@ class PlanFactory:
                 ddjy_list.append([key, ckll])
             df = pd.DataFrame(ddjy_list, columns=["水库", "调度方式"])
             ddjy = pd2HtmlCSS() + df.to_html(index=False)
+            for n in self.node.wordParagraphs.all():
+                n.delete()
+            ddfs_json=df.to_json(orient="records")
+            wp = WordParagraph.objects.create(title="调度方案", content="调度运用方式", ctype=1)
+            self.node.wordParagraphs.add(wp)
+            wp = WordParagraph.objects.create(title="调度方案", content=json.dumps(ddfs_json), ctype=3)
+            self.node.wordParagraphs.add(wp)
+            wp = WordParagraph.objects.create(title="调度方案", content="调度运用方案单", ctype=1)
+            self.node.wordParagraphs.add(wp)
+            ddfad_json=pd.read_excel(ddfa_excel).to_json(orient="records")
+            wp = WordParagraph.objects.create(title="调度方案", content=json.dumps(ddfad_json), ctype=3)
+            self.node.wordParagraphs.add(wp)
             # 将所有水库的调度建议合并为一个字符串
             #ddjy = "\n".join(ddjy_list)
             return (bold_left_align("调度运用方式")+ddjy+"\n"+bold_left_align("调度方案单")+ divHtml(f"伊洛河调度方案单\n")+ddfad)
@@ -518,7 +550,7 @@ class PlanFactory:
                 sk2image[skname] = tmp_ddgc_img
                 tmp_ddgc_img_desc = f"{skname}调度过程({date_list[0]}~{date_list[-1]})"
                 # TODO: 需要根据调度方案单的类型来确定调度方案单的函数
-                tmp_ddjg_result = f"预计{skname}将于{max_date}达到最高水位{max_sw}m，{xld_sk(sw=max_sw)}；\n"
+                tmp_ddjg_result = f"预计{skname}将于{max_date}达到最高水位{max_sw}m；\n"#，{xld_sk(sw=max_sw)}
                 skddresult += paraHtml(tmp_ddjg_result) + divHtml("<img src='data:image/png;base64," + tmp_ddgc_img + "' width='50%'>") + "\n" + divHtml(tmp_ddgc_img_desc) + "\n"
 
 
@@ -595,6 +627,7 @@ class PlanFactory:
             wp = WordParagraph.objects.create(title="调度结果", content="预警响应", ctype=1)
             self.node.wordParagraphs.add(wp)
             wp = WordParagraph.objects.create(title="预警响应及等级", content=xiangying_level, ctype=1)
+            self.node.wordParagraphs.add(wp)
             wp = WordParagraph.objects.create(title="调度方案单", content=json.dumps(tb_ddjg_json), ctype=3)
             self.node.wordParagraphs.add(wp)
             # wp = WordParagraph.objects.create(title="调度结果", content="滩区淹没", ctype=1)
@@ -630,6 +663,7 @@ class PlanFactory:
                 raise Exception("调度方案单不存在")
             skMapData, swMapData, date_list = yautils.excel_to_dict(ddfa_excel)
             skddresult = ""
+            sk_ddjg=[]
             sk2image = {}
             for skname in skMapData:
                 record = skMapData[skname]
@@ -648,12 +682,13 @@ class PlanFactory:
                 sk2image[skname] = tmp_ddgc_img
                 tmp_ddgc_img_desc = f"{skname}调度过程({date_list[0]}~{date_list[-1]})"
                 # TODO: 需要根据调度方案单的类型来确定调度方案单的函数
-                tmp_ddjg_result = f"预计{skname}将于{max_date}达到最高水位{max_sw}m，{xld_sk(max_sw)}；\n"
+                tmp_ddjg_result = f"预计{skname}将于{max_date}达到最高水位{max_sw}m；\n"#，{xld_sk(max_sw)['result']}
                 skddresult += paraHtml(tmp_ddjg_result) + divHtml(
                     "<img src='data:image/png;base64," + tmp_ddgc_img + "'  width='50%' >") + "\n" + divHtml(
                     tmp_ddgc_img_desc) + "\n"
-
+                sk_ddjg.append({"img64":tmp_ddgc_img,"desc":tmp_ddjg_result,"tmp_ddgc_img_desc":tmp_ddgc_img_desc})
             hd_result = ""
+            hd_ddjg=[]
             sw2image = {}
             for swname in swMapData:
                 record = swMapData[swname]
@@ -673,6 +708,7 @@ class PlanFactory:
                 hd_result = paraHtml(tmp_result) + divHtml(
                     "<img src='data:image/png;base64," + tmp_ddgc_img + "'  width='60%' >") + "\n" + paraHtml(
                     tmp_ddgc_img_desc) + "\n"
+                hd_ddjg.append({"img64": tmp_ddgc_img, "desc": tmp_result, "tmp_ddgc_img_desc": tmp_ddgc_img_desc})
             tqym = huanghe_tanqu_yanmo(self.params)
             kncx =("当前发生20年一遇以上洪水，存在以下隐患\n（1）河道防洪工程存在隐患。伊、洛河河道堤防经过多次治理加固，但仍有13处险工险段，正常洪水就有可能发生险情。\n（2）部分河段河道内存在影响行洪及堤防安全的建筑物，影响河道行洪，易形成“小流量、高水位”。\n"
                    "（3）大型水库下游、河道沿岸是人口密集和经济发达地区，一旦遭受超标准洪水袭击，损失巨大。\n（4）城市排洪排涝问题严重，如遇大汛，伊洛河水位上涨，为防止河水倒灌，需要关闭沿河涵闸，此时，沿线城市区洪水无法及时排出，需加强城市排涝能力建设。")
@@ -687,6 +723,54 @@ class PlanFactory:
 
             df = pd.DataFrame(self.params["goodsTable"])
             fxwz = pd2HtmlCSS() + df.to_html(index=False)
+
+            for n in self.node.wordParagraphs.all():
+                n.delete()
+            wp = WordParagraph.objects.create(title="调度结果及应对措施", content="水库", ctype=1)
+            self.node.wordParagraphs.add(wp)
+            for item in sk_ddjg:
+                wp = WordParagraph.objects.create(title=f"调度结果及应对措施", content=item["desc"], ctype=1)
+                self.node.wordParagraphs.add(wp)
+                wp = WordParagraph.objects.create(title=f"调度结果及应对措施", content=item["img64"], ctype=2)
+                self.node.wordParagraphs.add(wp)
+                wp = WordParagraph.objects.create(title=f"调度结果及应对措施", content=f"\t\t{item['tmp_ddgc_img_desc']}", ctype=1)
+                self.node.wordParagraphs.add(wp)
+            for item in hd_ddjg:
+                wp = WordParagraph.objects.create(title=f"调度结果及应对措施", content=item["desc"], ctype=1)
+                self.node.wordParagraphs.add(wp)
+                wp = WordParagraph.objects.create(title=f"调度结果及应对措施", content=item["img64"], ctype=2)
+                self.node.wordParagraphs.add(wp)
+                wp = WordParagraph.objects.create(title=f"调度结果及应对措施", content=f"\t\t{item['tmp_ddgc_img_desc']}", ctype=1)
+                self.node.wordParagraphs.add(wp)
+            wp = WordParagraph.objects.create(title=f"调度结果及应对措施", content="滩区淹没", ctype=1)
+            self.node.wordParagraphs.add(wp)
+            wp = WordParagraph.objects.create(title=f"调度结果及应对措施", content=tqym, ctype=1)
+            self.node.wordParagraphs.add(wp)
+            wp = WordParagraph.objects.create(title=f"调度结果及应对措施", content="可能出险", ctype=1)
+            self.node.wordParagraphs.add(wp)
+            wp = WordParagraph.objects.create(title=f"调度结果及应对措施", content=kncx, ctype=1)
+            self.node.wordParagraphs.add(wp)
+            wp = WordParagraph.objects.create(title=f"调度结果及应对措施", content="应对措施", ctype=1)
+            self.node.wordParagraphs.add(wp)
+            wp = WordParagraph.objects.create(title=f"调度结果及应对措施", content=ydcs, ctype=1)
+            self.node.wordParagraphs.add(wp)
+            wp = WordParagraph.objects.create(title=f"调度结果及应对措施", content="分级响应", ctype=1)
+            self.node.wordParagraphs.add(wp)
+            wp = WordParagraph.objects.create(title=f"调度结果及应对措施", content=yjdj, ctype=1)
+            self.node.wordParagraphs.add(wp)
+            wp = WordParagraph.objects.create(title=f"调度结果及应对措施", content="河道破堤实施方案", ctype=1)
+            self.node.wordParagraphs.add(wp)
+            wp = WordParagraph.objects.create(title=f"调度结果及应对措施", content=hdpdssfa, ctype=1)
+            self.node.wordParagraphs.add(wp)
+            wp = WordParagraph.objects.create(title=f"调度结果及应对措施", content="人员转移方案", ctype=1)
+            self.node.wordParagraphs.add(wp)
+            wp = WordParagraph.objects.create(title=f"调度结果及应对措施", content=ryzyfa, ctype=1)
+            self.node.wordParagraphs.add(wp)
+            wuzi_json = pd.DataFrame(self.params["goodsTable"]).to_json(orient="records")
+            wp = WordParagraph.objects.create(title=f"调度结果及应对措施", content="防汛物资储备和防汛抢险队伍", ctype=1)
+            self.node.wordParagraphs.add(wp)
+            wp = WordParagraph.objects.create(title=f"调度结果及应对措施", content=json.dumps(wuzi_json),ctype=3)
+            self.node.wordParagraphs.add(wp)
             return (bold_left_align("水库")+skddresult+bold_left_align("河道")+hd_result+bold_left_align("滩区淹没")+tqym+"\n"+
                     bold_left_align("可能出险")+kncx+bold_left_align("应对措施") + ydcs+bold_left_align("分级响应") + yjdj +
                     bold_left_align("河道破堤实施方案") + hdpdssfa+bold_left_align("人员转移方案")+ryzyfa  +  bold_left_align("防汛物资储备和防汛抢险队伍") + fxwz)

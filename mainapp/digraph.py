@@ -2,7 +2,7 @@ import os
 os.environ["GRAPHVIZ_DOT_ENCODING"] = "utf-8"  # 在代码开头添加
 
 from graphviz import Digraph
-
+os.environ["PATH"] += os.pathsep + 'D:/software/Graphviz/bin'
 def m1():
     # 创建有向图，设置中文字体支持
     dot = Digraph(name="Weather_Correction_Flow",  format="png", graph_attr={"rankdir": "LR", "fontname": "SimHei"}, node_attr={"style": "filled", "fontname": "SimHei"})
@@ -96,10 +96,10 @@ def m2():
     dot.edge("C", "C3")
     dot.edge("C", "C4")
 
-    dot.render("output/防汛组织流程图", format='png', cleanup=True, view=False)
+    dot.render("output/防汛组织流程图", cleanup=True, view=False)
 
 
 if __name__ == "__main__":
-    # m1()
+    m1()
     m2()
     pass

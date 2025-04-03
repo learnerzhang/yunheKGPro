@@ -95,24 +95,34 @@ def writeParagraphs2Word(i, node: dict, doc):
     # 添加一个段落
     text = node['result']
     subTitle = node['label']
-    doc.add_heading(f"{bianHaos[i]}、 {subTitle}", level=1)
+    heading = doc.add_heading(f"{bianHaos[i]}、 {subTitle}", level=1)
     # doc.add_paragraph(text)
+    for run in heading.runs:
+        run.font.name = '宋体'
+        run._element.rPr.rFonts.set(qn('w:eastAsia'), '宋体')  # 中文字体设置
+
     for para in node['paraglist']:
         if para['ctype'] == 0:
             pass
         if para['ctype'] == 1:
-            doc.add_paragraph(para['content'])
-        if para['ctype'] == 2:
-            imgdata = base64.b64decode(para['content']) 
-            img_stream = BytesIO(imgdata)
-            # 添加段落用于存放图片
+            # 检查内容长度是否小于10，如果是则加粗
             paragraph = doc.add_paragraph()
-            paragraph.alignment = WD_ALIGN_PARAGRAPH.CENTER  # 图片居中
-            run = paragraph.add_run()
-            run.add_picture(img_stream, width=Inches(5.0))
-            # 将图片添加到Word文档  
-            # 注意：add_picture 方法通常期望一个文件路径，但在这里我们使用BytesIO对象作为文件流  
-            #doc.add_picture(img_stream, width=Inches(5.0))
+            run = paragraph.add_run(para['content'])
+            run.font.name = '宋体'
+            run._element.rPr.rFonts.set(qn('w:eastAsia'), '宋体')  # 中文字体设置
+            if len(para['content'].strip()) < 10:
+                run.bold = True
+        if para['ctype'] == 2:
+                imgdata = base64.b64decode(para['content'])
+                img_stream = BytesIO(imgdata)
+                # 添加段落用于存放图片
+                paragraph = doc.add_paragraph()
+                paragraph.alignment = WD_ALIGN_PARAGRAPH.CENTER  # 图片居中
+                run = paragraph.add_run()
+                run.add_picture(img_stream, width=Inches(5.0))
+                # 将图片添加到Word文档
+                # 注意：add_picture 方法通常期望一个文件路径，但在这里我们使用BytesIO对象作为文件流
+                #doc.add_picture(img_stream, width=Inches(5.0))
         if para['ctype'] == 3:
             # 表格
             json_str = json.loads(para['content'])

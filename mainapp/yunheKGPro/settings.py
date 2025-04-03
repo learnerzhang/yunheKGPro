@@ -15,7 +15,9 @@ import pymysql
 import sys
 import os
 import logging
-DEBUG = True
+import yaml
+os.environ["DJANGO_ALLOW_ASYNC_UNSAFE"] = "true"
+pymysql.install_as_MySQLdb()
 LOGGING = {
     'version': 1,
     'disable_existing_loggers': False,
@@ -70,45 +72,133 @@ LOGGING = {
 
 logger = logging.getLogger('kgproj')
 
-os.environ["DJANGO_ALLOW_ASYNC_UNSAFE"] = "true"
 
-pymysql.install_as_MySQLdb()
-
-DATA_UPLOAD_MAX_MEMORY_SIZE = 52428800
-FILE_UPLOAD_MAX_MEMORY_SIZE = 10485760  # 10MB
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
 
-#   - DEBUG=0
-#   - DB_HOST=db
-#   - DB_NAME=kgproj
-#   - DB_USER=root
-#   - DB_PORT=3306
-#   - DB_PASSWORD=20221qaz@WSX
-#   - NEO4J_URI=bolt://neo4j:7687
-#   - NEO4J_USERNAME=neo4j
-#   - NEO4J_PASSWORD=12345678
-#   - REDIS_URL=redis://redis:6379
+if sys.platform.startswith('linux'):
+    CONFIG_FILE = os.path.join("configs", 'config.yaml')
+    logger.debug('当前系统为 Linux')
+elif sys.platform.startswith('win'):
+    CONFIG_FILE = os.path.join("configs", 'config_local.yaml')
+    logger.debug('当前系统为 Windows')
+elif sys.platform.startswith('darwin'):
+    logger.debug('当前系统为 macOS')
+else:
+    logger.debug('无法识别当前系统')
 
-NEOMODEL_NEO4J_BOLT_URL = os.environ.get('NEO4J_URI', "bolt://127.0.0.1:7687")
-NEOMODEL_USERNAME = os.environ.get('NEO4J_USERNAME', "neo4j")
-NEOMODEL_PASSWORD = os.environ.get('NEO4J_PASSWORD', "12345678")
+# 读取 yaml 配置文件
+try:
+    with open(CONFIG_FILE, 'r') as f:
+        config = yaml.safe_load(f)
+except FileNotFoundError:
+    print("配置文件未找到，请检查路径。")
+    config = {}
 
-REDIS_URL = os.environ.get('REDIS_URL', "redis://127.0.0.1:6379/0")
 
-DB_HOST = os.environ.get('DB_HOST', "127.0.0.1")
-DB_NAME = os.environ.get('DB_NAME', "test_kgproj")
-DB_PORT = os.environ.get('DB_PORT', "3306")
-DB_USER = os.environ.get('DB_USER', "root")
-#DB_PASSWORD = os.environ.get('DB_PASSWORD', "20221qaz@WSX")
-DB_PASSWORD = os.environ.get('DB_PASSWORD', "root")
+if config.get('USE_LOCAL_MODEL', False):
+    from langchain.embeddings import HuggingFaceEmbeddings
+    MODEL_PATH = config.get('MODEL_PATH', "D:\\data\\models\\bge-large-zh")
+    embedding = HuggingFaceEmbeddings(
+        # model_name="BAAI/bge-small-zh-v1.5",
+        model_name=MODEL_PATH,
+        model_kwargs={'device': 'cpu'},
+        encode_kwargs={
+            'batch_size': 64,
+            'normalize_embeddings': True
+        }
+    )
+    logger.debug('使用本地模型')
+else:
+    embedding = None
+    logger.debug('不使用本地模型')
+
+
+# Database
+# https://docs.djangoproject.com/en/3.2/ref/settings/#databases
+
+# DATABASES = {
+#     'default': {
+#         'ENGINE': 'django.db.backends.sqlite3',
+#         'NAME': BASE_DIR / 'db.sqlite3',
+#     }
+# }
+#
+default_db_config = config['DATABASES']['default']
+DBHOST=default_db_config.get('HOST')
+DBNAME=default_db_config.get('NAME')
+DBUSER=default_db_config.get('USER')
+DBPORT=default_db_config.get('PORT')
+DBPASSWORD=default_db_config.get('PASSWORD')
+
+
+NEO4J_URI=config.get('NEO4J_URI', "bolt://127.0.0.1:7687")
+NEO4J_USERNAME=config.get('NEO4J_USERNAME', "neo4j")
+NEO4J_PASSWORD=config.get('NEO4J_PASSWORD', "12345678")
+REDIS_URL=config.get('REDIS_URL', "redis://127.0.0.1:6379/0")
+
+
+NEOMODEL_NEO4J_BOLT_URL = os.environ.get('NEO4J_URI', NEO4J_URI)
+NEOMODEL_USERNAME = os.environ.get('NEO4J_USERNAME', NEO4J_USERNAME)
+NEOMODEL_PASSWORD = os.environ.get('NEO4J_PASSWORD', NEO4J_PASSWORD)
+REDIS_URL = os.environ.get('REDIS_URL', REDIS_URL)
+
+DB_HOST = os.environ.get('DB_HOST', DBHOST)
+DB_NAME = os.environ.get('DB_NAME', DBNAME)
+DB_PORT = os.environ.get('DB_PORT', DBPORT)
+DB_USER = os.environ.get('DB_USER', DBUSER)
+DB_PASSWORD = os.environ.get('DB_PASSWORD', DBPASSWORD)
 
 ES_HOST = os.environ.get('ES_HOST', "127.0.0.1")
 ES_PORT = os.environ.get('ES_PORT', "9200")
 ES_URL = os.environ.get('ES_URL', "http://127.0.0.1:9200")
 ES_USER = os.environ.get('ES_USER', "elastic")
 ES_PWD = os.environ.get('ES_PWD', "elastic")
+
+
+WKING_PATH = config.get('WKING_PATH', "D:\\software\\wkhtmltopdf\\bin\\wkhtmltoimage.exe")
+MODEL_PATH = config.get('MODEL_PATH', "D:\\data\\models\\bge-large-zh-v1.5")
+TTF_PATH = config.get('TTF_PATH', "arial.ttf")
+DATABASES = {
+    'default': {
+        'ENGINE': 'django.db.backends.mysql',
+        'NAME': DB_NAME,
+        'USER': DB_USER,
+        'PASSWORD': DB_PASSWORD,
+        'HOST': DB_HOST,
+        'PORT': DB_PORT,
+    }
+}
+
+ELASTICSEARCH_DSL = {
+    'default': {
+        'hosts': ES_URL,
+        'http_auth': (ES_USER, ES_PWD)
+    },
+}
+
+
+# 预案模板的位置
+YUAN_TEMPLET_PATH = config.get('YUAN_TEMPLET_PATH', 'data/yuan_templet/yuan_v1.json')
+
+# SECURITY WARNING: keep the secret key used in production secret!
+SECRET_KEY = config.get('SECRET_KEY', 'django-insecure-r&6c!_n9591qjq1&h6w4&!b%yk7l_%$dw2n8_k&++q#@0nh&vc')
+
+# SECURITY WARNING: don't run with debug turned on in production!
+CORS_ORIGIN_ALLOW_ALL = config.get('CORS_ORIGIN_ALLOW_ALL', True)
+
+CSRF_TRUSTED_ORIGINS = config.get('CSRF_TRUSTED_ORIGINS', ["*"])
+
+DATA_UPLOAD_MAX_NUMBER_FIELDS = config.get('DATA_UPLOAD_MAX_NUMBER_FIELDS', 10000)
+DATA_UPLOAD_MAX_MEMORY_SIZE = config.get('DATA_UPLOAD_MAX_MEMORY_SIZE', 52428800)
+FILE_UPLOAD_MAX_MEMORY_SIZE = config.get('FILE_UPLOAD_MAX_MEMORY_SIZE', 10485760)  # 10MB
+
+ALLOWED_HOSTS = config.get('ALLOWED_HOSTS', ["*"])
+
+DEBUG = config.get('DEBUG', False)
+
+
 
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/3.2/howto/deployment/checklist/
@@ -223,133 +313,6 @@ TEMPLATES = [
 ]
 
 WSGI_APPLICATION = 'yunheKGPro.wsgi.application'
-
-# Database
-# https://docs.djangoproject.com/en/3.2/ref/settings/#databases
-
-# DATABASES = {
-#     'default': {
-#         'ENGINE': 'django.db.backends.sqlite3',
-#         'NAME': BASE_DIR / 'db.sqlite3',
-#     }
-# }
-#
-# DATABASES = {
-#     'default': {
-#         'ENGINE': 'django.db.backends.mysql',
-#         'NAME': 'kgproj',
-#         'USER': 'root',
-#         'PASSWORD': '20221qaz@WSX',
-#         'HOST': '127.0.0.1',
-#         'PORT': '3306',
-#     }
-# }
-DATABASES = {
-    'default': {
-        'ENGINE': 'django.db.backends.mysql',
-        'NAME': 'kgproj',
-        'USER': 'root',
-        'PASSWORD': '20221qaz@WSX',
-        'HOST': '192.168.2.182',
-        'PORT': '3306',
-    }
-}
-
-
-ELASTICSEARCH_DSL = {
-    'default': {
-        'hosts': ES_URL,
-        'http_auth': (ES_USER, ES_PWD)
-    },
-}
-
-
-TTF_PATH = "arial.ttf"
-MODEL_PATH = "D:\\data\\models\\bge-large-zh"
-WKING_PATH = "D:\\Program Files\\wkhtmltopdf\\bin\\wkhtmltoimage.exe"
-if sys.platform.startswith('linux'):
-    WKING_PATH = r'/usr/bin/wkhtmltoimage'
-    MODEL_PATH = "/data/bge-large-zh"
-    DATA_DIR_PATH = "/data/nmc"
-    TTF_PATH = "/usr/share/fonts/dejavu/DejaVuSans.ttf"
-    DATABASES = {
-        'default': {
-            'ENGINE': 'django.db.backends.mysql',
-            'NAME': DB_NAME,
-            'USER': DB_USER,
-            'PASSWORD': DB_PASSWORD,
-            'HOST': DB_HOST,
-            'PORT': DB_PORT,
-        }
-    }
-
-    ELASTICSEARCH_DSL = {
-        'default': {
-            'hosts': ES_URL,
-            'http_auth': (ES_USER, ES_PWD)
-        },
-    }
-    from langchain.embeddings import HuggingFaceEmbeddings
-    embedding = HuggingFaceEmbeddings(
-        # model_name="BAAI/bge-small-zh-v1.5",
-        model_name=MODEL_PATH,
-        model_kwargs={'device': 'cpu'},
-        encode_kwargs={
-            'batch_size': 64,
-            'normalize_embeddings': True
-        }
-    )
-    logger.debug('当前系统为 Linux')
-elif sys.platform.startswith('win'):
-    WKING_PATH = "D:\\software\\wkhtmltopdf\\bin\\wkhtmltoimage.exe"
-    # D:\data\models\bge-large-zh
-    MODEL_PATH = "D:\\data\\models\\bge-large-zh-v1.5"
-    DATA_DIR_PATH = "D:\\data\\nmc\\"
-    TTF_PATH = "arial.ttf"
-    DATABASES = {
-        'default': {
-            'ENGINE': 'django.db.backends.mysql',
-            'NAME': 'test_kgproj',
-            'USER': 'root',
-            'PASSWORD': 'root', #'123456',
-            'HOST': '127.0.0.1',
-            'PORT': '3306',
-        }
-    }
-
-    # DATABASES = {
-    #     'default': {
-    #         'ENGINE': 'django.db.backends.mysql',
-    #         'NAME': 'kgproj',
-    #         'USER': 'root',
-    #         'PASSWORD': '20221qaz@WSX',
-    #         'HOST': '192.168.2.182',
-    #         'PORT': '3306',
-    #     }
-    # }
-
-    ELASTICSEARCH_DSL = {
-        'default': {
-            'hosts': 'http://localhost:9200',
-            'http_auth': (ES_USER, ES_PWD)
-        },
-    }
-    from langchain.embeddings import HuggingFaceEmbeddings
-    # embedding = HuggingFaceEmbeddings(
-    #     # model_name="BAAI/bge-small-zh-v1.5",
-    #     model_name=MODEL_PATH,
-    #     model_kwargs={'device': 'cpu'},
-    #     encode_kwargs={
-    #         'batch_size': 64,
-    #         'normalize_embeddings': True
-    #     }
-    # )
-    embedding = None
-    logger.debug('当前系统为 Windows')
-elif sys.platform.startswith('darwin'):
-    logger.debug('当前系统为 macOS')
-else:
-    logger.debug('无法识别当前系统')
 
 # Password validation
 # https://docs.djangoproject.com/en/3.2/ref/settings/#auth-password-validators
