@@ -28,7 +28,17 @@ class LYHDataFactory(BaseDataFactory):
             获取雨情数据
         """
         print("HHZXY getYuQingData")
-        return {}
+        current_date = datetime.now().strftime("%m月%d日")
+
+        # 固定文本内容
+        report_template = (
+            "{date}，伊洛河流域中游大部地区降小雨，其中伊河下游、洛河部分地区大部降中到大雨、"
+            "部分站暴雨，最大点雨量伊洛河古城站87毫米"
+        )
+
+        # 替换日期部分
+        report = report_template.format(date=current_date)
+        return {"yuqing": report}
 
     def getHedaoShuiQingData(self):
         """

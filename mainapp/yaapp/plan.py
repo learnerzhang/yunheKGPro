@@ -661,6 +661,25 @@ class PlanFactory:
             # logger.debug(ddfa_excel)
             if not os.path.exists(ddfa_excel):
                 raise Exception("调度方案单不存在")
+            if not os.path.exists(ddfa_excel):
+                raise Exception("调度方案单不存在")
+            else:
+                # df = pd.read_excel(ddfa_excel)
+                # ddfad = pd2HtmlCSS() + df.to_html(index=False, justify="center")
+                html_table = excel_to_html_with_merged_cells(ddfa_excel)
+                ddfad = pd2HtmlCSS()+html_table
+            skMapData, swMapData, date_list = yautils.excel_to_dict(ddfa_excel)
+            results = yautils.skddjy_new(ddfa_excel)
+            # 初始化调度建议字符串
+            ddjy_list = []
+            # 遍历返回的结果字典
+            for key, value in results.items():
+                ckll = process_outflow(value, date_list)
+                #ddjy_list.append(f"{key}水库：{ckll}")
+                ddjy_list.append([key, ckll])
+            df = pd.DataFrame(ddjy_list, columns=["水库", "调度方式"])
+            ddjy = pd2HtmlCSS() + df.to_html(index=False)
+            ddfs_json=df.to_json(orient="records")
             skMapData, swMapData, date_list = yautils.excel_to_dict(ddfa_excel)
             skddresult = ""
             sk_ddjg=[]
@@ -709,71 +728,46 @@ class PlanFactory:
                     "<img src='data:image/png;base64," + tmp_ddgc_img + "'  width='60%' >") + "\n" + paraHtml(
                     tmp_ddgc_img_desc) + "\n"
                 hd_ddjg.append({"img64": tmp_ddgc_img, "desc": tmp_result, "tmp_ddgc_img_desc": tmp_ddgc_img_desc})
-            tqym = huanghe_tanqu_yanmo(self.params)
-            kncx =("当前发生20年一遇以上洪水，存在以下隐患\n（1）河道防洪工程存在隐患。伊、洛河河道堤防经过多次治理加固，但仍有13处险工险段，正常洪水就有可能发生险情。\n（2）部分河段河道内存在影响行洪及堤防安全的建筑物，影响河道行洪，易形成“小流量、高水位”。\n"
-                   "（3）大型水库下游、河道沿岸是人口密集和经济发达地区，一旦遭受超标准洪水袭击，损失巨大。\n（4）城市排洪排涝问题严重，如遇大汛，伊洛河水位上涨，为防止河水倒灌，需要关闭沿河涵闸，此时，沿线城市区洪水无法及时排出，需加强城市排涝能力建设。")
-            ydcs =("当前龙门站流量已达4600立方米每秒，水位超过153.5米；白马寺站达到或超过4600立方米每秒（相应水位超过123.50米）、黑石关水文站流量超过2050立方米每秒（相应水位超过113.50米。建议采取以下措施："
-                   "\n各级防汛指挥机构领导上堤坐阵指挥。军分区负责组织驻军、基干民兵组成抢险突击队日夜坚守大堤，查险除险；防汛物资储备单位要保证抢险物资的及时供应；交通部门要组织车辆、人员、抢运防汛物资。若伊洛河上游仍有较大来水，"
-                   "洪水下泄不畅，水位继续上涨，危胁到偃师城区、大唐首阳山电厂和陇海铁路的安全或夹河滩防洪大堤全线危急时，报请上级防汛指挥部批准后，从伊河右堤顾县杨村段和洛河右堤岳滩村段爆破分洪，使用伊河右滩和伊洛河夹河滩滞洪。")
-            yjdj = yujingdengji()["result"]#"黄色预警"
-            hdpdssfa=("当前龙门水文站洪水达到或超过4600立方米每秒，白马寺水文站达到或超过4600立方米每秒。建议采取以下措施:\n"
-                      "1）当洛河偃师段水位距右堤顶1.0米时，主要领导要亲临河堤指挥抗洪抢险工作。\n2）从偃师区商城、伊洛、槐新街道办各调1000人，首阳山街道调3000人，邙岭镇调3000人，山化镇调3000人，区直单位、厂矿企业调1000人，共计13000人组成抗洪抢险预备队伍，对洛河右堤薄弱地段重点防守，如遇险情，及时抢护。\n"
-                      "3）如果洪水继续上涨，黄河水位高，顶托伊洛河洪水下泄，危及洛河右堤及伊、洛河夹河滩区和巩义市段沿河村镇安全时，报请上级批准后，有计划在伊河右堤顾县杨村段开口分洪，利用顾县镇东部、伊河以南低洼区滞洪、削峰，减轻洪水对伊河左堤的压力。一旦洛河左堤许庄段出现危急或夹河滩堤段全线危急时，应速报请上级批准，在洛河右堤岳滩村段开口分洪，利用伊、洛河夹河滩区滞洪，保证偃师城区、大唐首阳山电厂和陇海铁路的安全，并防止夹河滩堤段出现大范围溃决。")
-            ryzyfa = "当前龙门水文站流量达到或超过4600立方米每秒、白马寺水文站流量达到或超过4600立方米每秒。建议采取以下人员转移措施：\n驻偃师、洛龙、伊滨、巩义部队做好从滩区、夹河滩区抢救人员的准备；偃师区、洛龙区、伊滨区、巩义市低洼易涝的各单位，要将人员、档案、物资转移到安全地方；如"
-
-            df = pd.DataFrame(self.params["goodsTable"])
-            fxwz = pd2HtmlCSS() + df.to_html(index=False)
+            #tqym = huanghe_tanqu_yanmo(self.params)
+            hyk_liuliang = 3000
+            tqym = tanquyanmo(hyk_liuliang)["result"]
 
             for n in self.node.wordParagraphs.all():
                 n.delete()
-            wp = WordParagraph.objects.create(title="调度结果及应对措施", content="水库", ctype=1)
+            wp = WordParagraph.objects.create(title="调度方案", content="调度运用方式", ctype=1)
+            self.node.wordParagraphs.add(wp)
+            wp = WordParagraph.objects.create(title="调度方案", content=json.dumps(ddfs_json), ctype=3)
+            self.node.wordParagraphs.add(wp)
+            wp = WordParagraph.objects.create(title="调度结果", content="水库", ctype=1)
             self.node.wordParagraphs.add(wp)
             for item in sk_ddjg:
-                wp = WordParagraph.objects.create(title=f"调度结果及应对措施", content=item["desc"], ctype=1)
+                wp = WordParagraph.objects.create(title="调度结果", content=item["desc"], ctype=1)
                 self.node.wordParagraphs.add(wp)
-                wp = WordParagraph.objects.create(title=f"调度结果及应对措施", content=item["img64"], ctype=2)
+                wp = WordParagraph.objects.create(title="调度结果", content=item["img64"], ctype=2)
                 self.node.wordParagraphs.add(wp)
-                wp = WordParagraph.objects.create(title=f"调度结果及应对措施", content=f"\t\t{item['tmp_ddgc_img_desc']}", ctype=1)
+                wp = WordParagraph.objects.create(title="调度结果", content=f"\t\t{item['tmp_ddgc_img_desc']}", ctype=1)
                 self.node.wordParagraphs.add(wp)
             for item in hd_ddjg:
-                wp = WordParagraph.objects.create(title=f"调度结果及应对措施", content=item["desc"], ctype=1)
+                wp = WordParagraph.objects.create(title="调度结果", content=item["desc"], ctype=1)
                 self.node.wordParagraphs.add(wp)
-                wp = WordParagraph.objects.create(title=f"调度结果及应对措施", content=item["img64"], ctype=2)
+                wp = WordParagraph.objects.create(title="调度结果", content=item["img64"], ctype=2)
                 self.node.wordParagraphs.add(wp)
-                wp = WordParagraph.objects.create(title=f"调度结果及应对措施", content=f"\t\t{item['tmp_ddgc_img_desc']}", ctype=1)
+                wp = WordParagraph.objects.create(title="调度结果", content=f"\t\t{item['tmp_ddgc_img_desc']}", ctype=1)
                 self.node.wordParagraphs.add(wp)
-            wp = WordParagraph.objects.create(title=f"调度结果及应对措施", content="滩区淹没", ctype=1)
+            wp = WordParagraph.objects.create(title="调度结果", content="滩区淹没", ctype=1)
             self.node.wordParagraphs.add(wp)
-            wp = WordParagraph.objects.create(title=f"调度结果及应对措施", content=tqym, ctype=1)
+            wp = WordParagraph.objects.create(title="调度结果", content=tqym, ctype=1)
             self.node.wordParagraphs.add(wp)
-            wp = WordParagraph.objects.create(title=f"调度结果及应对措施", content="可能出险", ctype=1)
+            wp = WordParagraph.objects.create(title="调度方案", content="调度运用方案单", ctype=1)
             self.node.wordParagraphs.add(wp)
-            wp = WordParagraph.objects.create(title=f"调度结果及应对措施", content=kncx, ctype=1)
+            ddfad_json = pd.read_excel(ddfa_excel).to_json(orient="records")
+            wp = WordParagraph.objects.create(title="调度方案", content=json.dumps(ddfad_json), ctype=3)
             self.node.wordParagraphs.add(wp)
-            wp = WordParagraph.objects.create(title=f"调度结果及应对措施", content="应对措施", ctype=1)
-            self.node.wordParagraphs.add(wp)
-            wp = WordParagraph.objects.create(title=f"调度结果及应对措施", content=ydcs, ctype=1)
-            self.node.wordParagraphs.add(wp)
-            wp = WordParagraph.objects.create(title=f"调度结果及应对措施", content="分级响应", ctype=1)
-            self.node.wordParagraphs.add(wp)
-            wp = WordParagraph.objects.create(title=f"调度结果及应对措施", content=yjdj, ctype=1)
-            self.node.wordParagraphs.add(wp)
-            wp = WordParagraph.objects.create(title=f"调度结果及应对措施", content="河道破堤实施方案", ctype=1)
-            self.node.wordParagraphs.add(wp)
-            wp = WordParagraph.objects.create(title=f"调度结果及应对措施", content=hdpdssfa, ctype=1)
-            self.node.wordParagraphs.add(wp)
-            wp = WordParagraph.objects.create(title=f"调度结果及应对措施", content="人员转移方案", ctype=1)
-            self.node.wordParagraphs.add(wp)
-            wp = WordParagraph.objects.create(title=f"调度结果及应对措施", content=ryzyfa, ctype=1)
-            self.node.wordParagraphs.add(wp)
-            wuzi_json = pd.DataFrame(self.params["goodsTable"]).to_json(orient="records")
-            wp = WordParagraph.objects.create(title=f"调度结果及应对措施", content="防汛物资储备和防汛抢险队伍", ctype=1)
-            self.node.wordParagraphs.add(wp)
-            wp = WordParagraph.objects.create(title=f"调度结果及应对措施", content=json.dumps(wuzi_json),ctype=3)
-            self.node.wordParagraphs.add(wp)
-            return (bold_left_align("水库")+skddresult+bold_left_align("河道")+hd_result+bold_left_align("滩区淹没")+tqym+"\n"+
-                    bold_left_align("可能出险")+kncx+bold_left_align("应对措施") + ydcs+bold_left_align("分级响应") + yjdj +
-                    bold_left_align("河道破堤实施方案") + hdpdssfa+bold_left_align("人员转移方案")+ryzyfa  +  bold_left_align("防汛物资储备和防汛抢险队伍") + fxwz)
+
+            #(bold_left_align("调度运用方式")+ddjy+"\n"+bold_left_align("调度方案单")+ divHtml(f"伊洛河调度方案单\n")+ddfad)
+            return (bold_left_align("调度运用方式")+ddjy+bold_left_align("水库")+skddresult+bold_left_align("河道")+hd_result+bold_left_align("滩区淹没")+tqym+"\n"+bold_left_align("调度方案单")+ divHtml(f"伊洛河调度方案单\n")+ddfad)#+
+                    # bold_left_align("可能出险")+kncx+bold_left_align("应对措施") + ydcs+bold_left_align("分级响应") + yjdj +
+                    # bold_left_align("河道破堤实施方案") + hdpdssfa+bold_left_align("人员转移方案")+ryzyfa  +  bold_left_align("防汛物资储备和防汛抢险队伍") + fxwz)
 
     def get_gcyp(self):
         if self.context['type'] == 0:
@@ -939,6 +933,75 @@ class PlanFactory:
             wp = WordParagraph.objects.create(title="安全举措", content=json.dumps(tmpjson), ctype=3)
             self.node.wordParagraphs.add(wp)
             return safety_result
+        elif self.context['type'] == 2:
+            return ""
+        elif self.context['type'] == 3:
+            return ""
+        elif self.context['type'] == 4:
+            yjdj = yujingdengji()["level"]  # "黄色预警"
+            ydcs = yujingdengji()["result"]
+            df = pd.DataFrame(self.params["goodsTable"])
+            fxwz = pd2HtmlCSS() + df.to_html(index=False)
+
+            wp = WordParagraph.objects.create(title=f"调度结果及应对措施", content="预警分级响应", ctype=1)
+            self.node.wordParagraphs.add(wp)
+            wp = WordParagraph.objects.create(title=f"调度结果及应对措施", content=yjdj, ctype=1)
+            self.node.wordParagraphs.add(wp)
+            wp = WordParagraph.objects.create(title=f"调度结果及应对措施", content="应对措施", ctype=1)
+            self.node.wordParagraphs.add(wp)
+            wp = WordParagraph.objects.create(title=f"调度结果及应对措施", content=ydcs, ctype=1)
+            self.node.wordParagraphs.add(wp)
+            zzbz= "故县水库行政责任人:洛阳市委常委，常务副市长\n职责:负贵故县水库大坝安全然管领导责任，统 指泽故县水车防讯抗早、拍险救灾工作，协调指导解决故县水库大规安全管理的重大问题，组织面大实发事件和安全事故的应急处置，负责放县水库应食拾险和于安救护工作，督促水库主管部门责任人、技术责任人、巡查责任人履行工作职责,"
+            wp = WordParagraph.objects.create(title=f"调度结果及应对措施", content="组织保障", ctype=1)
+            self.node.wordParagraphs.add(wp)
+            wp = WordParagraph.objects.create(title=f"调度结果及应对措施", content=zzbz, ctype=1)
+            self.node.wordParagraphs.add(wp)
+            dwbz = "故县水库行政责任人:洛阳市委常委，常务副市长\n职责:负贵故县水库大坝安全然管领导责任，统 指泽故县水车防讯抗早、拍险救灾工作，协调指导解决故县水库大规安全管理的重大问题，组织面大实发事件和安全事故的应急处置，负责放县水库应食拾险和于安救护工作，督促水库主管部门责任人、技术责任人、巡查责任人履行工作职责,"
+            wp = WordParagraph.objects.create(title=f"调度结果及应对措施", content="队伍保障", ctype=1)
+            self.node.wordParagraphs.add(wp)
+            wp = WordParagraph.objects.create(title=f"调度结果及应对措施", content=dwbz, ctype=1)
+            self.node.wordParagraphs.add(wp)
+            wuzi_json = pd.DataFrame(self.params["goodsTable"]).to_json(orient="records")
+            wp = WordParagraph.objects.create(title=f"调度结果及应对措施", content="物资保障", ctype=1)
+            self.node.wordParagraphs.add(wp)
+            wp = WordParagraph.objects.create(title=f"调度结果及应对措施", content=json.dumps(wuzi_json),ctype=3)
+            self.node.wordParagraphs.add(wp)
+            jsbz = "故县水库行政责任人:洛阳市委常委，常务副市长\n职责:负贵故县水库大坝安全然管领导责任，统 指泽故县水车防讯抗早、拍险救灾工作，协调指导解决故县水库大规安全管理的重大问题，组织面大实发事件和安全事故的应急处置，负责放县水库应食拾险和于安救护工作，督促水库主管部门责任人、技术责任人、巡查责任人履行工作职责,"
+            wp = WordParagraph.objects.create(title=f"调度结果及应对措施", content="技术保障", ctype=1)
+            self.node.wordParagraphs.add(wp)
+            wp = WordParagraph.objects.create(title=f"调度结果及应对措施", content=jsbz, ctype=1)
+            self.node.wordParagraphs.add(wp)
+            txbz = "故县水库行政责任人:洛阳市委常委，常务副市长\n职责:负贵故县水库大坝安全然管领导责任，统 指泽故县水车防讯抗早、拍险救灾工作，协调指导解决故县水库大规安全管理的重大问题，组织面大实发事件和安全事故的应急处置，负责放县水库应食拾险和于安救护工作，督促水库主管部门责任人、技术责任人、巡查责任人履行工作职责,"
+            wp = WordParagraph.objects.create(title=f"调度结果及应对措施", content="通信保障", ctype=1)
+            self.node.wordParagraphs.add(wp)
+            wp = WordParagraph.objects.create(title=f"调度结果及应对措施", content=txbz, ctype=1)
+            self.node.wordParagraphs.add(wp)
+            zmyjbz = "故县水库行政责任人:洛阳市委常委，常务副市长\n职责:负贵故县水库大坝安全然管领导责任，统 指泽故县水车防讯抗早、拍险救灾工作，协调指导解决故县水库大规安全管理的重大问题，组织面大实发事件和安全事故的应急处置，负责放县水库应食拾险和于安救护工作，督促水库主管部门责任人、技术责任人、巡查责任人履行工作职责,"
+            wp = WordParagraph.objects.create(title=f"调度结果及应对措施", content="照明应急保障", ctype=1)
+            self.node.wordParagraphs.add(wp)
+            wp = WordParagraph.objects.create(title=f"调度结果及应对措施", content=zmyjbz , ctype=1)
+            self.node.wordParagraphs.add(wp)
+            aqbz = "故县水库行政责任人:洛阳市委常委，常务副市长\n职责:负贵故县水库大坝安全然管领导责任，统 指泽故县水车防讯抗早、拍险救灾工作，协调指导解决故县水库大规安全管理的重大问题，组织面大实发事件和安全事故的应急处置，负责放县水库应食拾险和于安救护工作，督促水库主管部门责任人、技术责任人、巡查责任人履行工作职责,"
+            wp = WordParagraph.objects.create(title=f"调度结果及应对措施", content="安全保障", ctype=1)
+            self.node.wordParagraphs.add(wp)
+            wp = WordParagraph.objects.create(title=f"调度结果及应对措施", content=aqbz, ctype=1)
+            self.node.wordParagraphs.add(wp)
+            wsbz = "故县水库行政责任人:洛阳市委常委，常务副市长\n职责:负贵故县水库大坝安全然管领导责任，统 指泽故县水车防讯抗早、拍险救灾工作，协调指导解决故县水库大规安全管理的重大问题，组织面大实发事件和安全事故的应急处置，负责放县水库应食拾险和于安救护工作，督促水库主管部门责任人、技术责任人、巡查责任人履行工作职责,"
+            wp = WordParagraph.objects.create(title=f"调度结果及应对措施", content="卫生保障", ctype=1)
+            self.node.wordParagraphs.add(wp)
+            wp = WordParagraph.objects.create(title=f"调度结果及应对措施", content=wsbz, ctype=1)
+            self.node.wordParagraphs.add(wp)
+            qtbz = "故县水库行政责任人:洛阳市委常委，常务副市长\n职责:负贵故县水库大坝安全然管领导责任，统 指泽故县水车防讯抗早、拍险救灾工作，协调指导解决故县水库大规安全管理的重大问题，组织面大实发事件和安全事故的应急处置，负责放县水库应食拾险和于安救护工作，督促水库主管部门责任人、技术责任人、巡查责任人履行工作职责,"
+            wp = WordParagraph.objects.create(title=f"调度结果及应对措施", content="其他保障", ctype=1)
+            self.node.wordParagraphs.add(wp)
+            wp = WordParagraph.objects.create(title=f"调度结果及应对措施", content=qtbz, ctype=1)
+            self.node.wordParagraphs.add(wp)
+            xcyy = "故县水库行政责任人:洛阳市委常委，常务副市长\n职责:负贵故县水库大坝安全然管领导责任，统 指泽故县水车防讯抗早、拍险救灾工作，协调指导解决故县水库大规安全管理的重大问题，组织面大实发事件和安全事故的应急处置，负责放县水库应食拾险和于安救护工作，督促水库主管部门责任人、技术责任人、巡查责任人履行工作职责,"
+            wp = WordParagraph.objects.create(title=f"调度结果及应对措施", content="宣传和卫生演练", ctype=1)
+            self.node.wordParagraphs.add(wp)
+            wp = WordParagraph.objects.create(title=f"调度结果及应对措施", content=xcyy, ctype=1)
+            self.node.wordParagraphs.add(wp)
+            return bold_left_align("预警分级响应") + yjdj+bold_left_align("应对措施") + ydcs +bold_left_align("应急保障") +bold_left_align("组织保障")+zzbz+bold_left_align("队伍保障")+dwbz+bold_left_align("物资保障")+fxwz+bold_left_align("技术保障")+jsbz+bold_left_align("通信保障")+txbz+bold_left_align("照明应急保障")+zmyjbz+bold_left_align("安全保障")+aqbz+bold_left_align("卫生保障")+wsbz+bold_left_align("其他保障")+qtbz+bold_left_align("宣传和卫生演练")+xcyy
     def get_lsyg(self):
         if self.context['type'] == 0:
             return ""
@@ -1016,10 +1079,12 @@ class PlanFactory:
         elif self.context['type'] == 3:
            return ""
         elif self.context['type'] == 4:
-            ylh_yuqing = yiluohe_yuqing_generate(self.params)
+            #ylh_yuqing = yiluohe_yuqing_generate(self.params)
+            ylh_yuqing = self.params["yuqing"]
             hdsq = huanghe_hedaoshuiqing_generate(self.params)
             sksq = huanghe_shuikushuiqing_generate(self.params)
-            gqxq = huanghe_gongqing_generate_html(self.params)
+#            gqxq = huanghe_gongqing_generate_html(self.params)
+            gqxq = self.params['xianqing']
             # 返回网页表格数据
             for n in self.node.wordParagraphs.all():
                 n.delete()
@@ -1080,7 +1145,7 @@ class PlanFactory:
         elif label =="枢纽运用方案":
             logger.debug("枢纽运用方案 get_snyy")
             result = self.get_snyy()
-        elif label == "安全举措":
+        elif label == "安全举措" or label =="防御措施":
             logger.debug("安全举措 get_aqjc")
             result = self.get_aqjc()
         elif label == "来水预估":

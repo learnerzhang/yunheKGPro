@@ -1681,3 +1681,125 @@ class ResultFromTaskApiView(mixins.ListModelMixin,
         serializers = YuAnAppResponseSerializer(data=resultSet, many=False)
         serializers.is_valid()
         return Response(serializers.data,  status=status.HTTP_200_OK)
+
+
+class YuAnJsonApiGet(generics.GenericAPIView):
+    authentication_classes = (CsrfExemptSessionAuthentication, BasicAuthentication)
+    serializer_class = YuAnAppResponseSerializer  # 保留原序列化器
+
+    @swagger_auto_schema(
+        operation_summary='获取当日预案数据',
+        operation_description='GET 接口，根据系统日期返回当日预设数据',
+        manual_parameters=[
+            openapi.Parameter(
+                'date',
+                openapi.IN_QUERY,
+                description="系统自动使用当前日期（示例格式）",
+                type=openapi.TYPE_STRING,
+                format='date',
+                default=datetime.now().strftime("%Y-%m-%d")
+            )
+        ],
+        responses={
+            200: YuAnAppResponseSerializer(many=False),  # 使用序列化器定义响应结构
+            404: "文件未找到",
+            500: "服务器错误"
+        },
+        tags=['ya_api']
+    )
+    @csrf_exempt
+    def get(self, request, *args, **kwargs):
+        try:
+            # 生成动态文件路径
+            current_date = datetime.now().strftime("%Y-%m-%d")
+            file_name = f"YLH_api_data_{current_date}.json"
+            file_path = os.path.join("data", "yuan_data", "4", "plans", file_name)
+
+            # 验证文件是否存在
+            if not os.path.exists(file_path):
+                error_data = {
+                    "code": 404,
+                    "msg": f"当日数据文件 {file_name} 不存在",
+                }
+                serializers = YuAnAppResponseSerializer(data=error_data, many=False)
+                serializers.is_valid()
+                return Response(serializers.data, status=status.HTTP_404_NOT_FOUND)
+
+            # 读取并解析JSON文件
+            with codecs.open(file_path, 'r', encoding='utf-8') as f:
+                json_data = json.load(f)
+
+            # 构造符合序列化器的响应结构
+            response_data = {
+                "code": 200,
+                "msg": "success",
+                "data": json_data,
+                "success": True
+            }
+
+            # 使用序列化器验证和格式化响应
+            serializers = YuAnAppResponseSerializer(data=response_data, many=False)
+            serializers.is_valid()
+            return Response(serializers.data, status=status.HTTP_200_OK)
+
+        except json.JSONDecodeError:
+            error_data = {
+                "code": 500,
+                "msg": "数据文件格式错误",
+            }
+            serializers = YuAnAppResponseSerializer(data=error_data, many=False)
+            serializers.is_valid()
+            return Response(serializers.data, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+        except Exception as e:
+            error_data = {
+                "code": 500,
+                "msg": f"服务器错误: {str(e)}",
+            }
+            serializers = YuAnAppResponseSerializer(data=error_data, many=False)
+            serializers.is_valid()
+            return Response(serializers.data, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+
+
+class MakePlanJson(generics.GenericAPIView):
+    authentication_classes = (CsrfExemptSessionAuthentication, BasicAuthentication)
+    serializer_class = YuAnAppResponseSerializer
+
+    @swagger_auto_schema(
+        operation_summary='POST 生成预案Json',
+        operation_description='POST 返回预案Json',
+        request_body=openapi.Schema(
+            type=openapi.TYPE_OBJECT,
+            required=['id'],
+            properties={
+                'id': openapi.Schema(type=openapi.TYPE_INTEGER, description="ID"),
+            },
+        ),
+        responses={
+            200: YuAnAppResponseSerializer(many=False),
+            400: "请求失败",
+        },
+        tags=['ya_api']
+    )
+    @csrf_exempt
+    def post(self, request, *args, **krgs):
+        print(request.data)
+        pid = request.data.get("id", None)
+        if pid is None:
+            data = {"code": 201, "msg": "参数错误"}
+            bars = YuAnAppResponseSerializer(data=data, many=False)
+            bars.is_valid()
+            return Response(bars.data, status=status.HTTP_200_OK)
+
+        tmpTemplate = PlanByUser.objects.get(id=pid)
+        # 创建一个Word文档对象
+        data=[]
+        for i, node in enumerate(tmpTemplate.nodelist):
+            logger.debug( node)
+            data.append(node)
+        # 保存文档
+        data = {"code": 200, "data": data, "msg": "生成Word成功！"}
+        serializers = YuAnAppResponseSerializer(data=data, many=False)
+        serializers.is_valid()
+        return Response(serializers.data, status=status.HTTP_200_OK)

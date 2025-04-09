@@ -49,4 +49,6 @@ urlpatterns = [
     path('llmYuAnTask', views.LLMYuAnTaskApiView.as_view(), name="llmYuAnTask"),
     path('llmYuAnTaskStatus', views.LLMYuAnTaskStatusApiView.as_view(), name="llmYuAnTaskStatus"),
     path('resultFromTask', views.ResultFromTaskApiView.as_view(), name="resultFromTask"),
+    path('yuAnJson',views.YuAnJsonApiGet.as_view(),name="yuAnJson"),
+    path('yuAnPlanJson',views.MakePlanJson.as_view(),name="yuAnPlanJson")
 ]

@@ -132,12 +132,12 @@
                 "description": "伊洛河预案降雨及洪水预报描述",
                 "template": ""},
             {
-                "label": "调度方案",
+                "label": "调度结果",
                 "description": "伊洛河预案调度方案相关描述",
                 "template": ""
             },
             {
-                "label": "调度结果及应对措施",
+                "label": "防御措施",
                 "description": "伊洛河预案调度结果及应对措施相关描述",
                 "template": "",
                 "upload_file_flag": true

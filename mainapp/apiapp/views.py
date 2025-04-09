@@ -90,9 +90,9 @@ class OutlineApiView(generics.GenericAPIView):
             outlinedata = prod_outline(payload)
         print("rt:", outlinedata)
         if not outlinedata:
-            data = {"code": 201, "msg": "大模型解析出问题了"}
+            data = {"code": 201, "msg": "大模型解析出问题了","success": False,"data": None}
         else:
-            data = {"code": 200, "data": outlinedata}
+            data = {"code": 200, "msg": "成功","success": True,"data": outlinedata}
         serializers = ApiAppResponseSerializer(data=data, many=False)
         serializers.is_valid()
         return Response(serializers.data, status=status.HTTP_200_OK)
