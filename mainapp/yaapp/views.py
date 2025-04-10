@@ -722,9 +722,13 @@ class LLMNodePlan(generics.GenericAPIView):
             pf = PlanFactory(context=ctx, node=node)
             # 生成对应描述
             pf.make_context()
-
+        # data_word=[]
+        # for i, node in enumerate(userYuAnPlan.nodelist):
+        #     logger.debug(f"node:{node}")
+        #     data_word.append(node)
         resultJson =  model_to_dict(userYuAnPlan, exclude=['parent', "nodes"])
         resultJson['nodeList'] = userYuAnPlan.nodeDetailList
+        # resultJson["data_word"] =  data_word
         data = {"code": 200, "data": resultJson, "msg": "生成成功！"}
         serializers = YuAnAppResponseSerializer(data=data, many=False)
         serializers.is_valid()

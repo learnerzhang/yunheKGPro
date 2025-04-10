@@ -77,7 +77,9 @@ def writeTitle2Word(title, doc):
     titlePara = doc.add_paragraph(title)
     # 设置字体名称和大小
     run = titlePara.runs[0]
-    run.font.name = 'Arial'
+    # run.font.name = 'Arial'
+    run.font.name = '宋体'
+    run._element.rPr.rFonts.set(qn('w:eastAsia'), '宋体')
     run.font.size = Pt(24)
     # 设置字体加粗
     run.font.bold = True
@@ -90,28 +92,34 @@ import base64
 from docx import Document
 from docx.shared import Inches
 
-bianHaos = ['一','二','三','四','五','六','七','八','九','十', '十一', '十二', '十三', '十四', '十五', '十六', '十七', '十八', '十九', '二十']
+#bianHaos = ['一','二','三','四','五','六','七','八','九','十', '十一', '十二', '十三', '十四', '十五', '十六', '十七', '十八', '十九', '二十']
+bianHaos = ['1', '2', '3', '4', '5', '6', '7', '8', '9', '10', '11', '12', '13', '14', '15', '16', '17', '18', '19', '20']
+
+
 def writeParagraphs2Word(i, node: dict, doc):
-    # 添加一个段落
-    text = node['result']
+    # 添加标题（黑体，数字强制 Times New Roman）
     subTitle = node['label']
     heading = doc.add_heading(f"{bianHaos[i]}、 {subTitle}", level=1)
-    # doc.add_paragraph(text)
     for run in heading.runs:
-        run.font.name = '宋体'
-        run._element.rPr.rFonts.set(qn('w:eastAsia'), '宋体')  # 中文字体设置
+        run.font.name = 'Times New Roman'  # 数字和英文用 Times New Roman
+        run._element.rPr.rFonts.set(qn('w:eastAsia'), '黑体')  # 中文用黑体
+        run.bold = True
+        run.font.size = Pt(16)
 
+    # 处理正文段落
     for para in node['paraglist']:
-        if para['ctype'] == 0:
-            pass
         if para['ctype'] == 1:
-            # 检查内容长度是否小于10，如果是则加粗
             paragraph = doc.add_paragraph()
             run = paragraph.add_run(para['content'])
-            run.font.name = '宋体'
-            run._element.rPr.rFonts.set(qn('w:eastAsia'), '宋体')  # 中文字体设置
+            run.font.name = 'Times New Roman'  # 数字和英文用 Times New Roman
+            run._element.rPr.rFonts.set(qn('w:eastAsia'), '仿宋')  # 中文用仿宋
+            run.font.size = Pt(16)
+
             if len(para['content'].strip()) < 10:
+                run.font.name = 'Times New Roman'  # 数字和英文用 Times New Roman
+                run._element.rPr.rFonts.set(qn('w:eastAsia'), '楷体')  # 中文用楷体
                 run.bold = True
+                run.font.size = Pt(16) # 三号字体（Word 三号 = 16磅）
         if para['ctype'] == 2:
                 imgdata = base64.b64decode(para['content'])
                 img_stream = BytesIO(imgdata)
@@ -149,7 +157,12 @@ def writeParagraphs2Word(i, node: dict, doc):
                                 bottom={"sz": 12, "color": "#000000", "val": "single"},
                                 start={"sz": 12, "color": "#000000", "val": "single"},
                                 end={"sz": 12, "color": "#000000", "val": "single"})
-
+                for paragraph in cell.paragraphs:
+                    for run in paragraph.runs:
+                        run.font.name = 'Times New Roman'
+                        run._element.rPr.rFonts.set(qn('w:eastAsia'), '宋体')
+                        run._element.rPr.rFonts.set(qn('w:ascii'), 'Times New Roman')
+                        run.font.size = Pt(10.5)
             # 添加DataFrame的内容
             for i, row in df.iterrows():
                 row_cells = table.add_row().cells
@@ -164,6 +177,12 @@ def writeParagraphs2Word(i, node: dict, doc):
                                     bottom={"sz": 12, "color": "#000000", "val": "single"},
                                     start={"sz": 12, "color": "#000000", "val": "single"},
                                     end={"sz": 12, "color": "#000000", "val": "single"})
+                    for paragraph in cell.paragraphs:
+                        for run in paragraph.runs:
+                            run.font.name = 'Times New Roman'
+                            run._element.rPr.rFonts.set(qn('w:eastAsia'), '宋体')
+                            run._element.rPr.rFonts.set(qn('w:ascii'), 'Times New Roman')
+                            run.font.size = Pt(10.5)
         if para['ctype'] == 4:
             pass
 

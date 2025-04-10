@@ -977,7 +977,6 @@ def generate_ddjy(file_path):
     """
     # 读取 Excel 文件
     skMapData, swMapData, date_list = yautils.excel_to_dict(file_path)
-    print("skMapData:",skMapData)
     smx_ckll,xld_ckll,lh_ckll,gx_ckll,hkc_ckll = yautils.skddjy(file_path)
     smx_ddjy = process_outflow(smx_ckll,date_list)
     xld_ddjy = process_outflow(xld_ckll,date_list)
@@ -1158,4 +1157,3 @@ if __name__ == '__main__':
 #     # 显示图表
 #     plt.tight_layout()
 #     plt.show()
-print("测试MR")
