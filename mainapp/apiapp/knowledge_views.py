@@ -534,13 +534,11 @@ class KnowledgeDocBatchParseTaskApiView(generics.GenericAPIView):
         operation_description='POST /knowledge/batchparse',
         request_body=openapi.Schema(
             type=openapi.TYPE_OBJECT,
-            required=['ids'],
+            required=['knowledge_id'],
             properties={
-                'ids': openapi.Schema(type=openapi.TYPE_STRING, description="IDS, 以','分隔"),
                 'knowledge_id': openapi.Schema(type=openapi.TYPE_STRING, description="知识库ID"),
                 'user_id': openapi.Schema(type=openapi.TYPE_INTEGER, description="创建作者ID"),
                 'taskType': openapi.Schema(type=openapi.TYPE_INTEGER, description="生产类型 0(知识导入)|1(自动生成)|2(全文生产)|3(图谱导入)|4(图谱自动生产)|5(预案生成)|6(文档解析)"),
-            
             },
         ),
         responses={
@@ -551,17 +549,9 @@ class KnowledgeDocBatchParseTaskApiView(generics.GenericAPIView):
     )
     @csrf_exempt
     def post(self, request, *args, **krgs):
-        kgdocids = request.data.get("ids", None)
         user_id = request.data.get("user_id", 1)
         knowledge_id = request.data.get("knowledge_id", None)
         taskType = int(request.data.get("taskType", 6))
-        if kgdocids is None or not knowledge_id:
-            data['code'] = 201
-            data['msg'] = '请求参数错误, 缺少参数！！！'
-            serializers = ApiAppResponseSerializer(data=data, many=False)
-            serializers.is_valid()
-            return Response(serializers.data,  status=status.HTTP_200_OK)
-        
         try:
             tmpuser = User.objects.get(id=user_id)
         except:
@@ -591,7 +581,6 @@ class KnowledgeDocBatchParseTaskApiView(generics.GenericAPIView):
         from yunheKGPro.celery import knowledgeParseTask
         param_dict = model_to_dict(tmptask, exclude=['kg_doc_ids'])
         param_dict['task_id'] = tmptask.id
-        param_dict['kg_doc_ids'] = str(kgdocids).split(',')
         param_dict['knowledge_id'] = knowledge_id
 
         result = knowledgeParseTask.delay(param_dict)
