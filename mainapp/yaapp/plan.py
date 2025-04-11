@@ -938,14 +938,38 @@ class PlanFactory:
         elif self.context['type'] == 3:
             return ""
         elif self.context['type'] == 4:
-            yjdj = yujingdengji()["level"]  # "黄色预警"
-            ydcs = yujingdengji()["result"]
+            # 获取各段预警等级
+            hh_res = hh_yujingdengji(lh_sw=317.5)
+            ylh_res = ylh_yujingdengji(bms_ll=4000)
+            gx_res = gx_yujingdengji(ls_ll=7450)
+            lh_res = lh_yujingdengji(lh_ll=5622)
+
+            # 找出最高预警等级（数字最小的）
+            all_levels = [hh_res["level"], ylh_res["level"], gx_res["level"], lh_res["level"]]
+            final_level = min(all_levels)
+
+            # 确定最终应对措施
+            if final_level == hh_res["level"]:
+                final_measures = hh_res["result"]
+            elif final_level == ylh_res["level"]:
+                final_measures = ylh_res["result"]
+            elif final_level == gx_res["level"]:
+                final_measures = gx_res["result"]
+            else:
+                final_measures = lh_res["result"]
+            # 如果需要合并所有措施（不推荐简单拼接）
+            # final_measures = "\n".join([hh_res["result"], ylh_res["result"], ...])
+            # 最终结果
+            yjdj = final_level
+            ydcs = final_measures
+            sx_ydcs = sx_yujingdengji(lh_sw=323)["result"]
+            ydcs += sx_ydcs
             df = pd.DataFrame(self.params["goodsTable"])
             fxwz = pd2HtmlCSS() + df.to_html(index=False)
 
             wp = WordParagraph.objects.create(title=f"调度结果及应对措施", content="预警分级响应", ctype=1)
             self.node.wordParagraphs.add(wp)
-            wp = WordParagraph.objects.create(title=f"预警等级", content=yjdj, ctype=1)
+            wp = WordParagraph.objects.create(title=f"预警等级", content=str(yjdj), ctype=1)
             self.node.wordParagraphs.add(wp)
             wp = WordParagraph.objects.create(title=f"调度结果及应对措施", content="应对措施", ctype=1)
             self.node.wordParagraphs.add(wp)
@@ -1001,7 +1025,7 @@ class PlanFactory:
             self.node.wordParagraphs.add(wp)
             wp = WordParagraph.objects.create(title=f"宣传和卫生演练", content=xcyy, ctype=1)
             self.node.wordParagraphs.add(wp)
-            return bold_left_align("预警分级响应") + yjdj+bold_left_align("应对措施") + ydcs +bold_left_align("应急保障") +bold_left_align("组织保障")+zzbz+bold_left_align("队伍保障")+dwbz+bold_left_align("物资保障")+fxwz+bold_left_align("技术保障")+jsbz+bold_left_align("通信保障")+txbz+bold_left_align("照明应急保障")+zmyjbz+bold_left_align("安全保障")+aqbz+bold_left_align("卫生保障")+wsbz+bold_left_align("其他保障")+qtbz+bold_left_align("宣传和卫生演练")+xcyy
+            return bold_left_align("预警分级响应") + str(yjdj)+"级预警"+bold_left_align("应对措施") + ydcs +bold_left_align("应急保障") +bold_left_align("组织保障")+zzbz+bold_left_align("队伍保障")+dwbz+bold_left_align("物资保障")+fxwz+bold_left_align("技术保障")+jsbz+bold_left_align("通信保障")+txbz+bold_left_align("照明应急保障")+zmyjbz+bold_left_align("安全保障")+aqbz+bold_left_align("卫生保障")+wsbz+bold_left_align("其他保障")+qtbz+bold_left_align("宣传和卫生演练")+xcyy
     def get_lsyg(self):
         if self.context['type'] == 0:
             return ""
@@ -1149,7 +1173,7 @@ class PlanFactory:
             logger.debug("安全举措 get_aqjc")
             result = self.get_aqjc()
         elif label == "来水预估":
-            logger.debug("安全举措 get_lsyg")
+            logger.debug("来水预估 get_lsyg")
             result = self.get_lsyg()
         elif label =="河道边界条件":
             logger.debug("河道边界条件 get_hdbjtj")

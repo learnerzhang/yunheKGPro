@@ -1038,7 +1038,8 @@ from langchain.embeddings import HuggingFaceEmbeddings
 from langchain.vectorstores import FAISS
 #from yunheKGPro.settings import MODEL_PATH
 # from apiapp.knowledge_views import embeddding
-MODEL_PATH = "D:\\data\\models\\bge-large-zh-v1.5"
+from yunheKGPro.settings import config
+MODEL_PATH = config.get('MODEL_PATH', "D:\\data\\models\\bge-large-zh")
 embedding = HuggingFaceEmbeddings(
             # model_name="BAAI/bge-small-zh-v1.5",
             model_name=MODEL_PATH,
