@@ -16,7 +16,6 @@ import sys
 import os
 import logging
 import yaml
-os.environ["DJANGO_ALLOW_ASYNC_UNSAFE"] = "true"
 pymysql.install_as_MySQLdb()
 
 DEBUG = True
@@ -161,8 +160,8 @@ ES_USER = os.environ.get('ES_USER', "elastic")
 ES_PWD = os.environ.get('ES_PWD', "elastic")
 
 
-WKING_PATH = config.get('WKING_PATH', "D:\\Program Files\\wkhtmltopdf\\bin\\wkhtmltoimage.exe")
-MODEL_PATH = config.get('MODEL_PATH', "D:\\data\\models\\bge-large-zh")
+WKING_PATH = config.get('WKING_PATH', "D:\\software\\wkhtmltopdf\\bin\\wkhtmltoimage.exe")
+MODEL_PATH = config.get('MODEL_PATH', "D:\\data\\models\\bge-large-zh-v1.5")
 TTF_PATH = config.get('TTF_PATH', "arial.ttf")
 DATABASES = {
     'default': {
@@ -203,6 +202,16 @@ ALLOWED_HOSTS = config.get('ALLOWED_HOSTS', ["*"])
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/3.2/howto/deployment/checklist/
 
+# SECURITY WARNING: keep the secret key used in production secret!
+SECRET_KEY = 'django-insecure-r&6c!_n9591qjq1&h6w4&!b%yk7l_%$dw2n8_k&++q#@0nh&vc'
+
+# SECURITY WARNING: don't run with debug turned on in production!
+DEBUG = True
+CORS_ORIGIN_ALLOW_ALL = True
+CSRF_TRUSTED_ORIGINS = ["*"]
+ALLOWED_HOSTS = ['*']
+
+DATA_UPLOAD_MAX_NUMBER_FIELDS = 10240
 
 # Application definition
 
@@ -226,15 +235,10 @@ INSTALLED_APPS = [
     # 'reversion',
     "drf_yasg",
     "django_elasticsearch_dsl",
-    'import_export',
     'userapp',
     'yaapp',
-    'common',
-    'apiapp', 
-    'kgapp', 
-    'modelapp', 
-    'logapp',
-    'dataapp',
+    'import_export',
+    'apiapp', 'kgapp', 'modelapp', 'logapp','dataapp',
     'django_celery_results',  # celery结果
     'django_celery_beat',     # celery定时任务
 ]
@@ -266,17 +270,6 @@ SWAGGER_SETTINGS = {
     # 方法列表字母排序
     'OPERATIONS_SORTER': 'alpha',
     'VALIDATOR_URL': None,
-     'DEFAULT_FIELD_INSPECTORS': [
-        'common.inspectors.CustomFieldInspector',  # 替换为实际的模块路径
-        'drf_yasg.inspectors.CamelCaseJSONFilter',
-        'drf_yasg.inspectors.InlineSerializerInspector',
-        'drf_yasg.inspectors.RelatedFieldInspector',
-        'drf_yasg.inspectors.ChoiceFieldInspector',
-        'drf_yasg.inspectors.FileFieldInspector',
-        'drf_yasg.inspectors.DictFieldInspector',
-        'drf_yasg.inspectors.SimpleFieldInspector',
-        'drf_yasg.inspectors.StringDefaultFieldInspector',
-    ],
 }
 
 MIDDLEWARE = [

@@ -77,7 +77,9 @@ def writeTitle2Word(title, doc):
     titlePara = doc.add_paragraph(title)
     # 设置字体名称和大小
     run = titlePara.runs[0]
-    run.font.name = 'Arial'
+    # run.font.name = 'Arial'
+    run.font.name = '宋体'
+    run._element.rPr.rFonts.set(qn('w:eastAsia'), '宋体')
     run.font.size = Pt(24)
     # 设置字体加粗
     run.font.bold = True
@@ -90,29 +92,45 @@ import base64
 from docx import Document
 from docx.shared import Inches
 
-bianHaos = ['一','二','三','四','五','六','七','八','九','十', '十一', '十二', '十三', '十四', '十五', '十六', '十七', '十八', '十九', '二十']
+#bianHaos = ['一','二','三','四','五','六','七','八','九','十', '十一', '十二', '十三', '十四', '十五', '十六', '十七', '十八', '十九', '二十']
+bianHaos = ['1', '2', '3', '4', '5', '6', '7', '8', '9', '10', '11', '12', '13', '14', '15', '16', '17', '18', '19', '20']
+
+
 def writeParagraphs2Word(i, node: dict, doc):
-    # 添加一个段落
-    text = node['result']
+    # 添加标题（黑体，数字强制 Times New Roman）
     subTitle = node['label']
-    doc.add_heading(f"{bianHaos[i]}、 {subTitle}", level=1)
-    # doc.add_paragraph(text)
+    heading = doc.add_heading(f"{bianHaos[i]}、 {subTitle}", level=1)
+    for run in heading.runs:
+        run.font.name = 'Times New Roman'  # 数字和英文用 Times New Roman
+        run._element.rPr.rFonts.set(qn('w:eastAsia'), '黑体')  # 中文用黑体
+        run.bold = True
+        run.font.size = Pt(16)
+
+    # 处理正文段落
     for para in node['paraglist']:
-        if para['ctype'] == 0:
-            pass
         if para['ctype'] == 1:
-            doc.add_paragraph(para['content'])
-        if para['ctype'] == 2:
-            imgdata = base64.b64decode(para['content']) 
-            img_stream = BytesIO(imgdata)
-            # 添加段落用于存放图片
             paragraph = doc.add_paragraph()
-            paragraph.alignment = WD_ALIGN_PARAGRAPH.CENTER  # 图片居中
-            run = paragraph.add_run()
-            run.add_picture(img_stream, width=Inches(5.0))
-            # 将图片添加到Word文档  
-            # 注意：add_picture 方法通常期望一个文件路径，但在这里我们使用BytesIO对象作为文件流  
-            #doc.add_picture(img_stream, width=Inches(5.0))
+            run = paragraph.add_run(para['content'])
+            run.font.name = 'Times New Roman'  # 数字和英文用 Times New Roman
+            run._element.rPr.rFonts.set(qn('w:eastAsia'), '仿宋')  # 中文用仿宋
+            run.font.size = Pt(16)
+
+            if len(para['content'].strip()) < 10:
+                run.font.name = 'Times New Roman'  # 数字和英文用 Times New Roman
+                run._element.rPr.rFonts.set(qn('w:eastAsia'), '楷体')  # 中文用楷体
+                run.bold = True
+                run.font.size = Pt(16) # 三号字体（Word 三号 = 16磅）
+        if para['ctype'] == 2:
+                imgdata = base64.b64decode(para['content'])
+                img_stream = BytesIO(imgdata)
+                # 添加段落用于存放图片
+                paragraph = doc.add_paragraph()
+                paragraph.alignment = WD_ALIGN_PARAGRAPH.CENTER  # 图片居中
+                run = paragraph.add_run()
+                run.add_picture(img_stream, width=Inches(5.0))
+                # 将图片添加到Word文档
+                # 注意：add_picture 方法通常期望一个文件路径，但在这里我们使用BytesIO对象作为文件流
+                #doc.add_picture(img_stream, width=Inches(5.0))
         if para['ctype'] == 3:
             # 表格
             json_str = json.loads(para['content'])
@@ -139,7 +157,12 @@ def writeParagraphs2Word(i, node: dict, doc):
                                 bottom={"sz": 12, "color": "#000000", "val": "single"},
                                 start={"sz": 12, "color": "#000000", "val": "single"},
                                 end={"sz": 12, "color": "#000000", "val": "single"})
-
+                for paragraph in cell.paragraphs:
+                    for run in paragraph.runs:
+                        run.font.name = 'Times New Roman'
+                        run._element.rPr.rFonts.set(qn('w:eastAsia'), '宋体')
+                        run._element.rPr.rFonts.set(qn('w:ascii'), 'Times New Roman')
+                        run.font.size = Pt(10.5)
             # 添加DataFrame的内容
             for i, row in df.iterrows():
                 row_cells = table.add_row().cells
@@ -154,6 +177,12 @@ def writeParagraphs2Word(i, node: dict, doc):
                                     bottom={"sz": 12, "color": "#000000", "val": "single"},
                                     start={"sz": 12, "color": "#000000", "val": "single"},
                                     end={"sz": 12, "color": "#000000", "val": "single"})
+                    for paragraph in cell.paragraphs:
+                        for run in paragraph.runs:
+                            run.font.name = 'Times New Roman'
+                            run._element.rPr.rFonts.set(qn('w:eastAsia'), '宋体')
+                            run._element.rPr.rFonts.set(qn('w:ascii'), 'Times New Roman')
+                            run.font.size = Pt(10.5)
         if para['ctype'] == 4:
             pass
 

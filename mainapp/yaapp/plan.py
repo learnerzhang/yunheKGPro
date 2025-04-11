@@ -1,15 +1,19 @@
 import json
 from yaapp import yautils
-from yaapp import divHtml, gx_sk, hkc_sk, img2base64, lhbs_sk, paraHtml, smx_sjt_sk, xld_sk, generate_ddjy, process_outflow
+from yaapp import divHtml, gx_sk, hkc_sk, img2base64, lhbs_sk, paraHtml, smx_sjt_sk, xld_sk, generate_ddjy, process_outflow,bold_left_align,pd2HtmlCSS,excel_to_html_with_merged_cells
 from yaapp.api_yuan import (huanghe_diaodu_plan_ctx, huanghe_diaodu_plan_dfjson, huanghe_hedaoshuiqing_generate_dfjson, huanghe_shuikushuiqing_generate_dfjson, huanghe_yuqing_generate,huanghe_hedaoshuiqing_generate,huanghe_shuikushuiqing_generate,huanghe_gongqing_generate,huanghe_jiangyu13_forecast,huanghe_fenqu_jiangyu_forecast,huanghe_jiangyu47_forecast,huanghe_flood_forecast,huanghe_diaodu_plan,huanghe_shuiku_diaodu_result,huanghe_tanqu_yanmo,huanghe_keneng_danger,huanghe_xiangying_level,xld_yushui_context,
-                            engineer_safety_shuikuyj,engineer_safety_shuiwenyj,engineer_safety_gongchengjcyj,shuniuFangAn,xldJZStatus,xldholeStatus,JZHoleRecommend,YingjiResponse,OrganizeBaoZhang_leader,OrganizeBaoZhang_zhihuibu,company_duty,team_baozhang,fangxun_table,xld_diaodu_table,huanghe_fenqu_jiangyu_forecast_json,huanghe_flood_forecast_json,engineer_safety_shuikuyj_json,engineer_safety_shuiwenyj_json,engineer_safety_gongchengjcyj_json,xldJZStatus_json,JZHoleRecommend_json,xldholeStatus_json,
+                            engineer_safety_shuikuyj,engineer_safety_shuiwenyj,engineer_safety_gongchengjcyj,shuniuFangAn,xldJZStatus,xldholeStatus,JZHoleRecommend,YingjiResponse,OrganizeBaoZhang_leader,OrganizeBaoZhang_zhihuibu,company_duty,team_baozhang,fangxun_table,xld_diaodu_table,huanghe_fenqu_jiangyu_forecast_dfjson,huanghe_flood_forecast_json,engineer_safety_shuikuyj_json,engineer_safety_shuiwenyj_json,engineer_safety_gongchengjcyj_json,xldJZStatus_json,JZHoleRecommend_json,xldholeStatus_json,
                             OrganizeBaoZhang_leader_json,OrganizeBaoZhang_zhihuibu_json,company_duty_json,team_baozhang_json,fangxun_table_json,xld_diaodu_table_json,huanghe_fenqu_jiangyu_forecast_dfjson,generate_description_for_label,map_input_to_label, huanghe_gongqing_generate_html,huanghe_diaodu_plan_yuanze_ctx,huanghe_diaodu_plan_yuanze_html,huanghe_diaodu_plan_jianyi_ctx,huanghe_diaodu_plan_jianyi_html,shj_yushui_context,shj_shuikuxushui_generate_dfjson,shj_shuikuxushui_generate,
-                            shj_hedaoshuiqing_generate_dfjson,shj_hedaoshuiqing_generate,shj_laishuiyugu_context,shj_laishuiyugu_generate_dfjson,shj_laishuiyugu_generate,shj_hedaobijian_context)
+                            shj_hedaoshuiqing_generate_dfjson,shj_hedaoshuiqing_generate,shj_laishuiyugu_context,shj_laishuiyugu_generate_dfjson,shj_laishuiyugu_generate,shj_hedaobijian_context,yiluohe_yuqing_generate,yiluohe_fenqu_jiangyu_forecast,yiluohe_future_7_forecast)
 from yaapp.models import TemplateNode, WordParagraph
 from datetime import datetime
 import os
 import base64
 import re
+from yaapp.rule import *
+import logging
+logger = logging.getLogger('kgproj')
+import pandas as pd
 class PlanFactory:
     def __init__(self, node: TemplateNode, context={}):
         self.context = context
@@ -25,8 +29,8 @@ class PlanFactory:
         if self.context['type'] == 0:
             # 黄河中下游的河道水情
             #TODO
-            # print("self.params:",   self.params)
-            # print("type(self.params):",type(self.params))
+            # logger.debug("self.params:",   self.params)
+            # logger.debug("type(self.params):",type(self.params))
             tmp = huanghe_yuqing_generate(self.params)
             ## 对每段描述内容进行细分
             wp = WordParagraph.objects.create(title="雨情实况", content=tmp, ctype=1)
@@ -96,7 +100,7 @@ class PlanFactory:
         elif self.context['type'] == 1:
             # 小浪底河道水情
             #TODO
-            print("# 小浪底河道水情#TODO")
+            logger.debug("# 小浪底河道水情#TODO")
             return ""
 
     def get_sksq(self):
@@ -115,7 +119,7 @@ class PlanFactory:
             tmpjson = huanghe_shuikushuiqing_generate_dfjson(self.params)    # 新增表格部分 
             wp = WordParagraph.objects.create(title="水库水情", content=json.dumps(tmpjson), ctype=3)
             self.node.wordParagraphs.add(wp)
-            return divHtml(f"黄河主要水库蓄水情况表（{current_date}）\n") + huanghe_shuikushuiqing_generate(self.params)
+            return divHtml(f"黄河主要水库蓄水情况表\n") + huanghe_shuikushuiqing_generate(self.params)
         elif self.context['type'] == 1:
             # 小浪底
             #TODO
@@ -146,29 +150,31 @@ class PlanFactory:
         """
         获取降雨预报
         """
-        print("get_jyyb", self.context)
+        logger.debug("get_jyyb", self.context)
         def jyyb_imgs(context):
             jyyb_imgs = context.get("jyyb_imgs", [])
-            print(" jyyb_imgs:",jyyb_imgs)
+            logger.debug(f" jyyb_imgs:{jyyb_imgs}")
             tmpHtml = ""
+            tmp_content = []
             for imgJson in jyyb_imgs:
-                print("jyyb img:",imgJson)
+                logger.debug(f"jyyb img:{imgJson}")
                 tmpdesc = imgJson['desc']
                 tmpfname = imgJson['url']
-                tmppath = os.path.join("data", "yuan_data","0","yubao", self.context['yadate'], tmpfname)
+                tmppath = os.path.join("data", "yuan_data",str(self.context['type']),"yubao", self.context['yadate'], tmpfname)
                 #tmppath ="/data/jyybimgs/2023-07-23 /1.png"
-                print("tmppath:",tmppath)
+                logger.debug(f"tmppath:{tmppath}")
                 if not os.path.exists(tmppath):
-                    print(f"文件不存在: {tmppath}")
+                    logger.debug(f"文件不存在: {tmppath}")
                     continue
-                print("降雨路径:",tmppath)
+                logger.debug(f"降雨路径:{tmppath}")
                 encoded_string = img2base64(tmppath)
+                tmp_content.append({"content":encoded_string, "desc": tmpdesc})
                 wp = WordParagraph.objects.create(title="降雨预报", content=encoded_string, ctype=2)
                 self.node.wordParagraphs.add(wp)
                 wp = WordParagraph.objects.create(title="降雨预报", content=tmpdesc, ctype=1)
                 self.node.wordParagraphs.add(wp)
                 tmpHtml += divHtml("<img src='data:image/png;base64," + encoded_string + "' width='50%'>") + "\n" + paraHtml(tmpdesc) + "\n"
-            return tmpHtml
+            return tmpHtml,tmp_content
 
         if self.context['type'] == 0:
             # 黄河中下游
@@ -179,7 +185,7 @@ class PlanFactory:
             # self.node.wordParagraphs.add(wp)
             # wp = WordParagraph.objects.create(title="降雨预报", content=jiangyu13, ctype=1)
             # self.node.wordParagraphs.add(wp)
-            jyyb_img_html = jyyb_imgs(self.params)
+            jyyb_img_html,tmp_content = jyyb_imgs(self.params)
             # wp = WordParagraph.objects.create(title="降雨预报", content="2） 未来3天降水预报图   \n", ctype=0)
             # self.node.wordParagraphs.add(wp)
             jiangyu_table = huanghe_fenqu_jiangyu_forecast(self.params)
@@ -204,13 +210,67 @@ class PlanFactory:
                      f"\t{jiangyu_table}\n")
                      # f"4）未来4—7天降水预报  \n"
                      # f"\t{jiangyu47}\n")
-            #print("预报：",yubao)
+            #logger.debug(f"预报：{yubao}")
             return yubao
         elif self.context['type'] == 1:
             # 小浪底
             #TODO
             return ""
-    
+        elif self.context['type'] == 2:
+            # 小浪底
+            #TODO
+            return ""
+        elif self.context['type'] == 3:
+            # 黄河汛情及水库调度方案单
+            #TODO
+            return ""
+        elif self.context['type'] == 4:
+            # 伊洛河
+            jyyb_img_html,tmp_content = jyyb_imgs(self.params)
+            jiangyu_table = yiluohe_fenqu_jiangyu_forecast(self.params)
+            logger.debug(f"黄河流域分区面平均雨量预报（单位：mm）：{jiangyu_table}")
+            tmpfname = self.params["jlyb"]
+            tmppath = os.path.join("data", "yuan_data", str(self.context['type']), "yubao", self.context['yadate'],tmpfname)
+            # tmppath ="/data/jyybimgs/2023-07-23 /1.png"
+            logger.debug(f"tmppath: {tmppath}")
+            if not os.path.exists(tmppath):
+                logger.debug(f"文件不存在: {tmppath}")
+            logger.debug(f"降雨路径:{tmppath}")
+            encoded_string = img2base64(tmppath)
+            jlyb = divHtml("<img src='data:image/png;base64," + encoded_string + "' width='50%'>")
+            llyb = yiluohe_future_7_forecast(self.params)
+            for n in self.node.wordParagraphs.all():
+                n.delete()
+            # 新增描述部分
+            wp = WordParagraph.objects.create(title=f"未来7天降雨预报", content="降雨预报", ctype=1)
+            self.node.wordParagraphs.add(wp)
+            for item in tmp_content:
+                wp = WordParagraph.objects.create(title=f"降雨预报图", content=item["content"], ctype=2)
+                self.node.wordParagraphs.add(wp)
+                wp = WordParagraph.objects.create(title=f"降雨预报描述", content=item["desc"], ctype=1)
+                self.node.wordParagraphs.add(wp)
+
+            wp = WordParagraph.objects.create(title="预报", content= "黄河流域分区面平均雨量预报（单位：mm）", ctype=1)
+            self.node.wordParagraphs.add(wp)
+            df = pd.DataFrame(self.params["ylhjyyb"])
+            ylhjyyb_json = df.to_json(orient='records')
+            wp = WordParagraph.objects.create(title="降雨预报表", content=json.dumps(ylhjyyb_json), ctype=3)
+            self.node.wordParagraphs.add(wp)
+            wp = WordParagraph.objects.create(title="q强降雨预警描述", content=self.params['qjsyj'], ctype=1)
+            self.node.wordParagraphs.add(wp)
+            wp = WordParagraph.objects.create(title="预报", content="未来7天径流预报", ctype=1)
+            self.node.wordParagraphs.add(wp)
+            wp = WordParagraph.objects.create(title="径流预报图", content=encoded_string, ctype=2)
+            self.node.wordParagraphs.add(wp)
+            wp = WordParagraph.objects.create(title="预报", content="未来7天径日均流量预报", ctype=1)
+            self.node.wordParagraphs.add(wp)
+            df = pd.DataFrame(self.params["hhfloodforecast"])
+            hhfloodforecast_json = df.to_json(orient='records')
+            wp = WordParagraph.objects.create(title="未来7天径日均流量预报表", content=json.dumps(hhfloodforecast_json), ctype=3)
+            self.node.wordParagraphs.add(wp)
+            return (bold_left_align("降雨预报")+"\n"+bold_left_align("未来7天降雨预报")+jyyb_img_html+ divHtml(f"黄河流域分区面平均雨量预报（单位：mm）  \n") + f"\t{jiangyu_table}\n"+"短时强降水预警\n"+self.params["qjsyj"]
+                    +bold_left_align("洪水预报") +bold_left_align("未来7天径流预报") + jlyb+bold_left_align("未来7天日均流量预报")+llyb)
+
     def get_hsyb(self):
         """
         获取洪水预报
@@ -226,7 +286,7 @@ class PlanFactory:
             wp = WordParagraph.objects.create(title="洪水预报", content=json.dumps(tmpjson), ctype=3)
             self.node.wordParagraphs.add(wp)
             #TODO
-            #print("XXXXXXXXXXXXXX")
+            #logger.debug("XXXXXXXXXXXXXX")
             return huanghe_flood_forecast(self.params)
         elif self.context['type'] == 1:
             # 小浪底
@@ -246,7 +306,7 @@ class PlanFactory:
             ddfa_excel = os.path.join("data","yuan_data","0","ddfad",f"{yadate}.xlsx")
             #ddfa_excel="data/yuan_data/0/ddfad/2023-07-23.xlsx" 
             if not os.path.exists(ddfa_excel):
-                print("ddfan_excel:",ddfa_excel)
+                logger.debug("ddfan_excel:",ddfa_excel)
                 raise Exception("调度方案单不存在")
             skMapData, swMapData, date_list = yautils.excel_to_dict(ddfa_excel)
             smx_ckll, xld_ckll, lh_ckll, gx_ckll, hkc_ckll = yautils.skddjy(ddfa_excel)
@@ -302,7 +362,7 @@ class PlanFactory:
             yadate = self.context['plan']['yadate']
             #ddfa_excel = os.path.join("media", "ddfa", str(self.context['plan']['ctype']), f"{yadate}.xlsx")
             ddfa_excel = os.path.join("data","yuan_data","3","ddfad",f"{yadate}.xlsx")
-            #print(ddfa_excel)
+            #logger.debug(ddfa_excel)
             if not os.path.exists(ddfa_excel):
                 raise Exception("调度方案单不存在")
             #ddjy = generate_ddjy(ddfa_excel)
@@ -317,13 +377,6 @@ class PlanFactory:
                 ddjy_list.append(f"{key}水库：{ckll}")
             # 将所有水库的调度建议合并为一个字符串
             ddjy = "\n".join(ddjy_list)
-            # smx_ckll, xld_ckll, lh_ckll, gx_ckll, hkc_ckll = yautils.skddjy_new(ddfa_excel)
-            # smx_ddjy = process_outflow(smx_ckll, date_list)
-            # xld_ddjy = process_outflow(xld_ckll, date_list)
-            # lh_ddjy = process_outflow(lh_ckll, date_list)
-            # gx_ddjy = process_outflow(gx_ckll, date_list)
-            # hkc_ddjy = process_outflow(hkc_ckll, date_list)
-            # ddjy = "三门峡水库：" + smx_ddjy + "\n小浪底水库：" + xld_ddjy + "\n陆浑水库：" + lh_ddjy + "\n故县水库：" + gx_ddjy + "\n河口村水库：" + hkc_ddjy
             skddresult = ""
             # funMap = {
             #     "小浪底": xld_sk,
@@ -333,7 +386,6 @@ class PlanFactory:
             #     "河口村": hkc_sk,
             #     "花园口": hyk_sk
             # }
-
             sk2image = {}
             for skname in skMapData:
                 record = skMapData[skname]
@@ -348,7 +400,7 @@ class PlanFactory:
                 tmpimgpath = f"data/yuan_data/3/ddfadouts/{self.context['plan']['yadate']}/imgs/{skname}.png"
                 #tmpimgpath = f"data/ddfaouts/{self.context['plan']['ctype']}/{self.context['plan']['yadate']}/imgs/{skname}.png"
                 if not os.path.exists(tmpimgpath):
-                    print(f"调度过程曲线不存在：{tmpimgpath}")
+                    logger.debug(f"调度过程曲线不存在：{tmpimgpath}")
                     continue
                 tmp_ddgc_img = img2base64(tmpimgpath)
                 sk2image[skname] = tmp_ddgc_img
@@ -360,9 +412,9 @@ class PlanFactory:
             hd_result = ""
             sw2image = {}
             for swname in swMapData:
-                # print("swMapdata:",swMapData)
+                # logger.debug("swMapdata:",swMapData)
                 record = swMapData[swname]
-                # print("records:",record)
+                # logger.debug("records:",record)
                 # keys = list(record.keys())
                 # if "流量" not in keys:
                 #     continue
@@ -374,7 +426,7 @@ class PlanFactory:
                 #tmpimgpath = f"data/ddfaouts/{self.context['plan']['ctype']}/{self.context['plan']['yadate']}/imgs/{swname}.png"
                 tmpimgpath = f"data/yuan_data/3/ddfadouts/{self.context['plan']['yadate']}/imgs/{swname}.png"
                 if not os.path.exists(tmpimgpath):
-                    print(f"调度过程曲线不存在：{tmpimgpath}")
+                    logger.debug(f"调度过程曲线不存在：{tmpimgpath}")
                     continue
                 sw2image[swname] = tmpimgpath
                 tmp_ddgc_img = img2base64(tmpimgpath)
@@ -401,6 +453,46 @@ class PlanFactory:
                 self.node.wordParagraphs.add(wp)
             #TODO
             return huanghe_diaodu_plan_jianyi_html(ddjy)+ "1) 水库调度过程线 \n"+ f"{skddresult}\n"+ "2) 水文站调度过程线\n" + f"{hd_result}\n"
+        elif self.context['type'] == 4:
+            import pandas as pd
+            import time
+            yadate = self.context['plan']['yadate']
+            ddfa_excel = os.path.join("data", "yuan_data", "4", "ddfad", f"{yadate}.xlsx")
+            # logger.debug(ddfa_excel)
+            ddfad = ""
+            if not os.path.exists(ddfa_excel):
+                raise Exception("调度方案单不存在")
+            else:
+                # df = pd.read_excel(ddfa_excel)
+                # ddfad = pd2HtmlCSS() + df.to_html(index=False, justify="center")
+                html_table = excel_to_html_with_merged_cells(ddfa_excel)
+                ddfad = pd2HtmlCSS()+html_table
+            skMapData, swMapData, date_list = yautils.excel_to_dict(ddfa_excel)
+            results = yautils.skddjy_new(ddfa_excel)
+            # 初始化调度建议字符串
+            ddjy_list = []
+            # 遍历返回的结果字典
+            for key, value in results.items():
+                ckll = process_outflow(value, date_list)
+                #ddjy_list.append(f"{key}水库：{ckll}")
+                ddjy_list.append([key, ckll])
+            df = pd.DataFrame(ddjy_list, columns=["水库", "调度方式"])
+            ddjy = pd2HtmlCSS() + df.to_html(index=False)
+            for n in self.node.wordParagraphs.all():
+                n.delete()
+            ddfs_json=df.to_json(orient="records")
+            wp = WordParagraph.objects.create(title="调度方案", content="调度运用方式", ctype=1)
+            self.node.wordParagraphs.add(wp)
+            wp = WordParagraph.objects.create(title="调度方案", content=json.dumps(ddfs_json), ctype=3)
+            self.node.wordParagraphs.add(wp)
+            wp = WordParagraph.objects.create(title="调度方案", content="调度运用方案单", ctype=1)
+            self.node.wordParagraphs.add(wp)
+            ddfad_json=pd.read_excel(ddfa_excel).to_json(orient="records")
+            wp = WordParagraph.objects.create(title="调度方案", content=json.dumps(ddfad_json), ctype=3)
+            self.node.wordParagraphs.add(wp)
+            # 将所有水库的调度建议合并为一个字符串
+            #ddjy = "\n".join(ddjy_list)
+            return (bold_left_align("调度运用方式")+ddjy+"\n"+bold_left_align("调度方案单")+ divHtml(f"伊洛河调度方案单\n")+ddfad)
     def get_ddjg(self):
         """
         获取调度方案
@@ -452,22 +544,22 @@ class PlanFactory:
                 tmpimgpath = f"data/yuan_data/0/ddfadouts/{self.context['plan']['yadate']}/imgs/{skname}.png"
                 #ddfa_excel = os.path.join("data","yuan_data","0","ddfad",f"{yadate}.xlsx")
                 if not os.path.exists(tmpimgpath):
-                    print(f"调度过程曲线不存在：{tmpimgpath}")
+                    logger.debug(f"调度过程曲线不存在：{tmpimgpath}")
                     continue
                 tmp_ddgc_img = img2base64(tmpimgpath)
                 sk2image[skname] = tmp_ddgc_img
                 tmp_ddgc_img_desc = f"{skname}调度过程({date_list[0]}~{date_list[-1]})"
                 # TODO: 需要根据调度方案单的类型来确定调度方案单的函数
-                tmp_ddjg_result = f"预计{skname}将于{max_date}达到最高水位{max_sw}m，{xld_sk(sw=max_sw)}；\n"
+                tmp_ddjg_result = f"预计{skname}将于{max_date}达到最高水位{max_sw}m；\n"#，{xld_sk(sw=max_sw)}
                 skddresult += paraHtml(tmp_ddjg_result) + divHtml("<img src='data:image/png;base64," + tmp_ddgc_img + "' width='50%'>") + "\n" + divHtml(tmp_ddgc_img_desc) + "\n"
 
 
             hd_result = ""
             sw2image = {}
             for swname in swMapData:
-                #print("swMapdata:",swMapData)
+                #logger.debug("swMapdata:",swMapData)
                 record = swMapData[swname]
-                # print("records:",record)
+                # logger.debug("records:",record)
                 # keys = list(record.keys())
                 if "流量" not in keys:
                     continue
@@ -479,7 +571,7 @@ class PlanFactory:
                 #tmpimgpath = f"data/ddfaouts/{self.context['plan']['ctype']}/{self.context['plan']['yadate']}/imgs/{swname}.png"
                 tmpimgpath = f"data/yuan_data/0/ddfadouts/{self.context['plan']['yadate']}/imgs/{swname}.png"
                 if not os.path.exists(tmpimgpath):
-                    print(f"调度过程曲线不存在：{tmpimgpath}")
+                    logger.debug(f"调度过程曲线不存在：{tmpimgpath}")
                     continue
                 sw2image[swname] = tmpimgpath
                 tmp_ddgc_img = img2base64(tmpimgpath)
@@ -535,6 +627,7 @@ class PlanFactory:
             wp = WordParagraph.objects.create(title="调度结果", content="预警响应", ctype=1)
             self.node.wordParagraphs.add(wp)
             wp = WordParagraph.objects.create(title="预警响应及等级", content=xiangying_level, ctype=1)
+            self.node.wordParagraphs.add(wp)
             wp = WordParagraph.objects.create(title="调度方案单", content=json.dumps(tb_ddjg_json), ctype=3)
             self.node.wordParagraphs.add(wp)
             # wp = WordParagraph.objects.create(title="调度结果", content="滩区淹没", ctype=1)
@@ -559,7 +652,122 @@ class PlanFactory:
             # 三花间
             #TODO
             return ""
-        
+        elif self.context['type'] == 4:
+            # 伊洛河
+            import pandas as pd
+            import time
+            yadate = self.context['plan']['yadate']
+            ddfa_excel = os.path.join("data", "yuan_data", "4", "ddfad", f"{yadate}.xlsx")
+            # logger.debug(ddfa_excel)
+            if not os.path.exists(ddfa_excel):
+                raise Exception("调度方案单不存在")
+            if not os.path.exists(ddfa_excel):
+                raise Exception("调度方案单不存在")
+            else:
+                # df = pd.read_excel(ddfa_excel)
+                # ddfad = pd2HtmlCSS() + df.to_html(index=False, justify="center")
+                html_table = excel_to_html_with_merged_cells(ddfa_excel)
+                ddfad = pd2HtmlCSS()+html_table
+            skMapData, swMapData, date_list = yautils.excel_to_dict(ddfa_excel)
+            results = yautils.skddjy_new(ddfa_excel)
+            # 初始化调度建议字符串
+            ddjy_list = []
+            # 遍历返回的结果字典
+            for key, value in results.items():
+                ckll = process_outflow(value, date_list)
+                #ddjy_list.append(f"{key}水库：{ckll}")
+                ddjy_list.append([key, ckll])
+            df = pd.DataFrame(ddjy_list, columns=["水库", "调度方式"])
+            ddjy = pd2HtmlCSS() + df.to_html(index=False)
+            ddfs_json=df.to_json(orient="records")
+            skMapData, swMapData, date_list = yautils.excel_to_dict(ddfa_excel)
+            skddresult = ""
+            sk_ddjg=[]
+            sk2image = {}
+            for skname in skMapData:
+                record = skMapData[skname]
+                keys = list(record.keys())
+                if "水位" not in keys:
+                    continue
+                swdata = list(record["水位"])
+                max_sw = max(swdata)
+                max_idx = swdata.index(max_sw)
+                max_date = date_list[max_idx]
+                tmpimgpath = f"data/yuan_data/4/ddfadouts/{self.context['plan']['yadate']}/imgs/{skname}.png"
+                if not os.path.exists(tmpimgpath):
+                    logger.debug(f"调度过程曲线不存在：{tmpimgpath}")
+                    continue
+                tmp_ddgc_img = img2base64(tmpimgpath)
+                sk2image[skname] = tmp_ddgc_img
+                tmp_ddgc_img_desc = f"{skname}调度过程({date_list[0]}~{date_list[-1]})"
+                # TODO: 需要根据调度方案单的类型来确定调度方案单的函数
+                tmp_ddjg_result = f"预计{skname}将于{max_date}达到最高水位{max_sw}m；\n"#，{xld_sk(max_sw)['result']}
+                skddresult += paraHtml(tmp_ddjg_result) + divHtml(
+                    "<img src='data:image/png;base64," + tmp_ddgc_img + "'  width='50%' >") + "\n" + divHtml(
+                    tmp_ddgc_img_desc) + "\n"
+                sk_ddjg.append({"img64":tmp_ddgc_img,"desc":tmp_ddjg_result,"tmp_ddgc_img_desc":tmp_ddgc_img_desc})
+            hd_result = ""
+            hd_ddjg=[]
+            sw2image = {}
+            for swname in swMapData:
+                record = swMapData[swname]
+                lldata = record  # list(record["流量"])
+                max_ll = max(lldata)
+                max_idx = lldata.index(max_ll)
+                max_date = date_list[max_idx]
+                tmpimgpath = f"data/yuan_data/4/ddfadouts/{self.context['plan']['yadate']}/imgs/{swname}.png"
+                if not os.path.exists(tmpimgpath):
+                    #logger.debug(f"调度过程曲线不存在：{tmpimgpath}")
+                    continue
+                sw2image[swname] = tmpimgpath
+                tmp_ddgc_img = img2base64(tmpimgpath)
+                sw2image[swname] = tmp_ddgc_img
+                tmp_ddgc_img_desc = f"{swname}调度过程({date_list[0]}~{date_list[-1]})"
+                tmp_result = f"预计{max_date}，{swname}出现{max_ll}立方米每秒的洪峰流量\n"
+                hd_result = paraHtml(tmp_result) + divHtml(
+                    "<img src='data:image/png;base64," + tmp_ddgc_img + "'  width='60%' >") + "\n" + paraHtml(
+                    tmp_ddgc_img_desc) + "\n"
+                hd_ddjg.append({"img64": tmp_ddgc_img, "desc": tmp_result, "tmp_ddgc_img_desc": tmp_ddgc_img_desc})
+            #tqym = huanghe_tanqu_yanmo(self.params)
+            hyk_liuliang = 3000
+            tqym = tanquyanmo(hyk_liuliang)["result"]
+
+            for n in self.node.wordParagraphs.all():
+                n.delete()
+            wp = WordParagraph.objects.create(title="调度方案", content="调度运用方式", ctype=1)
+            self.node.wordParagraphs.add(wp)
+            wp = WordParagraph.objects.create(title="水库调度方案", content=json.dumps(ddfs_json), ctype=3)
+            self.node.wordParagraphs.add(wp)
+            wp = WordParagraph.objects.create(title="调度结果", content="水库", ctype=1)
+            self.node.wordParagraphs.add(wp)
+            for item in sk_ddjg:
+                wp = WordParagraph.objects.create(title="水库调度结果描述", content=item["desc"], ctype=1)
+                self.node.wordParagraphs.add(wp)
+                wp = WordParagraph.objects.create(title="水库调度结果图", content=item["img64"], ctype=2)
+                self.node.wordParagraphs.add(wp)
+                wp = WordParagraph.objects.create(title="水库调度过程", content=f"\t\t{item['tmp_ddgc_img_desc']}", ctype=1)
+                self.node.wordParagraphs.add(wp)
+            for item in hd_ddjg:
+                wp = WordParagraph.objects.create(title="河道调度结果描述", content=item["desc"], ctype=1)
+                self.node.wordParagraphs.add(wp)
+                wp = WordParagraph.objects.create(title="河道调度结果图", content=item["img64"], ctype=2)
+                self.node.wordParagraphs.add(wp)
+                wp = WordParagraph.objects.create(title="河道调度过程", content=f"\t\t{item['tmp_ddgc_img_desc']}", ctype=1)
+                self.node.wordParagraphs.add(wp)
+            wp = WordParagraph.objects.create(title="调度结果", content="滩区淹没", ctype=1)
+            self.node.wordParagraphs.add(wp)
+            wp = WordParagraph.objects.create(title="滩区淹没", content=tqym, ctype=1)
+            self.node.wordParagraphs.add(wp)
+            wp = WordParagraph.objects.create(title="调度方案", content="调度运用方案单", ctype=1)
+            self.node.wordParagraphs.add(wp)
+            ddfad_json = pd.read_excel(ddfa_excel).to_json(orient="records")
+            wp = WordParagraph.objects.create(title="调度方案单", content=json.dumps(ddfad_json), ctype=3)
+            self.node.wordParagraphs.add(wp)
+
+            #(bold_left_align("调度运用方式")+ddjy+"\n"+bold_left_align("调度方案单")+ divHtml(f"伊洛河调度方案单\n")+ddfad)
+            return (bold_left_align("调度运用方式")+ddjy+bold_left_align("水库")+skddresult+bold_left_align("河道")+hd_result+bold_left_align("滩区淹没")+tqym+"\n"+bold_left_align("调度方案单")+ divHtml(f"伊洛河调度方案单\n")+ddfad)#+
+                    # bold_left_align("可能出险")+kncx+bold_left_align("应对措施") + ydcs+bold_left_align("分级响应") + yjdj +
+                    # bold_left_align("河道破堤实施方案") + hdpdssfa+bold_left_align("人员转移方案")+ryzyfa  +  bold_left_align("防汛物资储备和防汛抢险队伍") + fxwz)
 
     def get_gcyp(self):
         if self.context['type'] == 0:
@@ -607,7 +815,7 @@ class PlanFactory:
             #     tmpurl = imgJson['url']
             #     with open(os.path.join("static", tmpurl), "rb") as image_file:
             #         encoded_string = base64.b64encode(image_file.read())
-            #         print(encoded_string.decode('utf-8'))
+            #         logger.debug(encoded_string.decode('utf-8'))
             wp = WordParagraph.objects.create(title="枢纽运用", content="预报小浪底水库的调度过程", ctype=1)
             self.node.wordParagraphs.add(wp)
             encoded_string = re.sub('^data:image/.+;base64,', '', ddgc_img)
@@ -725,6 +933,75 @@ class PlanFactory:
             wp = WordParagraph.objects.create(title="安全举措", content=json.dumps(tmpjson), ctype=3)
             self.node.wordParagraphs.add(wp)
             return safety_result
+        elif self.context['type'] == 2:
+            return ""
+        elif self.context['type'] == 3:
+            return ""
+        elif self.context['type'] == 4:
+            yjdj = yujingdengji()["level"]  # "黄色预警"
+            ydcs = yujingdengji()["result"]
+            df = pd.DataFrame(self.params["goodsTable"])
+            fxwz = pd2HtmlCSS() + df.to_html(index=False)
+
+            wp = WordParagraph.objects.create(title=f"调度结果及应对措施", content="预警分级响应", ctype=1)
+            self.node.wordParagraphs.add(wp)
+            wp = WordParagraph.objects.create(title=f"预警等级", content=yjdj, ctype=1)
+            self.node.wordParagraphs.add(wp)
+            wp = WordParagraph.objects.create(title=f"调度结果及应对措施", content="应对措施", ctype=1)
+            self.node.wordParagraphs.add(wp)
+            wp = WordParagraph.objects.create(title=f"应对措施", content=ydcs, ctype=1)
+            self.node.wordParagraphs.add(wp)
+            zzbz= "故县水库行政责任人:洛阳市委常委，常务副市长\n职责:负贵故县水库大坝安全然管领导责任，统 指泽故县水车防讯抗早、拍险救灾工作，协调指导解决故县水库大规安全管理的重大问题，组织面大实发事件和安全事故的应急处置，负责放县水库应食拾险和于安救护工作，督促水库主管部门责任人、技术责任人、巡查责任人履行工作职责,"
+            wp = WordParagraph.objects.create(title=f"调度结果及应对措施", content="组织保障", ctype=1)
+            self.node.wordParagraphs.add(wp)
+            wp = WordParagraph.objects.create(title=f"组织保障", content=zzbz, ctype=1)
+            self.node.wordParagraphs.add(wp)
+            dwbz = "故县水库行政责任人:洛阳市委常委，常务副市长\n职责:负贵故县水库大坝安全然管领导责任，统 指泽故县水车防讯抗早、拍险救灾工作，协调指导解决故县水库大规安全管理的重大问题，组织面大实发事件和安全事故的应急处置，负责放县水库应食拾险和于安救护工作，督促水库主管部门责任人、技术责任人、巡查责任人履行工作职责,"
+            wp = WordParagraph.objects.create(title=f"调度结果及应对措施", content="队伍保障", ctype=1)
+            self.node.wordParagraphs.add(wp)
+            wp = WordParagraph.objects.create(title=f"队伍保障", content=dwbz, ctype=1)
+            self.node.wordParagraphs.add(wp)
+            wuzi_json = pd.DataFrame(self.params["goodsTable"]).to_json(orient="records")
+            wp = WordParagraph.objects.create(title=f"调度结果及应对措施", content="物资保障", ctype=1)
+            self.node.wordParagraphs.add(wp)
+            wp = WordParagraph.objects.create(title=f"物资保障", content=json.dumps(wuzi_json),ctype=3)
+            self.node.wordParagraphs.add(wp)
+            jsbz = "故县水库行政责任人:洛阳市委常委，常务副市长\n职责:负贵故县水库大坝安全然管领导责任，统 指泽故县水车防讯抗早、拍险救灾工作，协调指导解决故县水库大规安全管理的重大问题，组织面大实发事件和安全事故的应急处置，负责放县水库应食拾险和于安救护工作，督促水库主管部门责任人、技术责任人、巡查责任人履行工作职责,"
+            wp = WordParagraph.objects.create(title=f"调度结果及应对措施", content="技术保障", ctype=1)
+            self.node.wordParagraphs.add(wp)
+            wp = WordParagraph.objects.create(title=f"技术保障", content=jsbz, ctype=1)
+            self.node.wordParagraphs.add(wp)
+            txbz = "故县水库行政责任人:洛阳市委常委，常务副市长\n职责:负贵故县水库大坝安全然管领导责任，统 指泽故县水车防讯抗早、拍险救灾工作，协调指导解决故县水库大规安全管理的重大问题，组织面大实发事件和安全事故的应急处置，负责放县水库应食拾险和于安救护工作，督促水库主管部门责任人、技术责任人、巡查责任人履行工作职责,"
+            wp = WordParagraph.objects.create(title=f"调度结果及应对措施", content="通信保障", ctype=1)
+            self.node.wordParagraphs.add(wp)
+            wp = WordParagraph.objects.create(title=f"通信保障", content=txbz, ctype=1)
+            self.node.wordParagraphs.add(wp)
+            zmyjbz = "故县水库行政责任人:洛阳市委常委，常务副市长\n职责:负贵故县水库大坝安全然管领导责任，统 指泽故县水车防讯抗早、拍险救灾工作，协调指导解决故县水库大规安全管理的重大问题，组织面大实发事件和安全事故的应急处置，负责放县水库应食拾险和于安救护工作，督促水库主管部门责任人、技术责任人、巡查责任人履行工作职责,"
+            wp = WordParagraph.objects.create(title=f"调度结果及应对措施", content="照明应急保障", ctype=1)
+            self.node.wordParagraphs.add(wp)
+            wp = WordParagraph.objects.create(title=f"照明应急保障", content=zmyjbz , ctype=1)
+            self.node.wordParagraphs.add(wp)
+            aqbz = "故县水库行政责任人:洛阳市委常委，常务副市长\n职责:负贵故县水库大坝安全然管领导责任，统 指泽故县水车防讯抗早、拍险救灾工作，协调指导解决故县水库大规安全管理的重大问题，组织面大实发事件和安全事故的应急处置，负责放县水库应食拾险和于安救护工作，督促水库主管部门责任人、技术责任人、巡查责任人履行工作职责,"
+            wp = WordParagraph.objects.create(title=f"调度结果及应对措施", content="安全保障", ctype=1)
+            self.node.wordParagraphs.add(wp)
+            wp = WordParagraph.objects.create(title=f"安全保障", content=aqbz, ctype=1)
+            self.node.wordParagraphs.add(wp)
+            wsbz = "故县水库行政责任人:洛阳市委常委，常务副市长\n职责:负贵故县水库大坝安全然管领导责任，统 指泽故县水车防讯抗早、拍险救灾工作，协调指导解决故县水库大规安全管理的重大问题，组织面大实发事件和安全事故的应急处置，负责放县水库应食拾险和于安救护工作，督促水库主管部门责任人、技术责任人、巡查责任人履行工作职责,"
+            wp = WordParagraph.objects.create(title=f"调度结果及应对措施", content="卫生保障", ctype=1)
+            self.node.wordParagraphs.add(wp)
+            wp = WordParagraph.objects.create(title=f"卫生保障", content=wsbz, ctype=1)
+            self.node.wordParagraphs.add(wp)
+            qtbz = "故县水库行政责任人:洛阳市委常委，常务副市长\n职责:负贵故县水库大坝安全然管领导责任，统 指泽故县水车防讯抗早、拍险救灾工作，协调指导解决故县水库大规安全管理的重大问题，组织面大实发事件和安全事故的应急处置，负责放县水库应食拾险和于安救护工作，督促水库主管部门责任人、技术责任人、巡查责任人履行工作职责,"
+            wp = WordParagraph.objects.create(title=f"调度结果及应对措施", content="其他保障", ctype=1)
+            self.node.wordParagraphs.add(wp)
+            wp = WordParagraph.objects.create(title=f"其他保障", content=qtbz, ctype=1)
+            self.node.wordParagraphs.add(wp)
+            xcyy = "故县水库行政责任人:洛阳市委常委，常务副市长\n职责:负贵故县水库大坝安全然管领导责任，统 指泽故县水车防讯抗早、拍险救灾工作，协调指导解决故县水库大规安全管理的重大问题，组织面大实发事件和安全事故的应急处置，负责放县水库应食拾险和于安救护工作，督促水库主管部门责任人、技术责任人、巡查责任人履行工作职责,"
+            wp = WordParagraph.objects.create(title=f"调度结果及应对措施", content="宣传和卫生演练", ctype=1)
+            self.node.wordParagraphs.add(wp)
+            wp = WordParagraph.objects.create(title=f"宣传和卫生演练", content=xcyy, ctype=1)
+            self.node.wordParagraphs.add(wp)
+            return bold_left_align("预警分级响应") + yjdj+bold_left_align("应对措施") + ydcs +bold_left_align("应急保障") +bold_left_align("组织保障")+zzbz+bold_left_align("队伍保障")+dwbz+bold_left_align("物资保障")+fxwz+bold_left_align("技术保障")+jsbz+bold_left_align("通信保障")+txbz+bold_left_align("照明应急保障")+zmyjbz+bold_left_align("安全保障")+aqbz+bold_left_align("卫生保障")+wsbz+bold_left_align("其他保障")+qtbz+bold_left_align("宣传和卫生演练")+xcyy
     def get_lsyg(self):
         if self.context['type'] == 0:
             return ""
@@ -774,53 +1051,115 @@ class PlanFactory:
             wp = WordParagraph.objects.create(title="调度原则和调度目标", content=ddyz_ddmb, ctype=1)
             self.node.wordParagraphs.add(wp)
             return ddyz_ddmb
+    def get_ysgxq(self):
+        if self.context['type'] == 0:
+            # 黄河中下游的河道水情
+            #TODO
+            # logger.debug("self.params:",   self.params)
+            # logger.debug("type(self.params):",type(self.params))
+            tmp = huanghe_yuqing_generate(self.params)
+            ## 对每段描述内容进行细分
+            wp = WordParagraph.objects.create(title="雨情实况", content=tmp, ctype=1)
+            # self.node.wordParagraphs.clear()
+            for n in self.node.wordParagraphs.all():
+                n.delete()
+            self.node.wordParagraphs.add(wp)
+            return tmp
+            # return ""
+        elif self.context['type'] == 1 or self.context['type'] == 2:
+            # 小浪底河道水情
+            #TODO
+            #tmp = huanghe_yuqing_generate(self.params)
+            tmp = xld_yushui_context(self.params)
+            for n in self.node.wordParagraphs.all():
+                n.delete()
+            wp = WordParagraph.objects.create(title="雨情实况", content=tmp, ctype=1)
+            self.node.wordParagraphs.add(wp)
+            return xld_yushui_context(self.params)
+        elif self.context['type'] == 3:
+           return ""
+        elif self.context['type'] == 4:
+            #ylh_yuqing = yiluohe_yuqing_generate(self.params)
+            ylh_yuqing = self.params["yuqing"]
+            hdsq = huanghe_hedaoshuiqing_generate(self.params)
+            sksq = huanghe_shuikushuiqing_generate(self.params)
+#            gqxq = huanghe_gongqing_generate_html(self.params)
+            gqxq = self.params['xianqing']
+            # 返回网页表格数据
+            for n in self.node.wordParagraphs.all():
+                n.delete()
+            wp = WordParagraph.objects.create(title="雨情实况", content="雨情", ctype=1)
+            self.node.wordParagraphs.add(wp)
+            wp = WordParagraph.objects.create(title="雨情实况描述", content=ylh_yuqing, ctype=1)
+            self.node.wordParagraphs.add(wp)
+            wp = WordParagraph.objects.create(title="雨情实况", content="河道水情", ctype=1)
+            self.node.wordParagraphs.add(wp)
+            df = pd.DataFrame(self.params['hdsq'])
+            hdsq_json = df.to_json(orient='records')
+            wp = WordParagraph.objects.create(title="河道水情表格", content=json.dumps(hdsq_json), ctype=3)
+            self.node.wordParagraphs.add(wp)
+            wp = WordParagraph.objects.create(title="雨情实况", content="水库水情", ctype=1)
+            self.node.wordParagraphs.add(wp)
+            df = pd.DataFrame(self.params['sksq'])
+            sksq_json = df.to_json(orient='records')
+            wp = WordParagraph.objects.create(title="水库水情表格", content=json.dumps(sksq_json), ctype=3)
+            self.node.wordParagraphs.add(wp)
+            wp = WordParagraph.objects.create(title="雨情实况", content="工情险情", ctype=1)
+            self.node.wordParagraphs.add(wp)
+            wp = WordParagraph.objects.create(title="工情险情描述", content=gqxq, ctype=1)
+            self.node.wordParagraphs.add(wp)
+            return bold_left_align("雨情")+"\n"+ylh_yuqing+bold_left_align("水情")+"\n"+bold_left_align("河道水情")+divHtml(f"黄河主要站点流量表\n") + hdsq+ bold_left_align("水库水情")+ divHtml(f"黄河主要水库蓄水情况表\n") + sksq +bold_left_align("工情险情") + gqxq
+
     def make_context(self,):
-        # print("make_context:", self.context, self.params)
+        # logger.debug("make_context:", self.context, self.params)
         label = self.node.label
-        print("label:", label)
+        logger.debug(f"label: {label}")
         #label = map_input_to_label(user_input=label)
         if label == "雨情实况" or label =="实时雨水情":
-            print("雨情实况 get_ysq")
+            logger.debug("雨情实况 get_ysq")
             result = self.get_ysq()
         elif label == "河道水情":
-            print("河道水情 get_hdsq")
+            logger.debug("河道水情 get_hdsq")
             result = self.get_hdsq()
         elif label == "水库水情":
-            print("水库水情 get_sksq")
+            logger.debug("水库水情 get_sksq")
             result = self.get_sksq()
         elif label == "工情险情实况" or label == "工情险情":
-            print("工情险情实况 get_gqxq")
+            logger.debug("工情险情实况 get_gqxq")
             result = self.get_gqxq() #ori_ctx
-        elif label == "降雨预报":
-            print("降雨预报 get_jyyb")
+        elif label == "降雨预报" or label == "预报":
+            logger.debug("降雨预报 get_jyyb")
             result = self.get_jyyb()
         elif label == "洪水预报":
-            print("洪水预报 get_hsyb")
+            logger.debug("洪水预报 get_hsyb")
             result = self.get_hsyb()
         elif label == "调度方案" or label == "水库调度方案":
-            print("调度方案 get_ddfa")
+            logger.debug("调度方案 get_ddfa")
             result = self.get_ddfa()
-        elif label == "调度结果":
-            print("调度结果 get_ddjg")
+        elif label == "调度结果" or label == "调度结果及应对措施":
+            logger.debug("调度结果 get_ddjg")
             result = self.get_ddjg()
         elif label =="工程研判":
-            print("工程研判 get_gcyp")
+            logger.debug("工程研判 get_gcyp")
             result = self.get_gcyp()
         elif label =="枢纽运用方案":
-            print("枢纽运用方案 get_snyy")
+            logger.debug("枢纽运用方案 get_snyy")
             result = self.get_snyy()
-        elif label == "安全举措":
-            print("安全举措 get_aqjc")
+        elif label == "安全举措" or label =="防御措施":
+            logger.debug("安全举措 get_aqjc")
             result = self.get_aqjc()
         elif label == "来水预估":
-            print("安全举措 get_lsyg")
+            logger.debug("安全举措 get_lsyg")
             result = self.get_lsyg()
         elif label =="河道边界条件":
-            print("河道边界条件 get_hdbjtj")
+            logger.debug("河道边界条件 get_hdbjtj")
             result = self.get_hdbjtj()
         elif label == "调度原则和调度目标":
-            print("调度原则和调度目标 get_ddyz_ddmb")
+            logger.debug("调度原则和调度目标 get_ddyz_ddmb")
             result = self.get_ddyz_ddmb()
+        elif label == "实时雨水工险情":
+            logger.debug("雨水工险情 get_ysgxq")
+            result =self.get_ysgxq()
         else: 
             result = generate_description_for_label(label)
             for n in self.node.wordParagraphs.all():
@@ -829,4 +1168,4 @@ class PlanFactory:
             self.node.wordParagraphs.add(wp)
         self.node.result = result
         self.node.save()
-        # print("make ctt result:", result)
+        # logger.debug("make ctt result:", result)

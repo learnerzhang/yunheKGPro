@@ -271,7 +271,7 @@ class AddOrUpdateTemplate(generics.GenericAPIView):
     )
     @csrf_exempt
     def post(self, request, *args, **krgs):
-        print("TemplateAddOrUpdateNode:", request.data)
+        logger.debug("TemplateAddOrUpdateNode:", request.data)
         ptid = request.data.get("id", None)
         name = request.data.get("name", "")
         description = request.data.get("description", "")
@@ -362,7 +362,7 @@ class AddOrUpdateTemplateByNode(generics.GenericAPIView):
     )
     @csrf_exempt
     def post(self, request, *args, **krgs):
-        print("AddOrUpdateTemplateByNode:", request.data)
+        logger.deb("AddOrUpdateTemplateByNode:", request.data)
         
         ptid = request.data.get("ptid", None)
         ntid = request.data.get("ntid", None)
@@ -433,7 +433,7 @@ class CreateSysTemplate(generics.GenericAPIView):
     )
     @csrf_exempt
     def post(self, request, *args, **krgs):
-        print("AddOrUpdateTemplateByNode:", request.data)
+        logger.debug("AddOrUpdateTemplateByNode:", request.data)
         
         name = request.data.get("name", None)
         description = request.data.get("description", "")
@@ -489,8 +489,7 @@ class UpdateTemplateNode(generics.GenericAPIView):
     )
     @csrf_exempt
     def post(self, request, *args, **krgs):
-        print("AddOrUpdateTemplateByNode:", request.data)
-        
+        logger.debug(f"AddOrUpdateTemplateByNode:, {request.data}")
         nodeid = request.data.get("nodeid", None)
         label = request.data.get("label", "")
         order = request.data.get("order", 0)
@@ -594,7 +593,6 @@ class LLMSingleNodePlan(generics.GenericAPIView):
 
         userYuAnPlan = PlanByUser.objects.get(id=planId)
         node = TemplateNode.objects.get(id=nodeId)
-        print("planTemp:", userYuAnPlan, "\n", node)
         logger.debug(f"userPlanTemp: {str(userYuAnPlan)}  execute: {node.label}")
         # 通用生成方法
         # node.result = qwty(node.description)
@@ -646,13 +644,13 @@ class RagSingleNodePlan(generics.GenericAPIView):
     )
     @csrf_exempt
     def post(self, request, *args, **krgs):
-        print("params:", request.data)
+        logger.debug(f"params: {request.data}")
         nodeId = request.data.get("nodeid", None)
         planId = request.data.get("ptid", None)
 
         userYuAnPlan = PlanByUser.objects.get(id=planId)
         node = TemplateNode.objects.get(id=nodeId)
-        print("planTemp:", userYuAnPlan, "\n", node)
+        logger.debug(f"planTemp:{userYuAnPlan}, \n node: {node}")
         # 通用生成方法
         # node.result = qwty(node.description)
         tmp_param_path = getYuAnParamPath(userYuAnPlan.ctype, userYuAnPlan.yadate)
@@ -668,7 +666,7 @@ class RagSingleNodePlan(generics.GenericAPIView):
             "plan": model_to_dict(userYuAnPlan, exclude=["html_data", "html_data", "created_at", "updated_at", "nodes"]),
             "param_path": tmp_param_path
         }
-        print("PlanFactory ctx:", ctx)
+        logger.debug(f"PlanFactory ctx:{ctx}")
         # 制作预案工厂类
         pf = PlanFactory(context=ctx, node=node)
         # 生成对应描述
@@ -703,13 +701,10 @@ class LLMNodePlan(generics.GenericAPIView):
     def post(self, request, *args, **krgs):
         #TODO 预案生成
         planId = request.data.get("ptid", None)
-        print("params:", request.data)
         userYuAnPlan = PlanByUser.objects.get(id=planId)
-        print("userYuAnPlan:", userYuAnPlan)
         # 通用生成方法
         # node.result = qwty(node.description)
         tmp_param_path = getYuAnParamPath(userYuAnPlan.ctype, userYuAnPlan.yadate)
-        print("tmp_param_path:", tmp_param_path)
         if not os.path.exists(tmp_param_path):
             data = {"code": 201, "data": {}, "msg": "参数文件不存在, 请先搜集参数"}
             serializers = YuAnAppResponseSerializer(data=data, many=False)
@@ -727,9 +722,13 @@ class LLMNodePlan(generics.GenericAPIView):
             pf = PlanFactory(context=ctx, node=node)
             # 生成对应描述
             pf.make_context()
-
+        # data_word=[]
+        # for i, node in enumerate(userYuAnPlan.nodelist):
+        #     logger.debug(f"node:{node}")
+        #     data_word.append(node)
         resultJson =  model_to_dict(userYuAnPlan, exclude=['parent', "nodes"])
         resultJson['nodeList'] = userYuAnPlan.nodeDetailList
+        # resultJson["data_word"] =  data_word
         data = {"code": 200, "data": resultJson, "msg": "生成成功！"}
         serializers = YuAnAppResponseSerializer(data=data, many=False)
         serializers.is_valid()
@@ -757,7 +756,6 @@ class MakePlanWord(generics.GenericAPIView):
     )
     @csrf_exempt
     def post(self, request, *args, **krgs):
-        print(request.data)
         pid = request.data.get("id", None)
         if pid is None:
             data = {"code": 201, "msg": "参数错误"}
@@ -775,7 +773,7 @@ class MakePlanWord(generics.GenericAPIView):
         # 设置段落编号
         # paragraph_format.numeration = True
         for i, node in enumerate(tmpTemplate.nodelist):
-            print(i, "node:", node)
+            logger.debug(f"{i}, node: {node}")
             writeParagraphs2Word(i, node, doc)
         # 保存文档 
         doc.save(f'media/plans/{tmpTemplate.name}.docx')
@@ -833,7 +831,7 @@ class UserTemplateDocumentList(mixins.ListModelMixin,
             tmpdict['created_at'] = tmp.created_at.strftime("%Y-%m-%d %H:%M:%S")
             tmpdict['file_path'] = tmp.document.url
             results.append(tmpdict)
-        print(results)
+        logger.debug(f"results:{results}")
         data = {"code": 200, "msg": "success", "data": results, "success": True, "total": paginator.count, "page": paginator.num_pages, "pageSize": paginator.per_page}
         bars = YuAnAppResponseSerializer(data=data, many=False)
         bars.is_valid()
@@ -895,16 +893,16 @@ class DeleteUserPlanDocument(generics.GenericAPIView):
             file_path = tmpdoc.url[1:]
             # 示例URL
             file_path = url_to_chinese(file_path)
-            print(file_path)
+            logger.debug(file_path)
             try:
                 os.remove(file_path)
-                print(f"文件 {file_path} 已被删除。")
+                logger.debug(f"文件 {file_path} 已被删除。")
             except FileNotFoundError:
-                print(f"文件 {file_path} 不存在，无法删除。")
+                logger.debug(f"文件 {file_path} 不存在，无法删除。")
             except PermissionError:
-                print(f"没有权限删除文件 {file_path}。")
+                logger.debug(f"没有权限删除文件 {file_path}。")
             except Exception as e:
-                print(f"删除文件时发生错误: {e}")
+                logger.debug(f"删除文件时发生错误: {e}")
             
             pt.delete()
             data = {"code": 200, "data": {}, "msg": "删除成功！", "success": True}
@@ -1020,6 +1018,7 @@ class YuAnRecomApiPost(generics.GenericAPIView):
         
         try:
             tmpUser = User.objects.get(id=uid)
+            logger.debug("用户信息为：",tmpUser)
         except:
             tmpUser = None
         logger.debug(f"text:{text}, system yuan names:{yuannames}")
@@ -1113,14 +1112,14 @@ class YuAnUserPtSaveApiPost(generics.GenericAPIView):
             针对用户输入,动态推荐预案摸板
         """ 
         params = request.data
-        print(params)
+        logger.debug(params)
         uid = params.get("uid", None)
         pid = params.get("id", None)
         name = params.get("name", None)
         yadate = params.get("yadate", str(datetime.now().strftime("%Y-%m-%d")))
         ctype = params.get("ctype", None)
         nodeList = params.get("nodeList", [])
-        print("uid:", uid, name, nodeList)
+        logger.debug(f"uid:{uid}, {name}, {nodeList}" )
         # TODO
         if pid is None:
             tmpP = PlanByUser.objects.create(name=name, yadate=yadate,ctype=ctype)
@@ -1356,7 +1355,7 @@ class YuAnUserPtListApiGet(mixins.ListModelMixin,
             tmpdict = model_to_dict(tmp, exclude=["plan", "nodes"])
             tmpdict['created_at'] = tmp.created_at.strftime("%Y-%m-%d %H:%M:%S")
             results.append(tmpdict)
-        print(results)
+        logger.debug(results)
         data = {"code": 200, "msg": "success", "data": results, "success": True, "total": paginator.count, "page": paginator.num_pages, "pageSize": paginator.per_page}
         bars = YuAnAppResponseSerializer(data=data, many=False)
         bars.is_valid()
@@ -1492,7 +1491,7 @@ class DDFAUploadApiPost(generics.GenericAPIView):
 def downloadPlan(request):
     docId = request.GET.get('docId')
     tmpDoc = PlanByUserDocument.objects.get(id=docId)
-    print("downloadPlan-->", tmpDoc)
+    logger.debug(f"downloadPlan-->{tmpDoc}")
     file_path = os.path.join("media", "plans", f"{tmpDoc.name}.docx")
     file_handle = open(file_path, 'rb')
     # 创建 FileResponse 实例
@@ -1576,7 +1575,7 @@ class LLMYuAnTaskApiView(generics.GenericAPIView):
             # 记录 celery id 入库 
             subtask, tmpbool = KgTask.objects.get_or_create(kg_prod_task_id=tmptask, task_step=1, celery_id=result.id)
             if tmpbool:
-                print("ProductTask 任务创建成功...", subtask)
+                logger.debug(f"ProductTask 任务创建成功...{subtask}")
 
             data = {"code": 200, "msg": "预案生产任务新建成功", "success": True, "data": model_to_dict(subtask)}
             data['data'] = model_to_dict(subtask)
@@ -1638,8 +1637,6 @@ class ResultFromTaskApiView(mixins.ListModelMixin,
     
     authentication_classes = (CsrfExemptSessionAuthentication, BasicAuthentication)
     serializer_class = YuAnAppResponseSerializer
-    
-    
     @swagger_auto_schema(
             operation_description='GET /resultFromTask',
             operation_summary="获取生成的结果",
@@ -1675,8 +1672,130 @@ class ResultFromTaskApiView(mixins.ListModelMixin,
             serializers = YuAnAppResponseSerializer(data=data, many=False)
             serializers.is_valid()
             return Response(serializers.data, status=status.HTTP_200_OK)
-        print("res.result:", res.result)
+        logger.debug(f"res.result:{res.result}")
         resultSet = res.result['data']
         serializers = YuAnAppResponseSerializer(data=resultSet, many=False)
         serializers.is_valid()
         return Response(serializers.data,  status=status.HTTP_200_OK)
+
+
+class YuAnJsonApiGet(generics.GenericAPIView):
+    authentication_classes = (CsrfExemptSessionAuthentication, BasicAuthentication)
+    serializer_class = YuAnAppResponseSerializer  # 保留原序列化器
+
+    @swagger_auto_schema(
+        operation_summary='获取当日预案数据',
+        operation_description='GET 接口，根据系统日期返回当日预设数据',
+        manual_parameters=[
+            openapi.Parameter(
+                'date',
+                openapi.IN_QUERY,
+                description="系统自动使用当前日期（示例格式）",
+                type=openapi.TYPE_STRING,
+                format='date',
+                default=datetime.now().strftime("%Y-%m-%d")
+            )
+        ],
+        responses={
+            200: YuAnAppResponseSerializer(many=False),  # 使用序列化器定义响应结构
+            404: "文件未找到",
+            500: "服务器错误"
+        },
+        tags=['ya_api']
+    )
+    @csrf_exempt
+    def get(self, request, *args, **kwargs):
+        try:
+            # 生成动态文件路径
+            current_date = datetime.now().strftime("%Y-%m-%d")
+            file_name = f"YLH_api_data_{current_date}.json"
+            file_path = os.path.join("data", "yuan_data", "4", "plans", file_name)
+
+            # 验证文件是否存在
+            if not os.path.exists(file_path):
+                error_data = {
+                    "code": 404,
+                    "msg": f"当日数据文件 {file_name} 不存在",
+                }
+                serializers = YuAnAppResponseSerializer(data=error_data, many=False)
+                serializers.is_valid()
+                return Response(serializers.data, status=status.HTTP_404_NOT_FOUND)
+
+            # 读取并解析JSON文件
+            with codecs.open(file_path, 'r', encoding='utf-8') as f:
+                json_data = json.load(f)
+
+            # 构造符合序列化器的响应结构
+            response_data = {
+                "code": 200,
+                "msg": "success",
+                "data": json_data,
+                "success": True
+            }
+
+            # 使用序列化器验证和格式化响应
+            serializers = YuAnAppResponseSerializer(data=response_data, many=False)
+            serializers.is_valid()
+            return Response(serializers.data, status=status.HTTP_200_OK)
+
+        except json.JSONDecodeError:
+            error_data = {
+                "code": 500,
+                "msg": "数据文件格式错误",
+            }
+            serializers = YuAnAppResponseSerializer(data=error_data, many=False)
+            serializers.is_valid()
+            return Response(serializers.data, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+        except Exception as e:
+            error_data = {
+                "code": 500,
+                "msg": f"服务器错误: {str(e)}",
+            }
+            serializers = YuAnAppResponseSerializer(data=error_data, many=False)
+            serializers.is_valid()
+            return Response(serializers.data, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+
+
+class MakePlanJson(generics.GenericAPIView):
+    authentication_classes = (CsrfExemptSessionAuthentication, BasicAuthentication)
+    serializer_class = YuAnAppResponseSerializer
+
+    @swagger_auto_schema(
+        operation_summary='POST 生成预案Json',
+        operation_description='POST 返回预案Json',
+        request_body=openapi.Schema(
+            type=openapi.TYPE_OBJECT,
+            required=['id'],
+            properties={
+                'id': openapi.Schema(type=openapi.TYPE_INTEGER, description="ID"),
+            },
+        ),
+        responses={
+            200: YuAnAppResponseSerializer(many=False),
+            400: "请求失败",
+        },
+        tags=['ya_api']
+    )
+    @csrf_exempt
+    def post(self, request, *args, **krgs):
+        logger.debug(request.data)
+        pid = request.data.get("id", None)
+        if pid is None:
+            data = {"code": 201, "msg": "参数错误"}
+            bars = YuAnAppResponseSerializer(data=data, many=False)
+            bars.is_valid()
+            return Response(bars.data, status=status.HTTP_200_OK)
+
+        tmpTemplate = PlanByUser.objects.get(id=pid)
+        # 创建一个Word文档对象
+        data=[]
+        for i, node in enumerate(tmpTemplate.nodelist):
+            logger.debug(f"node:{node}")
+            data.append(node)
+        # 保存文档
+        data = {"code": 200, "data": data, "msg": "生成Word成功！"}
+        serializers = YuAnAppResponseSerializer(data=data, many=False)
+        serializers.is_valid()
+        return Response(serializers.data, status=status.HTTP_200_OK)

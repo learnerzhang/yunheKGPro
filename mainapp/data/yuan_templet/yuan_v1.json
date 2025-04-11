@@ -65,6 +65,7 @@
         ]
     },
     "小浪底调水调沙防汛预案":{
+        "ctype": 1,
         "nodes": [
             {
                 "label": "雨情实况",
@@ -89,6 +90,7 @@
         ]
     },
     "黄河汛情及水库调度方案单":{
+        "ctype": 3,
         "nodes": [
             {
                 "label": "实时雨水情",
@@ -112,6 +114,31 @@
             {
                 "label": "水库调度方案",
                 "description": "黄河中下游调度方案单相关描述",
+                "template": "",
+                "upload_file_flag": true
+            }
+        ]
+    },
+     "伊洛河防汛预案":{
+         "ctype": 4,
+        "nodes": [
+            {
+                "label": "实时雨水工险情",
+                "description": "伊洛河预案实时雨水工险情描述",
+                "template": "黄河中下游降小雪，渭河下游阴天，伊洛河最大点雨量伊洛河古城站87毫米。"
+            },
+            {
+                "label": "预报",
+                "description": "伊洛河预案降雨及洪水预报描述",
+                "template": ""},
+            {
+                "label": "调度结果",
+                "description": "伊洛河预案调度方案相关描述",
+                "template": ""
+            },
+            {
+                "label": "防御措施",
+                "description": "伊洛河预案调度结果及应对措施相关描述",
                 "template": "",
                 "upload_file_flag": true
             }

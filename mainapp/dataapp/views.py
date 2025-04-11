@@ -896,7 +896,6 @@ class DataParamAddApiView(generics.GenericAPIView):
     authentication_classes = (CsrfExemptSessionAuthentication, BasicAuthentication)
     parser_classes = (FormParser, MultiPartParser)
     serializer_class = DataModelParamSerializer
-
     @swagger_auto_schema(
         operation_summary='[可用] 新增参数功能',
         operation_description='POST /dataapp/datamodelparam/add',

@@ -1,8 +1,11 @@
 import pandas as pd
 import datetime
 from . import yautils
+import os
 #import yautils
-
+import openpyxl
+from datetime import datetime, timedelta
+from openpyxl import load_workbook
 def getYuAnParamPath(ctype, mydate):
     """
         获取对应的参数路径
@@ -15,6 +18,8 @@ def getYuAnParamPath(ctype, mydate):
         return f"data/yuan_data/2/plans/XLDTSTS_api_data_{mydate}.json"
     elif ctype == 3:
         return f"data/yuan_data/3/plans/HHXQ_api_data_{mydate}.json"
+    elif ctype == 4:
+        return f"data/yuan_data/4/plans/YLH_api_data_{mydate}.json"
     return "data/yuan_data/0/plans/HHZXY_api_data_2023-07-23.json"
 
 
@@ -29,6 +34,8 @@ def getYuAnName(ctype, mydate):
         format_name = f"{mydate}小浪底调水调沙防汛调度预案"
     elif ctype == 3:
         format_name = f"{mydate}黄河汛情及水库调度方案单"
+    elif ctype == 4:
+        format_name = f"{mydate}伊洛河防汛预案"
     return format_name
 
 
@@ -39,7 +46,73 @@ def img2base64(imgpath):
         encoded_string = base64.b64encode(data)
         return encoded_string.decode('utf-8')
 
+def excel_to_html_with_merged_cells(file_path):
+    """
+    将 Excel 文件转换为 HTML 表格，保留合并单元格，并格式化数值和时间
+    """
+    # 加载 Excel 文件
+    workbook = load_workbook(file_path)
+    sheet = workbook.active
 
+    # 创建 HTML 表格
+    html_table = '<table class="dataframe">\n'
+
+    # 遍历每一行
+    for row in sheet.iter_rows():
+        html_table += '<tr>\n'
+        for cell in row:
+            # 检查单元格是否被合并
+            is_merged = False
+            for merged_range in sheet.merged_cells.ranges:
+                if cell.coordinate in merged_range:
+                    is_merged = True
+                    # 如果是合并区域的第一个单元格，设置 rowspan 和 colspan
+                    if cell.coordinate == merged_range.start_cell.coordinate:
+                        value = cell.value
+                        if isinstance(value, (int, float)):
+                            value = round(value, 2)  # 保留两位小数
+                            # 添加单位并确保单位格式正确
+                            cell_value = sheet.cell(row=1, column=cell.column).value
+                            if cell_value is not None and "流量" in cell_value:
+                                unit = "m³/s"
+                            else:
+                                unit = ""
+                            value = f"{value} {unit}"
+                        elif isinstance(value, datetime):
+                            value = value.replace(microsecond=0)  # 去除微秒
+                            if value.second >= 30:
+                                value = (value + timedelta(minutes=1)).replace(second=0)  # 四舍五入到整点
+                            else:
+                                value = value.replace(second=0)  # 直接舍去秒数
+                            value = value.strftime('%Y-%m-%d %H:%M')  # 格式化为年月日 时分
+                        html_table += f'<th rowspan="{merged_range.size["rows"]}" colspan="{merged_range.size["columns"]}">{value}</th>\n'
+                    break
+            if not is_merged:
+                # 普通单元格
+                value = cell.value
+                if isinstance(value, (int, float)):
+                    value = round(value, 2)  # 保留两位小数
+                    # 添加单位并确保单位格式正确
+                    cell_value = sheet.cell(row=1, column=cell.column).value
+                    if cell_value is not None and "流量" in cell_value:
+                        unit = "m³/s"
+                    else:
+                        unit = ""
+                    value = f"{value} {unit}"
+                elif isinstance(value, datetime):
+                    value = value.replace(microsecond=0)  # 去除微秒
+                    if value.second >= 30:
+                        value = (value + timedelta(minutes=1)).replace(second=0)  # 四舍五入到整点
+                    else:
+                        value = value.replace(second=0)  # 直接舍去秒数
+                    value = value.strftime('%Y-%m-%d %H:%M')  # 格式化为年月日 时分
+                if cell.row == 1 or cell.column == 1:
+                    html_table += f'<th>{value}</th>\n'
+                else:
+                    html_table += f'<td>{value}</td>\n'
+        html_table += '</tr>\n'
+    html_table += '</table>'
+    return html_table
 
 def paraHtml(text):
     paraHtmlText = "<p>" + text +  "</p>"
@@ -50,6 +123,8 @@ def divHtml(text):
     paraHtmlText = "<div style='text-align: center;'>" + text +  "</div>"
     return paraHtmlText
 
+def bold_left_align(text):
+    return f"<div style='text-align: left;'><strong>{text}</strong></div>"
 
 
 def pd2HtmlCSS():
@@ -115,42 +190,42 @@ def smx_sk(shuiku_shuiwei: dict, shuiwenzhan_liuliang: dict):
         return "适时控制运用"
 
 
-def xld_sk(shuiku_shuiwei: dict, shuiwenzhan_liuliang: dict):
-    sw = shuiku_shuiwei.get("小浪底", {}).get('level', 0)
-    hyk_liuliang = shuiwenzhan_liuliang.get("花园口", {}).get('flow', 0)
-    tongguan_liuliang = shuiwenzhan_liuliang.get("潼关", {}).get('flow', 0)
-    rate_p = float(tongguan_liuliang) / (float(hyk_liuliang) + 0.001)
-    print("小浪底SK", hyk_liuliang,tongguan_liuliang, sw)
-    """
-    小浪底库
-    :return:
-    """
-    if hyk_liuliang <= 4500:
-        return "适时调节水沙，按控制花园口站流量不大于4500m³/s的原则泄洪。西霞院水库配合小浪底水库泄洪排沙"
-    elif hyk_liuliang <= 8000:
-        return "原则上按控制花园口站4500m³/s方式运用。若洪水主要来源于三门峡以上，视来水来沙及水库淤积情况，适时按进出库平衡方式运用。控制水库最高运用水位不超过254m。西霞院水库配合小浪底水库泄洪排沙"
-    elif hyk_liuliang <= 10000:
-        if rate_p > 0.6:
-            return "小浪底：原则上按进出库平衡方式运用。西霞院水库配合小浪底水库泄洪排沙"
-        else:
-            return "小浪底：视下游汛情，适时按控制花园口站不大于8000m³/s的方式运用。西霞院水库配合小浪底水库泄洪排沙"
-    elif hyk_liuliang <= 22000:
-        if rate_p > 0.6:
-            return "小浪底：按控制花园口站10000m³/s方式运用。西霞院水库配合小浪底水库泄洪排沙"
-        else:
-            if hyk_liuliang - tongguan_liuliang < 9000:
-                return "小浪底：按控制花园口站10000m³/s方式运用。西霞院水库配合小浪底水库泄洪排沙"
-            else:
-                return "小浪底：按不大于1000m³/s（发电流量）下泄。西霞院水库配合小浪底水库泄洪排沙"
-    else:
-        # 潼关 花园口 流量大于60%
-        if rate_p > 0.6:
-            if sw < 273.5:
-                return "小浪底：按控制花园口站10000m³/s方式运用。西霞院水库配合小浪底水库泄洪排沙"
-            else:
-                return "小浪底：按进出库平衡或敞泄运用。西霞院水库配合小浪底水库泄洪排沙"
-        else:
-            return "小浪底：按控制花园口站10000m³/s方式运用。西霞院水库配合小浪底水库泄洪排沙"
+# def xld_sk(shuiku_shuiwei: dict, shuiwenzhan_liuliang: dict):
+#     sw = shuiku_shuiwei.get("小浪底", {}).get('level', 0)
+#     hyk_liuliang = shuiwenzhan_liuliang.get("花园口", {}).get('flow', 0)
+#     tongguan_liuliang = shuiwenzhan_liuliang.get("潼关", {}).get('flow', 0)
+#     rate_p = float(tongguan_liuliang) / (float(hyk_liuliang) + 0.001)
+#     print("小浪底SK", hyk_liuliang,tongguan_liuliang, sw)
+#     """
+#     小浪底库
+#     :return:
+#     """
+#     if hyk_liuliang <= 4500:
+#         return "适时调节水沙，按控制花园口站流量不大于4500m³/s的原则泄洪。西霞院水库配合小浪底水库泄洪排沙"
+#     elif hyk_liuliang <= 8000:
+#         return "原则上按控制花园口站4500m³/s方式运用。若洪水主要来源于三门峡以上，视来水来沙及水库淤积情况，适时按进出库平衡方式运用。控制水库最高运用水位不超过254m。西霞院水库配合小浪底水库泄洪排沙"
+#     elif hyk_liuliang <= 10000:
+#         if rate_p > 0.6:
+#             return "小浪底：原则上按进出库平衡方式运用。西霞院水库配合小浪底水库泄洪排沙"
+#         else:
+#             return "小浪底：视下游汛情，适时按控制花园口站不大于8000m³/s的方式运用。西霞院水库配合小浪底水库泄洪排沙"
+#     elif hyk_liuliang <= 22000:
+#         if rate_p > 0.6:
+#             return "小浪底：按控制花园口站10000m³/s方式运用。西霞院水库配合小浪底水库泄洪排沙"
+#         else:
+#             if hyk_liuliang - tongguan_liuliang < 9000:
+#                 return "小浪底：按控制花园口站10000m³/s方式运用。西霞院水库配合小浪底水库泄洪排沙"
+#             else:
+#                 return "小浪底：按不大于1000m³/s（发电流量）下泄。西霞院水库配合小浪底水库泄洪排沙"
+#     else:
+#         # 潼关 花园口 流量大于60%
+#         if rate_p > 0.6:
+#             if sw < 273.5:
+#                 return "小浪底：按控制花园口站10000m³/s方式运用。西霞院水库配合小浪底水库泄洪排沙"
+#             else:
+#                 return "小浪底：按进出库平衡或敞泄运用。西霞院水库配合小浪底水库泄洪排沙"
+#         else:
+#             return "小浪底：按控制花园口站10000m³/s方式运用。西霞院水库配合小浪底水库泄洪排沙"
 
 
 def lh_sk(shuiku_shuiwei: dict, shuiwenzhan_liuliang: dict):
@@ -902,7 +977,6 @@ def generate_ddjy(file_path):
     """
     # 读取 Excel 文件
     skMapData, swMapData, date_list = yautils.excel_to_dict(file_path)
-    print("skMapData:",skMapData)
     smx_ckll,xld_ckll,lh_ckll,gx_ckll,hkc_ckll = yautils.skddjy(file_path)
     smx_ddjy = process_outflow(smx_ckll,date_list)
     xld_ddjy = process_outflow(xld_ckll,date_list)
@@ -961,9 +1035,49 @@ def yujingdengji(shuiku_shuiwei: dict, shuiwenzhan_liuliang: dict):
     return """按照《黄河防汛抗旱应急预案》，当前无预警"""
 
 
-# import time
-# import matplotlib.pyplot as plt
-# if __name__ == '__main__':
+def search_fragpacks(query, top_k=5):
+    """
+    根据 query 检索知识片段，并返回分数最高的文本片段。
+
+    参数:
+        query (str): 查询字符串。
+        top_k (int): 返回的相似片段数量，默认为 1。
+
+    返回:
+        分数最高的文本片段（str）。
+        如果向量库不存在或未检索到结果，返回 None。
+    """
+    # 构建知识库目录路径
+    kgdir = f"../data/knowledges/264c159aa9e1dd91e31ab9f38f3d4f9c"
+    if not os.path.exists(kgdir):
+        os.makedirs(kgdir)
+    # 构建向量库文件路径
+    index_path = os.path.join(kgdir, "faiss.index")
+    # 如果向量库不存在，返回 None
+    if not os.path.exists(index_path):
+        print("❌ 向量库不存在")
+        return None
+    # 加载 embedding 模型和向量库
+    print("✅ 加载 embedding 模型")
+    db = FAISS.load_local(index_path, embedding, allow_dangerous_deserialization=True)
+    print("✅ 已加载现有向量库")
+    # 执行向量检索
+    fragpacks = db.similarity_search_with_score(query, top_k)
+
+    # 如果没有检索到结果，返回 None
+    if not fragpacks:
+        print("❌ 未检索到任何结果")
+        return None
+    # 找到分数最高的结果
+    highest_score_doc = max(fragpacks, key=lambda x: x[1])  # 按分数排序，取最高分
+    return highest_score_doc[0].page_content
+
+
+if __name__ == '__main__':
+    import time
+    import matplotlib.pyplot as plt
+    res = search_fragpacks("雨水情信息")
+    print(res)
 #     # 记录开始时间
 #     r = yautils.excel_to_dict("../../mainapp/media/ddfa/3/2025-03-03.xlsx")
 #     skMapData, swMapData, date_list = r

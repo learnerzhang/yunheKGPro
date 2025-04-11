@@ -10,3 +10,4 @@ class ApiAppResponseSerializer(BaseSerializer):
     pageSize = serializers.IntegerField()
     records = serializers.ListField()
     status = serializers.CharField(max_length=20)
+

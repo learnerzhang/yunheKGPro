@@ -37,7 +37,6 @@ class OutlineApiView(generics.GenericAPIView):
     parser_classes = (FormParser, MultiPartParser)
     serializer_class = ApiAppResponseSerializer
     authentication_classes = (CsrfExemptSessionAuthentication, BasicAuthentication)
-
     @swagger_auto_schema(
         operation_summary='[可用] 大纲生成',
         operation_description='POST /apiapp/api/outline/',
@@ -91,9 +90,9 @@ class OutlineApiView(generics.GenericAPIView):
             outlinedata = prod_outline(payload)
         print("rt:", outlinedata)
         if not outlinedata:
-            data = {"code": 201, "msg": "大模型解析出问题了"}
+            data = {"code": 201, "msg": "大模型解析出问题了","success": False,"data": None}
         else:
-            data = {"code": 200, "data": outlinedata}
+            data = {"code": 200, "msg": "成功","success": True,"data": outlinedata}
         serializers = ApiAppResponseSerializer(data=data, many=False)
         serializers.is_valid()
         return Response(serializers.data, status=status.HTTP_200_OK)
@@ -103,7 +102,6 @@ class OlineQAApiView(generics.GenericAPIView):
     parser_classes = (FormParser, MultiPartParser)
     authentication_classes = (CsrfExemptSessionAuthentication, BasicAuthentication)
     serializer_class = ApiAppResponseSerializer
-
     @swagger_auto_schema(
         operation_summary='[可用] 问答生产',
         operation_description='POST /apiapp/api/onlineqa/',
@@ -177,9 +175,7 @@ class OlineQAApiView(generics.GenericAPIView):
 class OlineAbstractApiView(generics.GenericAPIView):
     parser_classes = (FormParser, MultiPartParser)
     authentication_classes = (CsrfExemptSessionAuthentication, BasicAuthentication)
-
     serializer_class = ApiAppResponseSerializer
-
     @swagger_auto_schema(
         operation_summary='[可用] 摘要生成',
         operation_description='POST /apiapp/api/abstract/',
@@ -271,9 +267,7 @@ class OlineAbstractApiView(generics.GenericAPIView):
 
 class TextExtentApiView(generics.GenericAPIView):
     parser_classes = (FormParser, MultiPartParser)
-
     authentication_classes = (CsrfExemptSessionAuthentication, BasicAuthentication)
-
     serializer_class = ApiAppResponseSerializer
     @swagger_auto_schema(
         operation_summary='[可用] 文本扩写',
@@ -338,9 +332,7 @@ class TextExtentApiView(generics.GenericAPIView):
 
 class OlineText2SQLApiView(generics.GenericAPIView):
     parser_classes = (FormParser, MultiPartParser)
-
     authentication_classes = (CsrfExemptSessionAuthentication, BasicAuthentication)
-
     serializer_class = ApiAppResponseSerializer
     @swagger_auto_schema(
         operation_summary='[可用] 文本转SQL',
@@ -487,11 +479,78 @@ from langchain.chains import GraphCypherQAChain
 #         else:
 #             return Response({"error": "No result found.", "cypher": extracted_cypher}, status=status.HTTP_404_NOT_FOUND)
 
+# class GraphQueryApiView(generics.GenericAPIView):
+#     parser_classes = (FormParser, MultiPartParser)
+#     authentication_classes = (CsrfExemptSessionAuthentication, BasicAuthentication)
+#
+#     @swagger_auto_schema(
+#         operation_summary='查询图谱数据',
+#         operation_description='POST /apiapp/api/graphquery/',
+#         manual_parameters=[
+#             openapi.Parameter(
+#                 name='query',
+#                 in_=openapi.IN_FORM,
+#                 description='Query string',
+#                 type=openapi.TYPE_STRING
+#             ),
+#         ],
+#         responses={
+#             200: openapi.Response('Success', schema=openapi.Schema(type=openapi.TYPE_OBJECT, properties={
+#                 'result': openapi.Schema(type=openapi.TYPE_STRING)})),
+#             400: "Bad Request",
+#         },
+#         tags=['api']
+#     )
+#     def post(self, request, *args, **kwargs):
+#         graph = Neo4jGraph(
+#             'bolt://localhost:7687',
+#             'neo4j',
+#             'neo4jneo4j'
+#         )
+#         llm = Ollama(model="qwen2.5")  # 使用 OllamaLLM 替代 Ollama
+#         chain = GraphCypherQAChain.from_llm(
+#             graph=graph,
+#             llm=llm,
+#             verbose=True,
+#             return_intermediate_steps=True,
+#             allow_dangerous_requests=True  # 显式允许危险请求
+#         )
+#         query = request.data.get("query", None)
+#
+#         if not query:
+#             return Response({"error": "Query parameter is required."}, status=status.HTTP_400_BAD_REQUEST)
+#
+#         try:
+#             # 使用 invoke 方法替代 run 和 __call__
+#             result = chain.invoke({"query": query})
+#             intermediate_steps = result['intermediate_steps'][0]['query']
+#             lines = intermediate_steps.strip().splitlines()
+#             cypher_statements = [line for line in lines if not line.startswith("cypher")]
+#
+#             # 检查生成的 Cypher 语句是否合法
+#             extracted_cypher = "\n".join(cypher_statements)
+#             if not extracted_cypher.strip().startswith(("MATCH", "CREATE", "RETURN", "WITH")):
+#                 raise ValueError("生成的 Cypher 语句无效")
+#
+#             # 执行 Cypher 查询
+#             response = graph.query(extracted_cypher)
+#             if response:
+#                 return Response({"result": response, "cypher": extracted_cypher}, status=status.HTTP_200_OK)
+#             else:
+#                 return Response({"error": "No result found.", "cypher": extracted_cypher}, status=status.HTTP_404_NOT_FOUND)
+#
+#         except Exception as e:
+#             # 如果图数据库查询失败，直接调用大模型
+#             print(f"图数据库查询失败: {e}")
+#             response = llm.invoke(query)
+#             return Response({"result": response}, status=status.HTTP_200_OK)
+
+
 class GraphQueryApiView(generics.GenericAPIView):
     parser_classes = (FormParser, MultiPartParser)
     authentication_classes = (CsrfExemptSessionAuthentication, BasicAuthentication)
     serializer_class = ApiAppResponseSerializer
-    
+
     @swagger_auto_schema(
         operation_summary='查询图谱数据',
         operation_description='POST /apiapp/api/graphquery/',
@@ -546,7 +605,8 @@ class GraphQueryApiView(generics.GenericAPIView):
             if response:
                 return Response({"result": response, "cypher": extracted_cypher}, status=status.HTTP_200_OK)
             else:
-                return Response({"error": "No result found.", "cypher": extracted_cypher}, status=status.HTTP_404_NOT_FOUND)
+                return Response({"error": "No result found.", "cypher": extracted_cypher},
+                                status=status.HTTP_404_NOT_FOUND)
 
         except Exception as e:
             # 如果图数据库查询失败，直接调用大模型
