@@ -839,7 +839,7 @@ def knowledgeParseTask(paramdict):
     tmptask = KgProductTask.objects.get(id=prodtaskid)
     tmptask.task_status = 1  # 开始执行
     tmptask.save()
-    text_splitter = RecursiveCharacterTextSplitter(chunk_size=512, chunk_overlap=64)
+    text_splitter = RecursiveCharacterTextSplitter(chunk_size=1024, chunk_overlap=128)
 
     tmpKg = Knowledge.objects.filter(hashid=knowledge_id).first()
     docs = KgDoc.objects.filter(kg_knowledge_id=tmpKg).all()
@@ -859,12 +859,12 @@ def knowledgeParseTask(paramdict):
             docs = TextLoader(file_path=filepath).load()
         elif file_extension.lower() == ".docx":
             docs = Docx2txtLoader(file_path=filepath).load()
-        elif file_extension.lower() == ".xlsx" or file_extension.lower() == '.xls':
-            docs = UnstructuredExcelLoader(file_path=filepath).load()
+            # docs = UnstructuredExcelLoader(file_path=filepath).load()
         elif file_extension.lower() == '.json':
             docs = JSONLoader(file_path=filepath, jq_schema='.', text_content=False).load()
         else:
-            raise ValueError(f"Unsupported file type: {file_extension}")
+            continue
+            # raise ValueError(f"Unsupported file type: {file_extension}")
         # 清空历史数据
         
         for kgfrag in KgDocFragmentation.objects.filter(kg_doc_id=tmpdoc).all():
@@ -876,20 +876,23 @@ def knowledgeParseTask(paramdict):
         chunks = text_splitter.split_documents(docs)
         start = time.time()
         for idx, chunk in enumerate(chunks):
-            # print(f'第 {idx + 1} 个文档:', chunk.page_content)
-            # keywords = jieba.analyse.extract_tags(chunk.page_content, topK=10, withWeight=True)
-            keywords = jieba.analyse.textrank(chunk.page_content, topK=10, withWeight=True)
-            tmpfrag, _ = KgDocFragmentation.objects.get_or_create(no=idx+1, 
-                                              kg_doc_id=tmpdoc, 
-                                              kg_knowledge_id=tmpKg, 
-                                              content=chunk.page_content,
-                                              ctt_size=len(chunk.page_content),
-                                              recall_cnt=0,
-                                              )
-            for keyword, weight in keywords:
-                tmpTag = KgDocCttTag.objects.create(weight=weight,name=keyword)
-                tmpfrag.tags.add(tmpTag)
-            tmpfrag.save()
+            try:
+                # print(f'第 {idx + 1} 个文档:', chunk.page_content)
+                # keywords = jieba.analyse.extract_tags(chunk.page_content, topK=10, withWeight=True)
+                keywords = jieba.analyse.textrank(chunk.page_content, topK=10, withWeight=True)
+                tmpfrag = KgDocFragmentation.objects.create(no=idx+1, 
+                                                kg_doc_id=tmpdoc, 
+                                                kg_knowledge_id=tmpKg, 
+                                                content=chunk.page_content,
+                                                ctt_size=len(chunk.page_content),
+                                                recall_cnt=0,
+                                            )
+                for keyword, weight in keywords:
+                    tmpTag = KgDocCttTag.objects.create(weight=weight,name=keyword)
+                    tmpfrag.tags.add(tmpTag)
+                tmpfrag.save()
+            except Exception as e:
+                print(e)
         tmpdoc.parseflag = 1
         tmpdoc.save()
         print(f'处理完成，耗时: {time.time() - start} 秒')

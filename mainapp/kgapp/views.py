@@ -404,7 +404,7 @@ class KgDocSearch(mixins.ListModelMixin,
 class KgDocByCttList(mixins.ListModelMixin,
                      mixins.CreateModelMixin,
                      generics.GenericAPIView):
-    serializer_class = KgDocResponseSerializer
+    serializer_class = KgAppResponseSerializer
 
     @swagger_auto_schema(
         operation_description='GET /kgapp/kgdoc/listByCtt',
@@ -450,7 +450,7 @@ class KgDocByCttList(mixins.ListModelMixin,
             openapi.Parameter('pageSize', openapi.IN_QUERY, type=openapi.TYPE_NUMBER),
         ],
         responses={
-            200: KgDocResponseSerializer(many=False),
+            200: KgAppResponseSerializer(many=False),
             400: "请求失败",
         },
         tags=['doc'])
@@ -487,10 +487,19 @@ class KgDocByCttList(mixins.ListModelMixin,
             objs = paginator.page(1)
         except:
             objs = paginator.page(paginator.num_pages)
-        kds = KgDocSerializer(data=objs, many=True)
-        kds.is_valid()
-        data['data'] = kds.data
-        serializers = KgDocResponseSerializer(data=data, many=False)
+        
+        result = []
+        for obj in objs:
+            entjson = model_to_dict(obj, exclude=['path', 'tags'])
+            entjson['filepath'] = obj.filepath
+            entjson['tag_list'] = obj.tag_list
+            entjson['kg_user'] = obj.kg_user
+            entjson['kg_ctt'] = obj.kg_ctt
+            
+            result.append(entjson)
+
+        data['data'] = result
+        serializers = KgAppResponseSerializer(data=data, many=False)
         serializers.is_valid()
         return Response(serializers.data, status=status.HTTP_200_OK)
 

@@ -6,6 +6,7 @@ import os
 import openpyxl
 from datetime import datetime, timedelta
 from openpyxl import load_workbook
+from langchain.vectorstores import FAISS
 def getYuAnParamPath(ctype, mydate):
     """
         获取对应的参数路径
@@ -1034,24 +1035,10 @@ def yujingdengji(shuiku_shuiwei: dict, shuiwenzhan_liuliang: dict):
     print("""预警等级: 按照《黄河防汛抗旱应急预案》，当前无预警""")
     return """按照《黄河防汛抗旱应急预案》，当前无预警"""
 
-from langchain.embeddings import HuggingFaceEmbeddings
-from langchain.vectorstores import FAISS
-#from yunheKGPro.settings import MODEL_PATH
-# from apiapp.knowledge_views import embeddding
-from yunheKGPro.settings import config
-MODEL_PATH = config.get('MODEL_PATH', "D:\\data\\models\\bge-large-zh")
-embedding = HuggingFaceEmbeddings(
-            # model_name="BAAI/bge-small-zh-v1.5",
-            model_name=MODEL_PATH,
-            model_kwargs={'device': 'cpu'},
-            encode_kwargs={
-                'batch_size': 64,
-                'normalize_embeddings': True
-            }
-        )
 
 
 def search_fragpacks(query, top_k=5):
+    from yunheKGPro.settings import embedding
     """
     根据 query 检索知识片段，并返回分数最高的文本片段。
 
@@ -1088,9 +1075,10 @@ def search_fragpacks(query, top_k=5):
     highest_score_doc = max(fragpacks, key=lambda x: x[1])  # 按分数排序，取最高分
     return highest_score_doc[0].page_content
 
-import time
-import matplotlib.pyplot as plt
+
 if __name__ == '__main__':
+    import time
+    import matplotlib.pyplot as plt
     res = search_fragpacks("雨水情信息")
     print(res)
 #     # 记录开始时间

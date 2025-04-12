@@ -38,15 +38,42 @@ def get_rainfall_data(basin=None, start_time=None, end_time=None):
     except ValueError:  # JSON解析错误
         return 500, {"error": "返回数据格式异常"}
 
+import json
+def oauth_login(
+        access_key: str = "fhdd",
+        secret_key: str = "fc32ae23cc4f60b313055dd809522eba",
+        user_type: int = 3
+) :
+    """
+    """
+    url = "http://10.4.158.35:8070/oauth/login"
+    headers = {
+        "Content-Type": "application/json",
+        "Accept": "application/json"
+    }
+    payload = {"accessKey": access_key, "secretKey": secret_key, "userType": user_type}
+    try:
+        response = requests.post(url=url,headers=headers,data=json.dumps(payload),timeout=10
+        )
+        response.raise_for_status()
+        return response.json()['data']
+
+    except requests.exceptions.RequestException as e:
+        return {"code": 500,"data": None,"msg": f"请求失败: {str(e)}"}
+    except ValueError:
+        return {"code": 500,"data": None,"msg": "响应数据解析失败"}
+
 from datetime import datetime, timedelta
 if __name__ == "__main__":
-    end_time = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-    start_time = (datetime.now() - timedelta(hours=1)).strftime("%Y-%m-%d %H:%M:%S")
-
-    status, data = get_rainfall_data()
-
-    if status == 200:
-        print("请求成功，数据样例:")
-        print(data)
-    else:
-        print(f"请求失败 (状态码 {status}): {data}")
+    # end_time = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+    # start_time = (datetime.now() - timedelta(hours=1)).strftime("%Y-%m-%d %H:%M:%S")
+    #
+    # status, data = get_rainfall_data()
+    #
+    # if status == 200:
+    #     print("请求成功，数据样例:")
+    #     print(data)
+    # else:
+    #     print(f"请求失败 (状态码 {status}): {data}")
+    res = oauth_login()
+    print("res:",res)
