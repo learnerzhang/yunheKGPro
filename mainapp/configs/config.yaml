@@ -6,10 +6,15 @@ DATABASES:
     PASSWORD: '20221qaz@WSX'
     HOST: '127.0.0.1'
     PORT: '3306'
+    ENGINE: 'django.db.backends.sqlite3'
+    NAME: 'db.sqlite3'
+
+SECRET_KEY: 'your_secret_key'
 
 DEBUG: true
 SECRET_KEY: 'django-insecure-r&6c!_n9591qjq1&h6w4&!b%yk7l_%$dw2n8_k&++q#@0nh&vc'
 LOG_LEVEL: INFO
+
 ALLOWED_HOSTS:
   - '*'
 

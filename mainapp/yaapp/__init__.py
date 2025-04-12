@@ -6,6 +6,7 @@ import os
 import openpyxl
 from datetime import datetime, timedelta
 from openpyxl import load_workbook
+from langchain.vectorstores import FAISS
 def getYuAnParamPath(ctype, mydate):
     """
         获取对应的参数路径
@@ -1035,7 +1036,9 @@ def yujingdengji(shuiku_shuiwei: dict, shuiwenzhan_liuliang: dict):
     return """按照《黄河防汛抗旱应急预案》，当前无预警"""
 
 
+
 def search_fragpacks(query, top_k=5):
+    from yunheKGPro.settings import embedding
     """
     根据 query 检索知识片段，并返回分数最高的文本片段。
 

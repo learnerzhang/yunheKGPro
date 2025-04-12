@@ -16,6 +16,7 @@ import sys
 import os
 import logging
 import yaml
+os.environ["DJANGO_ALLOW_ASYNC_UNSAFE"] = "true"
 pymysql.install_as_MySQLdb()
 
 DEBUG = True
@@ -70,13 +71,13 @@ LOGGING = {
     },
     'handlers': {
         'console': {
-            'level': LOG_LEVEL,
+            'level': 'DEBUG',
             'filters': ['require_debug_true'],
             'class': 'logging.StreamHandler',
             'formatter': 'colored'
         },
         'file': {
-            'level': LOG_LEVEL,
+            'level': 'DEBUG',
             'class': 'logging.handlers.RotatingFileHandler',
             'filename': 'debug.log',
             'maxBytes': 1024 * 1024 * 5,  # 5 MB
@@ -87,15 +88,41 @@ LOGGING = {
     'loggers': {
         'django': {
             'handlers': ['console', 'file'],
-            'level': LOG_LEVEL,
             'propagate': True,
         },
         'kgproj': {
             'handlers': ['console', 'file'],
-            'level': LOG_LEVEL,
+            'level': 'DEBUG',
         },
     }
 }
+
+logger = logging.getLogger('kgproj')
+
+
+
+# Build paths inside the project like this: BASE_DIR / 'subdir'.
+BASE_DIR = Path(__file__).resolve().parent.parent
+
+if sys.platform.startswith('linux'):
+    CONFIG_FILE = os.path.join("configs", 'config.yaml')
+    logger.debug('当前系统为 Linux')
+elif sys.platform.startswith('win'):
+    CONFIG_FILE = os.path.join("configs", 'config_local.yaml')
+    logger.debug('当前系统为 Windows')
+elif sys.platform.startswith('darwin'):
+    logger.debug('当前系统为 macOS')
+else:
+    logger.debug('无法识别当前系统')
+
+# 读取 yaml 配置文件
+try:
+    with open(CONFIG_FILE, 'r') as f:
+        config = yaml.safe_load(f)
+except FileNotFoundError:
+    print("配置文件未找到，请检查路径。")
+    config = {}
+
 
 if config.get('USE_LOCAL_MODEL', False):
     from langchain.embeddings import HuggingFaceEmbeddings
@@ -196,6 +223,10 @@ FILE_UPLOAD_MAX_MEMORY_SIZE = config.get('FILE_UPLOAD_MAX_MEMORY_SIZE', 10485760
 
 ALLOWED_HOSTS = config.get('ALLOWED_HOSTS', ["*"])
 
+DEBUG = config.get('DEBUG', False)
+
+
+
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/3.2/howto/deployment/checklist/
 
@@ -213,7 +244,7 @@ DATA_UPLOAD_MAX_NUMBER_FIELDS = 10240
 # Application definition
 
 INSTALLED_APPS = [
-    "simpleui",
+    # "simpleui",
     "django_apscheduler",
     'django.contrib.admin',
     'django.contrib.auth',
