@@ -1,5 +1,6 @@
 import codecs
 import json
+import logging
 from django.shortcuts import render
 from drf_yasg import openapi
 from drf_yasg.utils import swagger_auto_schema
@@ -10,6 +11,10 @@ from django.http.multipartparser import MultiPartParser
 from rest_framework.response import Response
 from apiapp import prod_outline, prod_qa, prod_abstract, prod_extend, prod_text2sql
 from kgapp.models import KgText2SQL
+from yaapp import getYuAnParamPath
+from yaapp.plan import PlanFactory
+from yaapp.models import PlanByUser
+from userapp.models import User
 from yunheKGPro import settings
 from apiapp.serializers import *
 from django.http import HttpResponse
@@ -23,6 +28,7 @@ from django.views.decorators.csrf import csrf_exempt
 from datetime import datetime
 from rest_framework.authentication import BasicAuthentication
 import os
+logger = logging.getLogger('kgproj')
 
 from rest_framework.parsers import (
     FormParser,
@@ -31,6 +37,69 @@ from rest_framework.parsers import (
 
 from apiapp.serializers import ApiAppResponseSerializer
 from yunheKGPro import CsrfExemptSessionAuthentication
+
+class YLHYuAnApiGet(mixins.ListModelMixin,
+                           mixins.CreateModelMixin,
+                           generics.GenericAPIView):
+    
+    serializer_class = ApiAppResponseSerializer
+
+    @swagger_auto_schema(
+        operation_description='GET ///',
+        operation_summary="[获取最新预案]  获取用户最近编辑的",
+        # 接口参数 GET请求参数
+        manual_parameters=[
+        ],
+        responses={
+            200: ApiAppResponseSerializer(many=False),
+            400: "请求失败",
+        },
+        tags=['api'])
+    def get(self, request, *args, **kwargs):
+        # 获取最近的ylh的调度方案单
+        uid = request.GET.get("uid", None)
+        try:
+            tmpUser = User.objects.get(id=uid)
+        except:
+            tmpUser = None
+        if tmpUser is None:
+            YLHYuAnApiGet.queryset = PlanByUser.objects.filter(ctype=4)
+        else:
+            YLHYuAnApiGet.queryset = PlanByUser.objects.filter(user=tmpUser, ctype=4)
+        userYuAnPlan = YLHYuAnApiGet.queryset.order_by('-created_at').first()
+        if userYuAnPlan is None:
+            data = {"code": 202, "data": {}, "msg": "系统不存在该数据", "success": False}
+            bars = ApiAppResponseSerializer(data=data, many=False)
+            bars.is_valid()
+            return Response(bars.data, status=status.HTTP_200_OK)
+        # result = model_to_dict(userYuAnPlan, exclude=["plan", "nodes"])
+        # result['nodeOutlineList'] = userYuAnPlan.nodeOutlineList
+        # result['created_at'] = userYuAnPlan.created_at.strftime("%Y-%m-%d %H:%M:%S")
+        # 通用生成方法
+        # node.result = qwty(node.description)
+        tmp_param_path = getYuAnParamPath(userYuAnPlan.ctype, userYuAnPlan.yadate)
+        if not os.path.exists(tmp_param_path):
+            data = {"code": 201, "data": {}, "msg": "参数文件不存在, 请先搜集参数"}
+            serializers = ApiAppResponseSerializer(data=data, many=False)
+            serializers.is_valid()
+            return Response(serializers.data, status=status.HTTP_200_OK)
+        
+        ctx = {
+            "type": userYuAnPlan.ctype,
+            "yadate": userYuAnPlan.yadate,
+            "plan": model_to_dict(userYuAnPlan, exclude=["html_data", "html_data", "created_at", "updated_at", "nodes"]),
+            "param_path": tmp_param_path,
+            "results": {"apiname":"ylh_yadata"}
+        }
+        logger.info("预案参数:%s"% ctx)
+        for node in userYuAnPlan.nodes.all():
+            pf = PlanFactory(context=ctx, node=node)
+            pf.make_context_api()
+
+        data = {"code": 200, "msg": "success", "data": ctx['results'], "success": True}
+        bars = ApiAppResponseSerializer(data=data, many=False)
+        bars.is_valid()
+        return Response(bars.data, status=status.HTTP_200_OK)
 
 
 class OutlineApiView(generics.GenericAPIView):

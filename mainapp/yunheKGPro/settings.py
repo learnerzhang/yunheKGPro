@@ -21,20 +21,18 @@ pymysql.install_as_MySQLdb()
 DEBUG = True
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
-
 BASE_DIR = Path(__file__).resolve().parent.parent
-logger = logging.getLogger('kgproj')
 
 if sys.platform.startswith('linux'):
     CONFIG_FILE = os.path.join("configs", 'config.yaml')
-    logger.debug('当前系统为 Linux')
+    print('当前系统为 Linux')
 elif sys.platform.startswith('win'):
     CONFIG_FILE = os.path.join("configs", 'config_local.yaml')
-    logger.debug('当前系统为 Windows')
+    print('当前系统为 Windows')
 elif sys.platform.startswith('darwin'):
-    logger.debug('当前系统为 macOS')
+    print('当前系统为 macOS')
 else:
-    logger.debug('无法识别当前系统')
+    print('无法识别当前系统')
 
 # 读取 yaml 配置文件
 try:
@@ -45,8 +43,7 @@ except FileNotFoundError:
     config = {}
 
 LOG_LEVEL = config.get('LOG_LEVEL', 'DEBUG')
-logger.info('当前日志级别为 %s' % LOG_LEVEL)
-
+print('====>当前日志级别为 %s <====' % LOG_LEVEL)
 LOGGING = {
     'version': 1,
     'disable_existing_loggers': False,
@@ -112,10 +109,10 @@ if config.get('USE_LOCAL_MODEL', False):
             'normalize_embeddings': True
         }
     )
-    logger.debug('使用本地模型')
+    print('====>使用本地模型 %s <====' % LOG_LEVEL)
 else:
     embedding = None
-    logger.debug('不使用本地模型')
+    print('====>不使用本地模型 %s <====' % LOG_LEVEL)
 
 
 # Database
@@ -352,9 +349,9 @@ X_FRAME_OPTIONS = ''
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/3.2/howto/static-files/
 
-STATIC_URL = '/static/'
+STATIC_URL = '/data/'
 STATICFILES_DIRS = (
-    os.path.join(BASE_DIR,'static'),
+    os.path.join(BASE_DIR,'data'),
 )
 # Default primary key field type
 # https://docs.djangoproject.com/en/3.2/ref/settings/#default-auto-field
