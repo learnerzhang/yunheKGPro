@@ -271,6 +271,47 @@ class PlanFactory:
             return (bold_left_align("降雨预报")+"\n"+bold_left_align("未来7天降雨预报")+jyyb_img_html+ divHtml(f"黄河流域分区面平均雨量预报（单位：mm）  \n") + f"\t{jiangyu_table}\n"+"短时强降水预警\n"+self.params["qjsyj"]
                     +bold_left_align("洪水预报") +bold_left_align("未来7天径流预报") + jlyb+bold_left_align("未来7天日均流量预报")+llyb)
 
+    def get_jyyb_api(self):
+        if self.context['type'] == 4:
+            jyyb_desc = self.params['jyyb_desc'] if 'jyyb_desc' in self.params else "暂无降雨信息"
+            self.context['results']['jyyb_desc'] = {
+                "value": jyyb_desc,
+                "desc": "降雨预报总览信息"
+            }
+
+            jyyb_imgs = self.params['jyyb_imgs'] if 'jyyb_imgs' in self.params else []
+            for imgent in jyyb_imgs:
+                imgent['urlpath'] = f"data/yuan_data/{self.context['type']}/yubao/{self.context['yadate']}/{imgent['url']}"
+            
+            self.context['results']['jyyb_imgs'] = {
+                "value": jyyb_imgs,
+                "desc": "N天的降雨预报图"
+            }
+
+            ylhjyyb = self.params['ylhjyyb'] if 'ylhjyyb' in self.params else []
+            self.context['results']['fenquyubao'] = {
+                "value": ylhjyyb,
+                "desc": "分区的降雨预报"
+            }
+
+            qjsyj = self.params['qjsyj'] if 'qjsyj' in self.params else "暂无强降雨预报信息"
+            self.context['results']['qiangjiangyuyubao'] = {
+                "value": qjsyj,
+                "desc": "强降雨预报信息"
+            }
+
+            self.context['results']['future7dayspredict'] = {
+                "value": [],
+                "desc": "未来7天径流预报"
+            }
+
+            hhfloodforecast = self.params['hhfloodforecast'] if 'hhfloodforecast' in self.params else []
+            self.context['results']['future7daysavgpredict'] = {
+                "value": hhfloodforecast,
+                "desc": "未来7天均流预报"
+            }
+
+
     def get_hsyb(self):
         """
         获取洪水预报
@@ -660,14 +701,13 @@ class PlanFactory:
             ddfa_excel = os.path.join("data", "yuan_data", "4", "ddfad", f"{yadate}.xlsx")
             # logger.debug(ddfa_excel)
             if not os.path.exists(ddfa_excel):
-                raise Exception("调度方案单不存在")
-            if not os.path.exists(ddfa_excel):
-                raise Exception("调度方案单不存在")
-            else:
-                # df = pd.read_excel(ddfa_excel)
-                # ddfad = pd2HtmlCSS() + df.to_html(index=False, justify="center")
-                html_table = excel_to_html_with_merged_cells(ddfa_excel)
-                ddfad = pd2HtmlCSS()+html_table
+                logger.warning("当天调度方案单不存在,采用默认调度方案单")
+                ddfa_excel = os.path.join("data", "yuan_data", "4", "ddfad", "default.xlsx")
+
+            # df = pd.read_excel(ddfa_excel)
+            # ddfad = pd2HtmlCSS() + df.to_html(index=False, justify="center")
+            html_table = excel_to_html_with_merged_cells(ddfa_excel)
+            ddfad = pd2HtmlCSS()+html_table
             skMapData, swMapData, date_list = yautils.excel_to_dict(ddfa_excel)
             results = yautils.skddjy_new(ddfa_excel)
             # 初始化调度建议字符串
@@ -768,6 +808,74 @@ class PlanFactory:
             return (bold_left_align("调度运用方式")+ddjy+bold_left_align("水库")+skddresult+bold_left_align("河道")+hd_result+bold_left_align("滩区淹没")+tqym+"\n"+bold_left_align("调度方案单")+ divHtml(f"伊洛河调度方案单\n")+ddfad)#+
                     # bold_left_align("可能出险")+kncx+bold_left_align("应对措施") + ydcs+bold_left_align("分级响应") + yjdj +
                     # bold_left_align("河道破堤实施方案") + hdpdssfa+bold_left_align("人员转移方案")+ryzyfa  +  bold_left_align("防汛物资储备和防汛抢险队伍") + fxwz)
+
+    def get_ddjg_api(self):
+        if self.context['type'] == 4:
+            # 伊洛河
+            import pandas as pd
+            import time
+            yadate = self.context['plan']['yadate']
+            ddfa_excel = os.path.join("data", "yuan_data", "4", "ddfad", f"{yadate}.xlsx")
+            # logger.debug(ddfa_excel)
+            if not os.path.exists(ddfa_excel):
+                logger.warning("当天调度方案单不存在,采用默认调度方案单")
+                ddfa_excel = os.path.join("data", "yuan_data", "4", "ddfad", "default.xlsx")
+            
+            skMapData, swMapData, date_list = yautils.excel_to_dict(ddfa_excel)
+
+            skMapDesc = {}
+            swMapDesc = {}
+            for sk, record in skMapData.items():
+                keys = list(record.keys())
+                if "水位" not in keys:
+                    continue
+                swdata = list(record["水位"])
+                max_sw = max(swdata)
+                max_idx = swdata.index(max_sw)
+                max_date = date_list[max_idx]
+                max_sw = round(max_sw, 2)
+                tmp_desc_result = f"预计{sk}将于{max_date}达到最高水位{max_sw}m;"
+                skMapDesc[sk] = tmp_desc_result
+
+            for sw, lldata in swMapData.items():
+                max_ll = round(max(lldata), 2)
+                max_idx = lldata.index(max_ll)
+                max_date = date_list[max_idx]
+                max_ll = round(max_ll, 2)
+                tmp_result = f"预计{max_date}，{sw}出现{max_ll}立方米每秒的洪峰流量\n"
+                swMapDesc[sw] = tmp_result
+
+            self.context['results']['sk_ddgc'] = {
+                "value":{
+                    "data_list": date_list,
+                    "sk_map_data": skMapData,
+                    'sk_map_desc': skMapDesc,
+                },
+                "desc": "水库的调度过程曲线"
+            }
+
+            self.context['results']['hd_ddgc'] = {
+                "value":{
+                    "data_list": date_list,
+                    "hd_map_data": swMapData,
+                    'sw_map_desc': swMapDesc,
+                },
+                "desc": "河道的调度过程曲线"
+            }
+
+            self.context['results']['ddfad_path'] = {
+                "value": ddfa_excel,
+                "desc": "调度方案url位置"
+            }
+
+
+            hyk_liuliang = 3000
+            tqym = tanquyanmo(hyk_liuliang)["result"]
+            self.context['results']['tanquyanmo'] = {
+                "value": tqym,
+                "desc": "调度方案位置"
+            }
+
 
     def get_gcyp(self):
         if self.context['type'] == 0:
@@ -1046,7 +1154,38 @@ class PlanFactory:
             self.node.wordParagraphs.add(wp)
             wp = WordParagraph.objects.create(title=f"宣传和卫生演练", content=xcyy, ctype=1)
             self.node.wordParagraphs.add(wp)
-            return bold_left_align("预警分级响应") + str(yjdj)+"级预警"+bold_left_align("应对措施") + ydcs +bold_left_align("应急保障") +bold_left_align("组织保障")+zzbz+bold_left_align("队伍保障")+dwbz+bold_left_align("物资保障")+fxwz+bold_left_align("技术保障")+jsbz+bold_left_align("通信保障")+txbz+bold_left_align("照明应急保障")+zmyjbz+bold_left_align("安全保障")+aqbz+bold_left_align("卫生保障")+wsbz+bold_left_align("其他保障")+qtbz+bold_left_align("宣传和卫生演练")+xcyy
+            return bold_left_align("预警分级响应") + yjdj+bold_left_align("应对措施") + ydcs +bold_left_align("应急保障") +bold_left_align("组织保障")+zzbz+bold_left_align("队伍保障")+dwbz+bold_left_align("物资保障")+fxwz+bold_left_align("技术保障")+jsbz+bold_left_align("通信保障")+txbz+bold_left_align("照明应急保障")+zmyjbz+bold_left_align("安全保障")+aqbz+bold_left_align("卫生保障")+wsbz+bold_left_align("其他保障")+qtbz+bold_left_align("宣传和卫生演练")+xcyy
+    
+    def get_aqjc_api(self):
+        if self.context['type'] == 4:
+            yjdj = yujingdengji()["level"]  # "黄色预警"
+            ydcs = yujingdengji()["result"]
+
+            self.context['results']['yuyingfenji'] = {
+                "value": yjdj,
+                "desc": "预警分级响应"
+            }
+
+            self.context['results']['yingducuoshi'] = {
+                "value": ydcs,
+                "desc": "应对措施"
+            }
+            common_desc = "故县水库行政责任人:洛阳市委常委，常务副市长\n职责:负贵故县水库大坝安全然管领导责任，统 指泽故县水车防讯抗早、拍险救灾工作，协调指导解决故县水库大规安全管理的重大问题，组织面大实发事件和安全事故的应急处置，负责放县水库应食拾险和于安救护工作，督促水库主管部门责任人、技术责任人、巡查责任人履行工作职责,"
+            self.context['results']['yingjibaozhang'] = {
+                "value": {
+                    'zzbz': common_desc,
+                    'dwbz': common_desc,
+                    'wzbz': common_desc,
+                    'jsbz': common_desc,
+                    'txbz': common_desc,
+                    'zmyjbz': common_desc,
+                    'aqbz': common_desc,
+                    'wsbz': common_desc,
+                    'qtbz': common_desc,
+                },
+                "desc": "应急保障"
+            }
+
     def get_lsyg(self):
         if self.context['type'] == 0:
             return ""
@@ -1155,6 +1294,40 @@ class PlanFactory:
             self.node.wordParagraphs.add(wp)
             return bold_left_align("雨情")+"\n"+ylh_yuqing+bold_left_align("水情")+"\n"+bold_left_align("河道水情")+divHtml(f"黄河主要站点流量表\n") + hdsq+ bold_left_align("水库水情")+ divHtml(f"黄河主要水库蓄水情况表\n") + sksq +bold_left_align("工情险情") + gqxq
 
+
+    def get_ysgxq_api(self):
+        if self.context['type'] == 4:
+            #ylh_yuqing = yiluohe_yuqing_generate(self.params)
+            ylh_yuqing = self.params["yuqing"] if 'yuqing' in self.params else "暂无雨情数据"
+            self.context['results']['yuqing'] = {
+                "value": ylh_yuqing,
+                "desc": "伊洛河区域雨情数据"
+            }
+
+            hdsq = self.params['hdsq'] if self.params else []
+            sksq = self.params['sksq'] if self.params else []
+
+            self.context['results']['shuiqing'] = {
+                "hdsq":{
+                    "value": hdsq,
+                    "desc": "伊洛河区域河道水情"
+                },
+                "sksq":{
+                    "value": sksq,
+                    "desc": "伊洛河区域水库水情"
+                }
+            }
+#            gqxq = huanghe_gongqing_generate_html(self.params)
+            gqxq = self.params['xianqing']
+            self.context['results']['xianqing'] = {
+                "value": gqxq,
+                "desc": "伊洛河区域险情描述"
+            }
+
+
+    
+
+
     def make_context(self,):
         # logger.debug("make_context:", self.context, self.params)
         label = self.node.label
@@ -1214,3 +1387,16 @@ class PlanFactory:
         self.node.result = result
         self.node.save()
         # logger.debug("make ctt result:", result)
+
+
+    def make_context_api(self,):
+        label = self.node.label
+        logger.info(f"make_context_api label: {label}")
+        if label == "实时雨水工险情":
+            self.get_ysgxq_api()
+        elif label == '预报':
+            self.get_jyyb_api()
+        elif label == '调度结果':
+            self.get_ddjg_api()
+        elif label == '防御措施':
+            self.get_aqjc_api()

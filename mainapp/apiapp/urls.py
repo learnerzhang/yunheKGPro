@@ -18,6 +18,7 @@ from . import views
 from . import knowledge_views
 
 urlpatterns = [
+    path('api/ylh_yadata', views.YLHYuAnApiGet.as_view()),
     path('api/outline', views.OutlineApiView.as_view()),
     path('api/onlineqa', views.OlineQAApiView.as_view()),
     path('api/abstract', views.OlineAbstractApiView.as_view()),
