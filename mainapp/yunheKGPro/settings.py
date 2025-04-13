@@ -44,7 +44,8 @@ except FileNotFoundError:
     config = {}
 
 LOG_LEVEL = config.get('LOG_LEVEL', 'DEBUG')
-logger.info('当前日志级别为 %s' % LOG_LEVEL)
+
+print('====>当前日志级别为 %s <====' % LOG_LEVEL)
 
 LOGGING = {
     'version': 1,

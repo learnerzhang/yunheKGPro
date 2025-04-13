@@ -312,7 +312,7 @@ def wh_shzhfy(hhgl_liuliang=None,  # 黄河干流流量
                   "\n8）各专家工作组要按照职责分工和会商工作安排开展工作。")
     return {"result": result}
 
-def tanquyanmo(hyk_liuliang):
+def tanquyanmo(hyk_liuliang, usetag=False):
     """
     滩区淹没（参数【花园口流量】）
     :return: dict
@@ -342,6 +342,26 @@ def tanquyanmo(hyk_liuliang):
             k_value(4000, 6000, 2.46, hyk_liuliang),
             k_value(4000, 6000, 2.09, hyk_liuliang),
         )
+
+        if usetag:
+            main_str = "河南省预计进水村庄{}个、人口{}万人，水围村庄{}个、人口{}万人，淹没滩地{}万亩，淹没耕地{}万亩，经济损失{}亿元；".format(
+            '<span class="hn">' + str(int(k_value(4000, 6000, 70, hyk_liuliang))) + '</span>',
+            '<span class="hn">' + str(k_value(4000, 6000, 6.18, hyk_liuliang)) + '</span>',
+            '<span class="hn">' + str(int(k_value(4000, 6000, 273, hyk_liuliang))) + '</span>',
+            '<span class="hn">' + str(k_value(4000, 6000, 24.85, hyk_liuliang)) + '</span>',
+            '<span class="hn">' + str(k_value(4000, 6000, 110.29, hyk_liuliang)) + '</span>',
+            '<span class="hn">' + str(k_value(4000, 6000, 70.81, hyk_liuliang)) + '</span>',
+            '<span class="hn">' + str(k_value(4000, 6000, 140.87, hyk_liuliang)) + '</span>',
+        ) + "山东省预计漫滩面积万亩，淹没耕地{}万亩，{}个滩区进水，{}个自然村进水，{}个自然村被水围困，涉及{}万人，需转移安置{}万人，就地或就近安置{}万人。".format(
+            '<span class="hn">' + str(k_value(4000, 6000, 39.07, hyk_liuliang)) + '</span>',
+            '<span class="hn">' + str(int(k_value(4000, 6000, 93, hyk_liuliang))) + '</span>',
+            '<span class="hn">' + str(int(k_value(4000, 6000, 18, hyk_liuliang))) + '</span>',
+            '<span class="hn">' + str(int(k_value(4000, 6000, 46, hyk_liuliang))) + '</span>',
+            '<span class="hn">' + str(k_value(4000, 6000, 4.54, hyk_liuliang)) + '</span>',
+            '<span class="hn">' + str(k_value(4000, 6000, 2.46, hyk_liuliang)) + '</span>',
+            '<span class="hn">' + str(k_value(4000, 6000, 2.09, hyk_liuliang)) + '</span>',
+        )
+
     elif hyk_liuliang <= 8000:
         main_str = "河南省预计进水村庄{}个、人口{}万人，水围村庄{}个、人口{}万人，淹没滩地{}万亩，淹没耕地{}万亩，经济损失{}亿元；".format(
             int(k_value(6000, 8000, 438, hyk_liuliang)),
@@ -361,6 +381,26 @@ def tanquyanmo(hyk_liuliang):
             k_value(6000, 8000, 5.70, hyk_liuliang),
             k_value(6000, 8000, 16.98, hyk_liuliang),
         )
+        if usetag:
+            main_str = "河南省预计进水村庄{}个、人口{}万人，水围村庄{}个、人口{}万人，淹没滩地{}万亩，淹没耕地{}万亩，经济损失{}亿元；".format(
+                '<span class="hn">' + str(int(k_value(6000, 8000, 438, hyk_liuliang))) + '</span>',
+                '<span class="hn">' + str(int(k_value(6000, 8000, 51.47, hyk_liuliang))) + '</span>',
+                '<span class="hn">' + str(int(k_value(6000, 8000, 280, hyk_liuliang))) + '</span>',
+                '<span class="hn">' + str(k_value(6000, 8000, 27.07, hyk_liuliang)) + '</span>',
+                '<span class="hn">' + str(k_value(6000, 8000, 215.53, hyk_liuliang)) + '</span>',
+                '<span class="hn">' + str(k_value(6000, 8000, 152.85, hyk_liuliang)) + '</span>',
+                '<span class="hn">' + str(k_value(6000, 8000, 327.17, hyk_liuliang)) + '</span>',
+                ) + "山东省预计漫滩面积{}万亩，淹没耕地{}万亩，{}个滩区进水，{}个自然村进水，{}个自然村被水围困，涉及{}万人，除东明县部分群众利用新建村台，东平县、平阴县、长清区部分群众利用山坡避洪外，需转移安置{}万人，就地或就近安置{}万人。".format(
+                    '<span class="hn">' + str(k_value(6000, 8000, 204.05, hyk_liuliang)) + '</span>',
+                    '<span class="hn">' + str(k_value(6000, 8000, 134.34, hyk_liuliang)) + '</span>',
+                    '<span class="hn">' + str(int(k_value(6000, 8000, 108, hyk_liuliang))) + '</span>',
+                    '<span class="hn">' + str(int(k_value(6000, 8000, 105, hyk_liuliang))) + '</span>',
+                    '<span class="hn">' + str(int(k_value(6000, 8000, 206, hyk_liuliang))) + '</span>',
+                    '<span class="hn">' + str(k_value(6000, 8000, 25.26, hyk_liuliang)) + '</span>',
+                    '<span class="hn">' + str(k_value(6000, 8000, 5.70, hyk_liuliang)) + '</span>',
+                    '<span class="hn">' + str(k_value(6000, 8000, 16.98, hyk_liuliang)) + '</span>',
+                    )
+
     elif hyk_liuliang <= 10000:
         main_str = "河南省预计进水村庄{}个、人口{}万人，水围村庄{}个、人口{}万人，淹没滩地{}万亩，淹没耕地{}万亩，经济损失{}亿元；".format(
             int(k_value(8000, 10000, 905, hyk_liuliang)),
@@ -380,6 +420,26 @@ def tanquyanmo(hyk_liuliang):
             k_value(8000, 10000, 7.44, hyk_liuliang),
             k_value(8000, 10000, 22.63, hyk_liuliang),
         )
+
+        if usetag:
+            main_str = "河南省预计进水村庄{}个、人口{}万人，水围村庄{}个、人口{}万人，淹没滩地{}万亩，淹没耕地{}万亩，经济损失{}亿元；".format(
+                '<span class="hn">' + str(int(k_value(8000, 10000, 905, hyk_liuliang))) + '</span>',
+                '<span class="hn">' + str(int(k_value(8000, 10000, 112.70, hyk_liuliang))) + '</span>',
+                '<span class="hn">' + str(int(k_value(8000, 10000, 191, hyk_liuliang))) + '</span>',
+                '<span class="hn">' + str(k_value(8000, 10000, 18.53, hyk_liuliang)) + '</span>',
+                '<span class="hn">' + str(k_value(8000, 10000, 323.22, hyk_liuliang)) + '</span>',
+                '<span class="hn">' + str(k_value(8000, 10000, 219.20, hyk_liuliang)) + '</span>',
+                '<span class="hn">' + str(k_value(8000, 10000, 467.43, hyk_liuliang)) + '</span>',
+                ) + "山东省预计漫滩面积{}万亩，淹没耕地{}万亩，{}个滩区进水，{}个自然村进水，{}个自然村被水围困，涉及{}万人，除东平县、平阴县、长清区部分群众利用山坡避洪外，需转移安置{}万人，就地或就近安置{}万人。".format(
+                    '<span class="hn">' + str(k_value(8000, 10000, 228.35, hyk_liuliang)) + '</span>',
+                    '<span class="hn">' + str(k_value(8000, 10000, 174.27, hyk_liuliang)) + '</span>',
+                    '<span class="hn">' + str(int(k_value(8000, 10000, 109, hyk_liuliang))) + '</span>',
+                    '<span class="hn">' + str(int(k_value(8000, 10000, 222, hyk_liuliang))) + '</span>',
+                    '<span class="hn">' + str(int(k_value(8000, 10000, 161, hyk_liuliang))) + '</span>',
+                    '<span class="hn">' + str(k_value(8000, 10000, 31.42, hyk_liuliang)) + '</span>',
+                    '<span class="hn">' + str(k_value(8000, 10000, 7.44, hyk_liuliang)) + '</span>',
+                    '<span class="hn">' + str(k_value(8000, 10000, 22.63, hyk_liuliang)) + '</span>',
+                    )
     elif hyk_liuliang <= 12370:
         main_str = "河南省预计进水村庄{}个、人口{}万人，水围村庄{}个、人口{}万人，淹没滩地{}万亩，淹没耕地{}万亩，经济损失{}亿元；".format(
             int(k_value(10000, 12370, 1029, hyk_liuliang)),
@@ -399,6 +459,27 @@ def tanquyanmo(hyk_liuliang):
             k_value(10000, 12370, 20.09, hyk_liuliang),
             k_value(10000, 12370, 11.59, hyk_liuliang),
         )
+
+        if usetag:
+            main_str = "河南省预计进水村庄{}个、人口{}万人，水围村庄{}个、人口{}万人，淹没滩地{}万亩，淹没耕地{}万亩，经济损失{}亿元；".format(
+                '<span class="hn">' + str(int(k_value(10000, 12370, 1029, hyk_liuliang))) + '</span>',
+                '<span class="hn">' + str(k_value(10000, 12370, 125.22, hyk_liuliang)) + '</span>',
+                '<span class="hn">' + str(int(k_value(10000, 12370, 80, hyk_liuliang))) + '</span>',
+                '<span class="hn">' + str(k_value(10000, 12370, 6.97, hyk_liuliang)) + '</span>',
+                '<span class="hn">' + str(k_value(10000, 12370, 329.80, hyk_liuliang)) + '</span>',
+                '<span class="hn">' + str(k_value(10000, 12370, 223.09, hyk_liuliang)) + '</span>',
+                '<span class="hn">' + str(k_value(10000, 12370, 494.89, hyk_liuliang)) + '</span>',
+                ) + "山东省预计漫滩面积{}万亩，淹没耕地{}万亩，{}个滩区进水，{}个自然村进水，{}个自然村被水围困，涉及{}万人，其中需转移安置{}万人，就地或就近安置{}万人。".format(
+                    '<span class="hn">' + str(k_value(10000, 12370, 234.71, hyk_liuliang)) + '</span>',
+                    '<span class="hn">' + str(k_value(10000, 12370, 176.90, hyk_liuliang)) + '</span>',
+                    '<span class="hn">' + str(int(k_value(10000, 12370, 109, hyk_liuliang))) + '</span>',
+                    '<span class="hn">' + str(int(k_value(10000, 12370, 243, hyk_liuliang))) + '</span>',
+                    '<span class="hn">' + str(int(k_value(10000, 12370, 157, hyk_liuliang))) + '</span>',
+                    '<span class="hn">' + str(k_value(10000, 12370, 31.68, hyk_liuliang)) + '</span>',
+                    '<span class="hn">' + str(k_value(10000, 12370, 20.09, hyk_liuliang)) + '</span>',
+                    '<span class="hn">' + str(k_value(10000, 12370, 11.59, hyk_liuliang)) + '</span>',
+                    )
+            
     elif hyk_liuliang <= 15700:
         main_str = "河南省预计进水村庄{}个、人口{}万人，水围村庄{}个、人口{}万人，淹没滩地{}万亩，淹没耕地{}万亩，经济损失{}亿元；".format(
             int(k_value(12370, 15700, 1103, hyk_liuliang)),
@@ -418,6 +499,27 @@ def tanquyanmo(hyk_liuliang):
             k_value(12370, 15700, 20.09, hyk_liuliang),
             k_value(12370, 15700, 11.59, hyk_liuliang),
         )
+
+        if usetag:
+            main_str = "河南省预计进水村庄{}个、人口{}万人，水围村庄{}个、人口{}万人，淹没滩地{}万亩，淹没耕地{}万亩，经济损失{}亿元；".format(
+                '<span class="hn">' + str(int(k_value(12370, 15700, 1103, hyk_liuliang))) + '</span>',
+                '<span class="hn">' + str(k_value(12370, 15700, 134.30, hyk_liuliang)) + '</span>',
+                '<span class="hn">' + str(int(k_value(12370, 15700, 48, hyk_liuliang))) + '</span>',
+                '<span class="hn">' + str(k_value(12370, 15700, 3.99, hyk_liuliang)) + '</span>',
+                '<span class="hn">' + str(k_value(12370, 15700, 342.10, hyk_liuliang)) + '</span>',
+                '<span class="hn">' + str(k_value(12370, 15700, 234.10, hyk_liuliang)) + '</span>',
+                '<span class="hn">' + str(k_value(12370, 15700, 507.66, hyk_liuliang)) + '</span>',
+                ) + "山东省预计漫滩面积{}万亩，淹没耕地{}万亩，{}个滩区进水，{}个自然村进水，{}个自然村被水围困，涉及{}万人，其中需转移安置{}万人，就地或就近安置{}万人。".format(
+                    '<span class="hn">' + str(k_value(12370, 15700, 234.71, hyk_liuliang)) + '</span>',
+                    '<span class="hn">' + str(k_value(12370, 15700, 176.90, hyk_liuliang)) + '</span>',
+                    '<span class="hn">' + str(int(k_value(12370, 15700, 109, hyk_liuliang))) + '</span>',
+                    '<span class="hn">' + str(int(k_value(12370, 15700, 243, hyk_liuliang))) + '</span>',
+                    '<span class="hn">' + str(int(k_value(12370, 15700, 157, hyk_liuliang))) + '</span>',
+                    '<span class="hn">' + str(k_value(12370, 15700, 31.68, hyk_liuliang)) + '</span>',
+                    '<span class="hn">' + str(k_value(12370, 15700, 20.09, hyk_liuliang)) + '</span>',
+                    '<span class="hn">' + str(k_value(12370, 15700, 11.59, hyk_liuliang)) + '</span>',
+                    )
+            
     elif hyk_liuliang <= 22000:
         main_str = "河南省预计进水村庄{}个、人口{}万人，淹没滩地{}万亩，淹没耕地{}万亩，经济损失{}亿元；".format(
             int(k_value(12370, 15700, 1196, hyk_liuliang)),
@@ -426,7 +528,26 @@ def tanquyanmo(hyk_liuliang):
             k_value(12370, 15700, 253.10, hyk_liuliang),
             k_value(12370, 15700, 529.20, hyk_liuliang),
         ) + "山东省预计漫滩面积234.71万亩，淹没耕地176.90万亩，109个滩区进水，243个自然村进水，157个自然村被水围困，涉及31.68万人，其中需转移安置20.09万人，就地或就近安置11.59万人。"
-
+        if usetag:
+            main_str = "河南省预计进水村庄{}个、人口{}万人，淹没滩地{}万亩，淹没耕地{}万亩，经济损失{}亿元；".format(
+                '<span class="hn">' + str(int(k_value(12370, 15700, 1196, hyk_liuliang))) + '</span>',
+                '<span class="hn">' + str(k_value(12370, 15700, 144.66, hyk_liuliang)) + '</span>',
+                '<span class="hn">' + str(k_value(12370, 15700, 365.00, hyk_liuliang)) + '</span>',
+                '<span class="hn">' + str(k_value(12370, 15700, 253.10, hyk_liuliang)) + '</span>',
+                '<span class="hn">' + str(k_value(12370, 15700, 529.20, hyk_liuliang)) + '</span>',
+                ) + "山东省预计漫滩面积{}万亩，淹没耕地{}万亩，{}个滩区进水，{}个自然村进水，{}个自然村被水围困，涉及{}万人，其中需转移安置{}万人，就地或就近安置{}万人。".format(
+                    '<span class="hn">' + str(234.71) + '</span>',
+                    '<span class="hn">' + str(176.90) + '</span>',
+                    '<span class="hn">' + str(109) + '</span>',
+                    '<span class="hn">' + str(243) + '</span>',
+                    '<span class="hn">' + str(157) + '</span>',
+                    '<span class="hn">' + str(31.68) + '</span>',
+                    '<span class="hn">' + str(20.09) + '</span>',
+                    '<span class="hn">' + str(11.59) + '</span>',
+                )
+    else:
+        main_str = "尚未制定超级特大洪水的滩区淹没计算方法。"
+                    
     return {"result": main_str}
 
 def smx_yujingdengji(lm_ll=None, tg_ll=None, hx_ll=None,):
