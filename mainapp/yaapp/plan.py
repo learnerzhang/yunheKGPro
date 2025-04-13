@@ -1086,6 +1086,8 @@ class PlanFactory:
                 final_level = "无预警"
             else:
                 final_level = "无预警"  # 处理意外输入
+            for n in self.node.wordParagraphs.all():
+                n.delete()
             wp = WordParagraph.objects.create(title=f"调度结果及应对措施", content="预警分级响应", ctype=1)
             self.node.wordParagraphs.add(wp)
             wp = WordParagraph.objects.create(title=f"预警等级", content=final_level, ctype=1)
@@ -1094,15 +1096,29 @@ class PlanFactory:
             self.node.wordParagraphs.add(wp)
             wp = WordParagraph.objects.create(title=f"应对措施", content=ydcs, ctype=1)
             self.node.wordParagraphs.add(wp)
+            wp = WordParagraph.objects.create(title=f"调度结果及应对措施", content="人员转移方案", ctype=1)
+            self.node.wordParagraphs.add(wp)
+            ryzyfa = ("根据《故县水库卢氏库区汛期高水位运用应急预案>>统计库区转移人口,供调度参考,具体转移方案见水库库区汛期高水位运用部分；\n"
+                      "水库下游根据《故县水库抗险应急预案》具体转移方案由地方政府制定并组织实施，尽量减少损失。故县水库下游共有洛宁县、宜阳县、洛阳城区、偃师和巩义")
+            wp = WordParagraph.objects.create(title=f"调度结果及应对措施", content=ryzyfa, ctype=1)
+            self.node.wordParagraphs.add(wp)
             zzbz= "故县水库行政责任人:洛阳市委常委，常务副市长\n职责:负贵故县水库大坝安全然管领导责任，统 指泽故县水车防讯抗早、拍险救灾工作，协调指导解决故县水库大规安全管理的重大问题，组织面大实发事件和安全事故的应急处置，负责放县水库应食拾险和于安救护工作，督促水库主管部门责任人、技术责任人、巡查责任人履行工作职责。\n  为保证故县水库抢险应急工作落实，故县水利枢纽管理局(以下简称“故县局”)设立防汛指挥部，在黄河水利委员会(以下简称“黄委”)、洛阳市防汛抗旱指挥部(以下简称“洛阳市防指”)的领导下，统一组织、指挥、协调、指导和督促全局防."
             wp = WordParagraph.objects.create(title=f"调度结果及应对措施", content="组织保障", ctype=1)
             self.node.wordParagraphs.add(wp)
             wp = WordParagraph.objects.create(title=f"组织保障", content=zzbz, ctype=1)
             self.node.wordParagraphs.add(wp)
+            wp = WordParagraph.objects.create(title=f"组织保障", content="\t\t\t陆浑水库防汛指挥部领导成员责任人及联系方式", ctype=1)
+            self.node.wordParagraphs.add(wp)
+            zzbz_json = pd.DataFrame(self.params["zzbzTable"]).to_json(orient="records")
+            wp = WordParagraph.objects.create(title=f"组织保障表", content=json.dumps(zzbz_json), ctype=3)
+            self.node.wordParagraphs.add(wp)
             dwbz = "\t陆浑水库汛期常设防汛巡逻队和水库处职工一起，主要负责险情巡查报告工作，并协助水库应急抢险专家组，做好抢险技术指导工作。\n\t人民解放军洛阳驻军部队是水库应急抢险的主力军嵩具和伊川人武部地方基干民兵是水库应急抢险的骨干和后备军，主要负责水库防汛抢险工作，同时也要协助地方政府做好下游危险区域人员和财产的应急转移安置工作及转移后的警戒工作。\n\t陆浑水库的防汛抢险实行军民联防制，以部队为主力，地方基干民兵为骨干，在陆浑水库防汛指挥部的统一领导下和水库职工一起，同心同德、众志成城，确保水库安全度汛。拟定部队官兵300名，嵩县民兵1200人，伊川县抢险后备队1000人，共计2500人，参加防汛抢险人员于每年6月10日完成编队造册，做到官民官兵相识，并报到陆浑水库防汛指挥部办公室，随时听调。防汛抢险人员调动安排由水库防指统一指挥。"
             wp = WordParagraph.objects.create(title=f"调度结果及应对措施", content="队伍保障", ctype=1)
             self.node.wordParagraphs.add(wp)
             wp = WordParagraph.objects.create(title=f"队伍保障", content=dwbz, ctype=1)
+            self.node.wordParagraphs.add(wp)
+            dwbz_json = pd.DataFrame(self.params["dwbzTable"]).to_json(orient="records")
+            wp = WordParagraph.objects.create(title=f"队伍保障表", content=json.dumps(dwbz_json), ctype=3)
             self.node.wordParagraphs.add(wp)
             wuzi_json = pd.DataFrame(self.params["goodsTable"]).to_json(orient="records")
             wp = WordParagraph.objects.create(title=f"调度结果及应对措施", content="物资保障", ctype=1)
@@ -1114,6 +1130,9 @@ class PlanFactory:
             self.node.wordParagraphs.add(wp)
             wp = WordParagraph.objects.create(title=f"技术保障", content=jsbz, ctype=1)
             self.node.wordParagraphs.add(wp)
+            jsbz_json = pd.DataFrame(self.params["jsbzTable"]).to_json(orient="records")
+            wp = WordParagraph.objects.create(title=f"技术保障表", content=json.dumps(jsbz_json), ctype=3)
+            self.node.wordParagraphs.add(wp)
             txbz = ("\t陆浑水库现有三条对外通讯途径:其一，从田湖向水库防汛值班室接单机电话，可通过嵩县网通对外通话，但受外界干扰较大，保证率不高。其二，从水库陆浑通讯站到洛阳和郑州(黄委)的程控电话。其三，水库与运行中心机关，配有防汛5部专用移动卫星手机电话，确保联系畅通。"
                     "\n\t故县水库工程通信系统主要由黄河防汛专网、联通公司公网、公共移动通信网络、卫星通信电话和故县局内通信网构成。正常情况下，可以满足防汛抢险工作要求。\n防汛专网"
                     "\n\t通过洛--故微波通道上联至三门峡黄河明珠集团有限公司(以下简称“明珠集团”)局域网并接入黄委办公网，分别实现黄委政务内网访问与黄委内部语音接入，并实现遥测系统雨水情数据信息传递、上级指令的传达以及内网的日常办公。\n 联通公司公用通讯网"
@@ -1123,6 +1142,10 @@ class PlanFactory:
             wp = WordParagraph.objects.create(title=f"调度结果及应对措施", content="通信保障", ctype=1)
             self.node.wordParagraphs.add(wp)
             wp = WordParagraph.objects.create(title=f"通信保障", content=txbz, ctype=1)
+            self.node.wordParagraphs.add(wp)
+            self.node.wordParagraphs.add(wp)
+            txbz_json = pd.DataFrame(self.params["txbzTable"]).to_json(orient="records")
+            wp = WordParagraph.objects.create(title=f"技术保障表", content=json.dumps(txbz_json), ctype=3)
             self.node.wordParagraphs.add(wp)
             zmyjbz = "\t陆浑水库防汛照明系统有:(一)沿防汛公路照明系故县局目前储备有室外移动式汽油发电机、电缆、照明灯具统:共有照明灯具92个，功率为250W;（二)坝顶明灯具，东西坝头高杆灯2个，东坝头功率为2000W，西坝头可满足室外应急照明。小型发动机、柴油(或汽油)功率为14~400W;(三)大坝背水坡面320平台东西发电机组存二坝肩高杆灯2个，东坝肩功率为8~400W，_西坝肩功放时，应分类、分规格摆放整齐，铭牌朝外，存放在底层。功率为2*2000W;(四)溢洪道闸墩照明灯具2个，功率为400W;(五)泄洪洞交通桥照明灯具2个功率为400W;(六)防汛仓库便携式工作灯55个，投光灯4只。"
             wp = WordParagraph.objects.create(title=f"调度结果及应对措施", content="照明应急保障", ctype=1)
@@ -1154,7 +1177,7 @@ class PlanFactory:
             self.node.wordParagraphs.add(wp)
             wp = WordParagraph.objects.create(title=f"宣传和卫生演练", content=xcyy, ctype=1)
             self.node.wordParagraphs.add(wp)
-            return bold_left_align("预警分级响应") + yjdj+bold_left_align("应对措施") + ydcs +bold_left_align("应急保障") +bold_left_align("组织保障")+zzbz+bold_left_align("队伍保障")+dwbz+bold_left_align("物资保障")+fxwz+bold_left_align("技术保障")+jsbz+bold_left_align("通信保障")+txbz+bold_left_align("照明应急保障")+zmyjbz+bold_left_align("安全保障")+aqbz+bold_left_align("卫生保障")+wsbz+bold_left_align("其他保障")+qtbz+bold_left_align("宣传和卫生演练")+xcyy
+            return bold_left_align("预警分级响应") + final_level + bold_left_align("应对措施") + ydcs +bold_left_align("应急保障") +bold_left_align("组织保障")+zzbz+bold_left_align("队伍保障")+dwbz+bold_left_align("物资保障")+fxwz+bold_left_align("技术保障")+jsbz+bold_left_align("通信保障")+txbz+bold_left_align("照明应急保障")+zmyjbz+bold_left_align("安全保障")+aqbz+bold_left_align("卫生保障")+wsbz+bold_left_align("其他保障")+qtbz+bold_left_align("宣传和卫生演练")+xcyy
     
     def get_aqjc_api(self):
         if self.context['type'] == 4:
