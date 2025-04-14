@@ -704,7 +704,7 @@ def query_question(text):
     else:
         # 返回错误信息
         return f"Error: {response.status_code}, {response.text}"
-from yaapp.api_ylh_data import LYHDataFactory
+from yaapp.api_ylh_data import YLHDataFactory
 
 
 def get_rainfall_data(basin=None, start_time=None, end_time=None):
@@ -766,14 +766,18 @@ if __name__ == "__main__":
     # except Exception as e:
     #     print(f"程序执行出错: {str(e)}")
 
-    #LYHDataFactory(dataType=4).buildJsonData()
-    end_time = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-    start_time = (datetime.now() - timedelta(hours=1)).strftime("%Y-%m-%d %H:%M:%S")
-
-    status, data = get_rainfall_data()
-
-    if status == 200:
-        print("请求成功，数据样例:")
-        print(data)
-    else:
-        print(f"请求失败 (状态码 {status}): {data}")
+    YLHDataFactory(dataType=4).buildJsonData()
+    # import pandas as pd
+    #
+    # # 读取所有 Sheet，返回 {sheet_name: DataFrame} 的字典
+    # all_sheets = pd.read_excel("data/yuan_data/4/ryzyfa/人员转移方案.xlsx", sheet_name=None)
+    #
+    # # 访问特定 Sheet
+    # sheet1 = all_sheets["陆浑库区"]  # 通过名称访问
+    # sheet2 = all_sheets.get("故县库区")  # 安全访问（不存在返回None）
+    # print("sheet1",sheet1)
+    # print("sheet2",sheet2)
+    # # 遍历所有 Sheet
+    # for sheet_name, df in all_sheets.items():
+    #     print(f"Sheet Name: {sheet_name}")
+    #     print(df.head())  # 打印每个 Sheet 的前几行数据
