@@ -1,30 +1,31 @@
-# 忽略所有 .idea 目录（IntelliJ IDEA 项目目录）
-.idea/
-
-# 忽略所有 .vscode 目录（Visual Studio Code 项目目录）
-.vscode/
-
-# 忽略所有 macOS 系统生成的 .DS_Store 文件
-.DS_Store
-
-# 忽略所有 .pyc 文件（Python 字节码文件）
-*.pyc
-
-# 忽略所有 log 文件
+# Compiled class file
+*.class
+# Log file
 *.log
-
-# 忽略所有 tmp 目录
-tmp/
-
-# 忽略所有以 # 开头的临时文件
-#*.swp
-
-# 忽略所有 build 目录
-build/
-
-my-ui/
-
-# 忽略所有 settings.py 文件
-**/settings.py
-
-settings.py
+# BlueJ files
+*.ctxt
+# Mobile Tools for Java (J2ME)
+.mtj.tmp/# Package Files #
+*.jar
+*.war
+*.nar
+*.ear
+*.zip
+*.tar.gz
+*.rar
+hs_err_pid*
+.classpath
+.project
+.settings
+target
+.idea
+*.iml
+*.sqlite3
+*.sqlite
+*.doc
+*.docx
+*.pdf
+*.csv
+*.xlsx
+*.xls
+*.pyc

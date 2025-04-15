@@ -1,0 +1,1 @@
+window.__PRODUCTION__77E58BC67BA174065E7353F0__CONF__={"VITE_GLOB_APP_TITLE":"知识管理平台","VITE_GLOB_API_URL":"/basic-api","VITE_GLOB_UPLOAD_URL":"/upload","VITE_GLOB_API_URL_PREFIX":""};Object.freeze(window.__PRODUCTION__77E58BC67BA174065E7353F0__CONF__);Object.defineProperty(window,"__PRODUCTION__77E58BC67BA174065E7353F0__CONF__",{configurable:false,writable:false,});

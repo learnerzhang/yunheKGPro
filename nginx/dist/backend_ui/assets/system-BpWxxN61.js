@@ -1,0 +1,1 @@
+import{a as s}from"./entry/index-gwXb_KLU-1735894345864.js";const o=t=>s.get({url:"/system/getAccountList",params:t}),a=t=>s.get({url:"/system/getDeptList",params:t}),u=t=>s.get({url:"/system/getMenuList",params:t}),c=t=>s.get({url:"/system/getRoleListByPage",params:t}),i=(t,e)=>s.post({url:"/system/setRoleStatus",params:{id:t,status:e}});export{o as a,u as b,c,a as g,i as s};

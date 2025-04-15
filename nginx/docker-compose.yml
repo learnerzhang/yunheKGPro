@@ -1,0 +1,21 @@
+version: '3.8'
+services:
+  base_nginx:
+    image: nginx:latest
+    container_name: base_nginx
+    ports:
+      - "80:80"
+      - "7000:7000"
+      - "5000:5000"
+      - "9999:9999"
+    networks:
+      - yunhesmxkgpro_mynetwork
+    volumes:
+      - ./nginx.conf:/etc/nginx/nginx.conf
+      - ./dist/front_ui:/usr/share/nginx/front_ui
+      - ./dist/backend_ui:/usr/share/nginx/backend_ui
+      - ./dist/app_ui:/usr/share/nginx/app_ui
+      - ./mainapp/media:/usr/share/nginx/media
+networks:
+  yunhesmxkgpro_mynetwork:
+    external: true

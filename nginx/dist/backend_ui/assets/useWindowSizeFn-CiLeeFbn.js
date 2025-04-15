@@ -1,0 +1,1 @@
+import{av as a,ak as d,z as u}from"./entry/index-gwXb_KLU-1735894345864.js";function w(i,o={}){const{wait:s=150,immediate:r}=o;let e=()=>{i()};e=u(e,s);const n=()=>{r&&e(),window.addEventListener("resize",e)},t=()=>{window.removeEventListener("resize",e)};return a(()=>{n()}),d(()=>{t()}),{start:n,stop:t}}export{w as u};
