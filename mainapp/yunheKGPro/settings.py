@@ -136,10 +136,10 @@ DBPORT=default_db_config.get('PORT')
 DBPASSWORD=default_db_config.get('PASSWORD')
 
 
-NEO4J_URI=config.get('NEO4J_URI', "bolt://127.0.0.1:7687")
+NEO4J_URI=config.get('NEO4J_URI', "bolt://192.168.2.182:7687")
 NEO4J_USERNAME=config.get('NEO4J_USERNAME', "neo4j")
 NEO4J_PASSWORD=config.get('NEO4J_PASSWORD', "12345678")
-REDIS_URL=config.get('REDIS_URL', "redis://127.0.0.1:6379/0")
+REDIS_URL=config.get('REDIS_URL', "redis://192.168.2.182:6379/0")
 
 
 NEOMODEL_NEO4J_BOLT_URL = os.environ.get('NEO4J_URI', NEO4J_URI)
@@ -153,9 +153,9 @@ DB_PORT = os.environ.get('DB_PORT', DBPORT)
 DB_USER = os.environ.get('DB_USER', DBUSER)
 DB_PASSWORD = os.environ.get('DB_PASSWORD', DBPASSWORD)
 
-ES_HOST = os.environ.get('ES_HOST', "127.0.0.1")
+ES_HOST = os.environ.get('ES_HOST', "192.168.2.182")
 ES_PORT = os.environ.get('ES_PORT', "9200")
-ES_URL = os.environ.get('ES_URL', "http://127.0.0.1:9200")
+ES_URL = os.environ.get('ES_URL', "http://192.168.2.182:9200")
 ES_USER = os.environ.get('ES_USER', "elastic")
 ES_PWD = os.environ.get('ES_PWD', "elastic")
 

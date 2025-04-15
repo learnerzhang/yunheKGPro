@@ -20,7 +20,7 @@ logger = logging.getLogger('kgproj')
 
 idx_list = ['水位', '入库', '出库', '蓄量', "流量"]
 sknames = { '三门峡', '小浪底',  '陆浑', '故县', '河口村', '西霞院', '万家寨', '龙口'}
-swznames = { '花园口', '小花间',"潼关"}
+swznames = { '花园口', '小花间', "潼关", "古贤坝址"}
 othnames = { '24h水位', '古贤坝址'}
 
 
@@ -37,6 +37,7 @@ def process_complex_header(file_path):
     try:
         # 读取 Excel 文件，不指定表头
         df = pd.read_excel(file_path, header=None)
+        print("原始数据：\n", df.head())
         # 获取表头信息
         header_data = []
         cur = 0
@@ -151,6 +152,7 @@ def plot_save_html(ddfa_file_path, business_type=0, myDate=None):
     
     try:
         json_data = excel_to_json(ddfa_file_path)
+        print("JSON 数据：\n", ddfa_file_path)
         # print(file, "JSON 数据：\n", json_data)
         # print("JSON 数据：\n", ddfa_file_path)
         # print("="*100)
@@ -160,10 +162,15 @@ def plot_save_html(ddfa_file_path, business_type=0, myDate=None):
         date_list = []
         for record in json.loads(json_data):
             record_keys = list(record.keys())
-            new_record_keys = [ "".join(k.split("_")[:2]) for k in record_keys]
-            # print(record_keys)
+            # print("record_keys:", record_keys)
+            new_record_keys = ["".join(k.split("_")[:2]) for k in record_keys]
             # print(new_record_keys)
             # print(len(record_keys), len(new_record_keys))
+
+            # idx_list = ['水位', '入库', '出库', '蓄量', "流量"]
+            # sknames = { '三门峡', '小浪底',  '陆浑', '故县', '河口村', '西霞院', '万家寨', '龙口'}
+            # swznames = { '花园口', '小花间', "潼关"}
+            # othnames = { '24h水位', '古贤坝址'}
             for skname in sknames:
                 for idx in idx_list:
                     for key in record_keys:
@@ -206,7 +213,7 @@ def plot_save_html(ddfa_file_path, business_type=0, myDate=None):
             'load-error-handling': 'ignore',
             'javascript-delay': 1100,  # 延迟 1000 毫秒，根据需要调整
         }
-        
+        logger.warning(f"开始绘制水文站调度过程曲线{list(swMapData.keys())}")
         for sw in swznames:
             if sw not in swMapData:
                 continue
@@ -246,7 +253,7 @@ def plot_save_html(ddfa_file_path, business_type=0, myDate=None):
             line.render(html_filepath)
             imgkit.from_file(html_filepath, image_filepath, config=cfg, options=options)
         # print("开始绘制小浪底调度过程曲线", list(skMapData.keys()))
-        logger.debug(f"开始绘制小浪底调度过程曲线{list(skMapData.keys())}")
+        logger.warning(f"开始绘制水库调度过程曲线{list(skMapData.keys())}")
         for sk in sknames:
             if sk not in skMapData:
                 continue
@@ -441,7 +448,7 @@ def skddjy_new(filepath):
         if current_length > 0:
             min_length = min(min_length, current_length)
     keys = skMapData.keys()
-    print("keys:",keys)
+    logger.debug("keys:",keys)
     # 遍历 skMapData 的键
     for key in skMapData.keys():
         if key not in results:
