@@ -72,6 +72,7 @@ class YLHYuAnApiGet(mixins.ListModelMixin,
             bars = ApiAppResponseSerializer(data=data, many=False)
             bars.is_valid()
             return Response(bars.data, status=status.HTTP_200_OK)
+        logger.info(f"用户预案: {userYuAnPlan}" )
         # result = model_to_dict(userYuAnPlan, exclude=["plan", "nodes"])
         # result['nodeOutlineList'] = userYuAnPlan.nodeOutlineList
         # result['created_at'] = userYuAnPlan.created_at.strftime("%Y-%m-%d %H:%M:%S")

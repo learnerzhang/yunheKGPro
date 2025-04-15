@@ -16,7 +16,7 @@ import json
 import codecs
 
 from yaapp.base_data import BaseDataFactory
-from yaapp import generate_rainfall_report,get_rainfall_data_day,format_hydrometric_data,format_reservoir_data
+from yaapp import oauth_login,generate_rainfall_report,get_rainfall_data_day,format_hydrometric_data,format_reservoir_data
 # from mainapp.yaapp import generate_rainfall_report,get_rainfall_data_day,format_hydrometric_data,format_reservoir_data
 # from mainapp.yaapp.base_data import BaseDataFactory  #tests.py文件测试用
 
@@ -29,34 +29,34 @@ class YLHDataFactory(BaseDataFactory):
         """
             获取雨情数据
         """
-        status, data = get_rainfall_data_day()
-        report = generate_rainfall_report(data)
+        auth_token = oauth_login()
+        status, data = get_rainfall_data_day(auth_token=auth_token)
+        report = generate_rainfall_report(response_data=data)
+        print("降雨数据：", report)
         return {"yuqing": report}
 
     def getHedaoShuiQingData(self):
         """
             获取河道水情数据
         """
-        code, res = format_hydrometric_data()
-        print("HHZXY getHedaoShuiQingData")
-        print(res)
+        auth_token = oauth_login()
+        code, res = format_hydrometric_data(auth_token)
         return {"hdsq":res["hdsq"]}
 
     def getShuiKuShuiQingData(self):
         """
             获取水库水情数据
         """
-        print("HHZXY getShuiKuShuiQingData")
-        res = format_reservoir_data()
+        auth_token = oauth_login()
+        res = format_reservoir_data(auth_token)
         return {"sksq":res["sksq"]}
 
     def getGongQingXianQingData(self):
         """
             工情险情
         """
-        print("HHZXY getGongQingXianQingData")
         return {"xianqing": "调水调沙以来，黄河下游累计有39处工程123道坝出险214次，抢险用石5.08万方，耗资1723.27万元。其中：河南河段累计有30处工程107道坝出险197次，抢险用石4.09万方，耗资1354.85万元；山东段累计有9处工程17道坝出险18次，抢险用石0.99立方米，耗资377.81万元。",
-    "jyyb_desc": "7月24日至7月27日，伊洛河流域中游大部地区降小雨，其中伊河下游洛河部分地区大部降中到大雨、部分站暴雨，最大点雨量伊洛河古城站87毫米。",
+            "jyyb_desc": "7月24日至7月27日，伊洛河流域中游大部地区降小雨，其中伊河下游洛河部分地区大部降中到大雨、部分站暴雨，最大点雨量伊洛河古城站87毫米。",
     "jyyb_imgs":[
         {"url": "1.png", "desc": "7月27日，黄河上游大部有小雨，局部中到大雨；黄河中游大部小到中雨，其中山陕南部部分地区、泾渭洛河大部大到暴雨，局部大暴雨。"},
         {"url": "2.png", "desc": "7月28日，黄河中下游大部有中雨，其中山陕南部、泾渭洛河、伊洛河、金堤河部分地区有大雨，局部暴雨。"},
