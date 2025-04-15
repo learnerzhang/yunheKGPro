@@ -1,6 +1,6 @@
 import json
 from yaapp import yautils
-from yaapp import divHtml, gx_sk, hkc_sk, img2base64, lhbs_sk, paraHtml, smx_sjt_sk, xld_sk, generate_ddjy, process_outflow,bold_left_align,pd2HtmlCSS,excel_to_html_with_merged_cells
+from yaapp import divHtml, gx_sk, hkc_sk, img2base64, lhbs_sk, paraHtml, smx_sjt_sk, xld_sk, generate_ddjy, process_outflow,bold_left_align,pd2HtmlCSS,excel_to_html_with_merged_cells,generate_rainfall_report,get_rainfall_data_day,format_hydrometric_data,format_reservoir_data
 from yaapp.api_yuan import (huanghe_diaodu_plan_ctx, huanghe_diaodu_plan_dfjson, huanghe_hedaoshuiqing_generate_dfjson, huanghe_shuikushuiqing_generate_dfjson, huanghe_yuqing_generate,huanghe_hedaoshuiqing_generate,huanghe_shuikushuiqing_generate,huanghe_gongqing_generate,huanghe_jiangyu13_forecast,huanghe_fenqu_jiangyu_forecast,huanghe_jiangyu47_forecast,huanghe_flood_forecast,huanghe_diaodu_plan,huanghe_shuiku_diaodu_result,huanghe_tanqu_yanmo,huanghe_keneng_danger,huanghe_xiangying_level,xld_yushui_context,
                             engineer_safety_shuikuyj,engineer_safety_shuiwenyj,engineer_safety_gongchengjcyj,shuniuFangAn,xldJZStatus,xldholeStatus,JZHoleRecommend,YingjiResponse,OrganizeBaoZhang_leader,OrganizeBaoZhang_zhihuibu,company_duty,team_baozhang,fangxun_table,xld_diaodu_table,huanghe_fenqu_jiangyu_forecast_dfjson,huanghe_flood_forecast_json,engineer_safety_shuikuyj_json,engineer_safety_shuiwenyj_json,engineer_safety_gongchengjcyj_json,xldJZStatus_json,JZHoleRecommend_json,xldholeStatus_json,
                             OrganizeBaoZhang_leader_json,OrganizeBaoZhang_zhihuibu_json,company_duty_json,team_baozhang_json,fangxun_table_json,xld_diaodu_table_json,huanghe_fenqu_jiangyu_forecast_dfjson,generate_description_for_label,map_input_to_label, huanghe_gongqing_generate_html,huanghe_diaodu_plan_yuanze_ctx,huanghe_diaodu_plan_yuanze_html,huanghe_diaodu_plan_jianyi_ctx,huanghe_diaodu_plan_jianyi_html,shj_yushui_context,shj_shuikuxushui_generate_dfjson,shj_shuikuxushui_generate,
@@ -1358,11 +1358,16 @@ class PlanFactory:
         if self.context['type'] == 4:
             #ylh_yuqing = yiluohe_yuqing_generate(self.params)
             ylh_yuqing = self.params["yuqing"] if 'yuqing' in self.params else "暂无雨情数据"
+            # status, data = get_rainfall_data_day()
+            # ylh_yuqing = generate_rainfall_report(data)
             self.context['results']['yuqing'] = {
                 "value": ylh_yuqing,
                 "desc": "伊洛河区域雨情数据"
             }
-
+            # code, res = format_hydrometric_data()
+            # hdsq = res["hdsq"]
+            # res = format_reservoir_data()
+            # sksq = res["sksq"]
             hdsq = self.params['hdsq'] if self.params else []
             sksq = self.params['sksq'] if self.params else []
 

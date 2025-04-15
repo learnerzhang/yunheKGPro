@@ -9,6 +9,7 @@ import django
 import os
 os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'yunheKGPro.settings')
 django.setup()
+from yunheKGPro.settings import config
 #导入其他 app中的函数 或者模块之前需要提前设置os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'yunheKGPro.settings')
 
 from yaapp.api_yuan import query_question

@@ -113,21 +113,31 @@ scheduler.add_jobstore(DjangoJobStore(), "default")
 #                                        created_at=datetime.now())
 #     tmpDI.save()
 #     print('{} 任务运行成功！{}'.format(tmpDI, time.strftime("%Y-%m-%d %H:%M:%S")))
-
-
-@register_job(scheduler, "cron", day='*', hour="0", minute="0", id='buildJsonDataJob', replace_existing=True)
+from django.db import close_old_connections
+@register_job(scheduler, "cron", minute='*', id='buildJsonDataJob', replace_existing=True)
 def buildJsonDataJob():
     try:
-        # 调用目标函数
+        close_old_connections()  # 重置数据库连接
         YLHDataFactory(dataType=4).buildJsonData()
-        #SHJDataFactory(dataType=3).buildJsonData()
-        print('{} 任务运行成功！{}'.format("buildJsonDataJob", time.strftime("%Y-%m-%d %H:%M:%S")))
+        logger.info(f'任务运行成功！{time.strftime("%Y-%m-%d %H:%M:%S")}')
     except Exception as e:
-        print('{} 任务运行失败：{}'.format("buildJsonDataJob", str(e)))
+        logger.error(f'任务失败：{str(e)}')
+    finally:
+        close_old_connections()  # 确保连接关闭
+#每日凌晨运行
+# @register_job(scheduler, "cron", day='*', hour="0", minute="0", id='buildJsonDataJob', replace_existing=True)
+# def buildJsonDataJob():
+#     try:
+#         # 调用目标函数
+#         YLHDataFactory(dataType=4).buildJsonData()
+#         #SHJDataFactory(dataType=3).buildJsonData()
+#         print('{} 任务运行成功！{}'.format("buildJsonDataJob", time.strftime("%Y-%m-%d %H:%M:%S")))
+#     except Exception as e:
+#         print('{} 任务运行失败：{}'.format("buildJsonDataJob", str(e)))
 #每分钟执行一次
-@register_job(scheduler, "cron", minute='*', id='buildJsonDataJob_test', replace_existing=True)
-def buildJsonDataJob_test():
-    print("测试分钟及定时任务")
+# @register_job(scheduler, "cron", minute='*', id='buildJsonDataJob_test', replace_existing=True)
+# def buildJsonDataJob_test():
+#     print("测试分钟及定时任务")
     #logger.debug("测试分钟及定时任务")
     # try:
     #     # 调用目标函数
