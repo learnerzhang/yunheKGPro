@@ -5,7 +5,7 @@ services:
     container_name: base_elastic
     environment:
       - "discovery.type=single-node"
-      - "ES_JAVA_OPTS=-Xms512m -Xmx512m"
+      - "ES_JAVA_OPTS=-Xms1024m -Xmx1024m"
       - "xpack.security.enabled=true"
       - "ELASTIC_PASSWORD=elastic" # 设置 elastic 用户的密码
       - "KIBANA_SYSTEM_PASSWORD=elastic" # 设置 kibana_system 用户的密码
