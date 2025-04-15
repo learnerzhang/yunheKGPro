@@ -701,9 +701,10 @@ class PlanFactory:
             ddfa_excel = os.path.join("data", "yuan_data", "4", "ddfad", f"{yadate}.xlsx")
             # logger.debug(ddfa_excel)
             if not os.path.exists(ddfa_excel):
-                logger.warning("当天调度方案单不存在,采用默认调度方案单")
                 ddfa_excel = os.path.join("data", "yuan_data", "4", "ddfad", "default.xlsx")
-
+                logger.warning(f"当天调度方案单不存在,采用默认调度方案单 {ddfa_excel}")
+                yautils.plot_save_html(ddfa_excel, business_type=4, myDate=yadate)
+                logger.warning(f"{yadate}调度方案单绘制图片")
             # df = pd.read_excel(ddfa_excel)
             # ddfad = pd2HtmlCSS() + df.to_html(index=False, justify="center")
             html_table = excel_to_html_with_merged_cells(ddfa_excel)
@@ -735,7 +736,7 @@ class PlanFactory:
                 max_date = date_list[max_idx]
                 tmpimgpath = f"data/yuan_data/4/ddfadouts/{self.context['plan']['yadate']}/imgs/{skname}.png"
                 if not os.path.exists(tmpimgpath):
-                    logger.debug(f"调度过程曲线不存在：{tmpimgpath}")
+                    logger.warning(f"调度过程曲线不存在：{tmpimgpath}")
                     continue
                 tmp_ddgc_img = img2base64(tmpimgpath)
                 sk2image[skname] = tmp_ddgc_img
@@ -757,7 +758,7 @@ class PlanFactory:
                 max_date = date_list[max_idx]
                 tmpimgpath = f"data/yuan_data/4/ddfadouts/{self.context['plan']['yadate']}/imgs/{swname}.png"
                 if not os.path.exists(tmpimgpath):
-                    #logger.debug(f"调度过程曲线不存在：{tmpimgpath}")
+                    logger.warning(f"调度过程曲线不存在：{tmpimgpath}")
                     continue
                 sw2image[swname] = tmpimgpath
                 tmp_ddgc_img = img2base64(tmpimgpath)

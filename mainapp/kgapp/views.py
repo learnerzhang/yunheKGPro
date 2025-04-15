@@ -22,6 +22,9 @@ from rest_framework.authentication import BasicAuthentication
 import os
 import collections
 from dateutil import relativedelta
+import logging
+
+logger = logging.getLogger('kgproj')
 
 from rest_framework.parsers import (
     FormParser,
@@ -767,12 +770,6 @@ class DocBatchAddApiView(generics.GenericAPIView):
                 type=openapi.TYPE_INTEGER
             ),
             openapi.Parameter(
-                name='user_id',
-                in_=openapi.IN_FORM,
-                description='创建作者',
-                type=openapi.TYPE_INTEGER
-            ),
-            openapi.Parameter(
                 name='tagids',
                 in_=openapi.IN_FORM,
                 description='标签ID',
@@ -793,11 +790,10 @@ class DocBatchAddApiView(generics.GenericAPIView):
         desc = request.data.get("desc", None)
         star = request.data.get("star", 0)
         cid = request.data.get("cid", None)
-        user_id = request.data.get("user_id", None)
 
         tagidstr = request.data.get('tagids', None)
         tagids = [int(i) for i in str(tagidstr).split(",")] if tagidstr is not None and len(tagidstr) > 0 else []
-        print("batch add request.data", tagidstr, tagids)
+        logger.info(f"batch add request.data { request.data }")
 
         if cid is None:
             data['code'] = 201
@@ -808,35 +804,21 @@ class DocBatchAddApiView(generics.GenericAPIView):
         else:
             cnt = 0
             error = 0
-            try:
-                tmpuser = User.objects.get(id=user_id)
-            except:
-                data = {"code": 201, "msg": "用户ID不存在！！！"}
-                serializers = KgDocResponseSerializer(data=data, many=False)
-                serializers.is_valid()
-                return Response(serializers.data, status=status.HTTP_200_OK)
 
-            if tagids:
-                tmptags = KgTag.objects.filter(id__in=tagids).all()
-            else:
-                tmptags = []
-            print("tmptags", tmptags)
             tmpctc = KgTableContent.objects.get(id=cid)
             for i in range(filenum):
                 tmp = request.data.get(f"file{i}", None)
-                print("-->", i, tmp)
                 if tmp is None:
                     continue
-                print("-->", tmp)
                 filename = str(tmp)
                 filetype = filename.split(".")[-1]
                 new_filename = str(abs(hash(filename + str(time.time())))) + "." + filetype
                 local_dir = os.path.join("media", "docs")
                 if not os.path.exists(local_dir):
                     os.makedirs(local_dir)
-                    print("create", local_dir, "!!!")
+                    logger.info(f"create {local_dir} !!!")
                 else:
-                    print("subdir", local_dir, "exist!!!")
+                    logger.info(f"subdir {local_dir}  exist!!!")
                 new_path = os.path.join(local_dir, new_filename)
                 try:
                     f = open(new_path, "wb+")
@@ -855,11 +837,16 @@ class DocBatchAddApiView(generics.GenericAPIView):
                     tmpdoc.type = filetype
                     tmpdoc.star = star
                     tmpdoc.size = os.stat(new_path).st_size
-                    tmpdoc.kg_user_id = tmpuser
                     tmpdoc.desc = filename
                 if tmpdoc is None:
-                    tmpdoc = KgDoc.objects.create(title=filename, kg_table_content_id=tmpctc, desc=filename, path=filepath, type=filetype, star=star, size=os.stat(new_path).st_size, kg_user_id=tmpuser)   
+                    tmpdoc = KgDoc.objects.create(title=filename, kg_table_content_id=tmpctc, desc=filename, path=filepath, type=filetype, star=star, size=os.stat(new_path).st_size)   
 
+                if tagids:
+                    tmptags = KgTag.objects.filter(id__in=tagids).all()
+                else:
+                    tmptags = []
+                logger.info(f"tmptags {tmptags}")
+                logger.info(f"tmpdoc.tags {tmpdoc}")
                 for t in tmptags:
                     tmpdoc.tags.add(t)
                 tmpdoc.save()
@@ -987,12 +974,6 @@ class DocUpdateApiView(generics.GenericAPIView):
                 type=openapi.TYPE_INTEGER
             ),
             openapi.Parameter(
-                name='user_id',
-                in_=openapi.IN_FORM,
-                description='创建作者',
-                type=openapi.TYPE_INTEGER
-            ),
-            openapi.Parameter(
                 name='doc_id',
                 in_=openapi.IN_FORM,
                 description='文档',
@@ -1019,7 +1000,6 @@ class DocUpdateApiView(generics.GenericAPIView):
         star = request.data.get("star", None)
         prodflag = request.data.get("prodflag", None)
         ctt_id = request.data.get("ctt_id", None)
-        user_id = request.data.get("user_id", None)
         doc_id = request.data.get("doc_id", None)
         tagidstr = request.data.get('tagids', None)
         tagids = [int(i) for i in str(tagidstr).split(",")] if tagidstr is not None and len(tagidstr) > 0 else []
@@ -1028,13 +1008,6 @@ class DocUpdateApiView(generics.GenericAPIView):
             tmptags = KgTag.objects.filter(id__in=tagids).all()
         else:
             tmptags = []
-        try:
-            tmpuser = User.objects.get(id=user_id)
-        except:
-            data = {"code": 201, "msg": "用户ID不存在！！！"}
-            serializers = KgDocResponseSerializer(data=data, many=False)
-            serializers.is_valid()
-            return Response(serializers.data, status=status.HTTP_200_OK)
 
         if doc_id is None:
             data['code'] = 201
@@ -1091,7 +1064,6 @@ class DocUpdateApiView(generics.GenericAPIView):
                 if tmpctc:
                     tmpctc_size = len(KgTableContent.objects.all())
                     tmpctc.order_no = tmpctc_size
-                    tmpctc.kg_user_id = tmpuser
                     tmpctc.save()
                 tmpdoc.kg_table_content_id = tmpctc
             except:
@@ -1320,7 +1292,7 @@ class KgTagByTabList(mixins.ListModelMixin,
             openapi.Parameter('pageSize', openapi.IN_QUERY, type=openapi.TYPE_NUMBER),
         ],
         responses={
-            200: KgTagResponseSerializer(many=False),
+            200: KgAppResponseSerializer(many=False),
             400: "请求失败",
         },
         tags=['tag'])
@@ -1338,7 +1310,7 @@ class KgTagByTabList(mixins.ListModelMixin,
             try:
                 tabtag = KgTabTag.objects.get(id=tabtag_id)
             except:
-                serializers = KgTagResponseSerializer(data={"code": 201, "msg": "当前标签目录ID不存在"}, many=False)
+                serializers = KgAppResponseSerializer(data={"code": 201, "msg": "当前标签目录ID不存在"}, many=False)
                 serializers.is_valid()
                 return Response(serializers.data, status=status.HTTP_200_OK)
 
@@ -1379,10 +1351,8 @@ class KgTagByTabList(mixins.ListModelMixin,
             objs = paginator.page(1)
         except:
             objs = paginator.page(paginator.num_pages)
-        kds = KgTagSerializer(data=objs, many=True)
-        kds.is_valid()
-        data['data'] = kds.data
-        serializers = KgTagResponseSerializer(data=data, many=False)
+        data['data'] = [model_to_dict(obj) for obj in  objs]
+        serializers = KgAppResponseSerializer(data=data, many=False)
         serializers.is_valid()
         return Response(serializers.data, status=status.HTTP_200_OK)
 
