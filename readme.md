@@ -45,8 +45,9 @@ Docker 使用 overlay2 存储驱动程序来管理容器和镜像的存储。随
 
 ### 打包镜像
 
+    DOCKER_BUILDKIT=0 docker build .
+
     docker-compose up --build -d
-    
 
 ### 最后需要进入进行执行celery队列任务
 

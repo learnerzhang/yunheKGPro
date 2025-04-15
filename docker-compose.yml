@@ -28,12 +28,10 @@ services:
     networks:
       - mynetwork
     depends_on:
-      - mysql
+      - mysql9
       - redis
       - elasticsearch
       - neo4j
-
-  # MySQL 服务
   mysql9:
     image: container-registry.oracle.com/mysql/community-server:9.0
     container_name: mysql9
@@ -52,8 +50,6 @@ services:
     privileged: true
     networks:
       - mynetwork
-
-  # Redis 服务
   redis:
     image: redis:7.2-alpine
     container_name: base_redis
@@ -72,8 +68,6 @@ services:
       - ./run/redis_data:/data
     networks:
       - mynetwork
-
-  # Elasticsearch 服务
   elasticsearch:
     image: docker.elastic.co/elasticsearch/elasticsearch:7.17.2
     container_name: base_elastic
@@ -104,7 +98,6 @@ services:
       ELASTICSEARCH_PASSWORD: ${ES_PASSWORD}
     networks:
       - mynetwork
-  # Neo4j 服务
   neo4j:
     image: neo4j:latest
     container_name: base_neo4j
@@ -119,14 +112,6 @@ services:
       - ./run/neo4j_logs:/logs
     networks:
       - mynetwork
-
-volumes:
-  mysql_data:
-  mysql_logs:
-  redis_data:
-  es_data:
-  neo4j_data:
-  neo4j_logs:
 
 networks:
   mynetwork:

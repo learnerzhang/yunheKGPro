@@ -1,0 +1,9 @@
+# .dockerignore
+**/*.log
+**/node_modules
+**/dist
+**/*.bin
+**/.gitignore
+**/.git
+**/.vscode
+**/.idea
