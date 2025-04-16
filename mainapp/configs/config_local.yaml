@@ -1,12 +1,9 @@
 DATABASES:
   default:
     ENGINE: 'django.db.backends.mysql'
-    NAME: 'kgproj'
+    NAME: 'test_kgproj'
     USER: 'root'
-    PASSWORD: '123456'
-    # NAME: 'test_kgproj'
-    # USER: 'root'
-    # PASSWORD: 'root'
+    PASSWORD: 'root'
     HOST: '127.0.0.1'
     PORT: '3306'
 
@@ -17,34 +14,15 @@ ALLOWED_HOSTS:
 NEO4J_URI: 'bolt://localhost:7687'
 NEO4J_USERNAME: 'neo4j'
 NEO4J_PASSWORD: '12345678'
-SECRET_KEY: 'your_secret_key'
 
 REDIS_URL: 'redis://localhost:6379/0'
 SECRET_KEY: 'django-insecure-r&6c!_n9591qjq1&h6w4&!b%yk7l_%$dw2n8_k&++q#@0nh&vc'
-DEBUG: true
+
 
 USE_LOCAL_MODEL: false
-MODEL_PATH: "D:\\data\\models\\bge-large-zh"
+MODEL_PATH: "D:\\data\\models\\bge-large-zh-v1.5"
 DATA_UPLOAD_MAX_MEMORY_SIZE: 52428800
 FILE_UPLOAD_MAX_MEMORY_SIZE: 10485760
 TTF_PATH: arial.ttf
-WKING_PATH: "D:\\Program Files\\wkhtmltopdf\\bin\\wkhtmltoimage.exe"
+WKING_PATH: "D:\\software\\wkhtmltopdf\\bin\\wkhtmltoimage.exe"
 YUAN_TEMPLET_PATH: data/yuan_templet/yuan_v1.json
-ALLOWED_HOSTS:
-  - '*'
-
-# NEO4J_URI: 'bolt://localhost:7687'
-# NEO4J_USERNAME: 'neo4j'
-# NEO4J_PASSWORD: '12345678'
-
-# REDIS_URL: 'redis://localhost:6379/0'
-# SECRET_KEY: 'django-insecure-r&6c!_n9591qjq1&h6w4&!b%yk7l_%$dw2n8_k&++q#@0nh&vc'
-
-
-# USE_LOCAL_MODEL: false
-# MODEL_PATH: "D:\\data\\models\\bge-large-zh-v1.5"
-# DATA_UPLOAD_MAX_MEMORY_SIZE: 52428800
-# FILE_UPLOAD_MAX_MEMORY_SIZE: 10485760
-# TTF_PATH: arial.ttf
-# WKING_PATH: "D:\\software\\wkhtmltopdf\\bin\\wkhtmltoimage.exe"
-# YUAN_TEMPLET_PATH: data/yuan_templet/yuan_v1.json

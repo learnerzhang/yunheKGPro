@@ -703,8 +703,9 @@ class PlanFactory:
             if not os.path.exists(ddfa_excel):
                 ddfa_excel = os.path.join("data", "yuan_data", "4", "ddfad", "default.xlsx")
                 logger.warning(f"当天调度方案单不存在,采用默认调度方案单 {ddfa_excel}")
-                yautils.plot_save_html(ddfa_excel, business_type=4, myDate=yadate)
-                logger.warning(f"{yadate}调度方案单绘制图片")
+                if not os.path.exists(os.path.join("data", "yuan_data", "4", "ddfadouts", yadate)):
+                    yautils.plot_save_html(ddfa_excel, business_type=4, myDate=yadate)
+                    logger.warning(f"{yadate}调度方案单绘制图片")
             # df = pd.read_excel(ddfa_excel)
             # ddfad = pd2HtmlCSS() + df.to_html(index=False, justify="center")
             html_table = excel_to_html_with_merged_cells(ddfa_excel)
