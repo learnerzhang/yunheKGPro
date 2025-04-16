@@ -1,4 +1,22 @@
 version: '3.8'
+
+# 定义网络（优化为自定义子网，避免IP冲突）
+networks:
+  mynetwork:
+    driver: bridge
+    ipam:
+      driver: default
+      config:
+        - subnet: 172.22.0.0/24  # 修改为新的子网
+
+# 定义数据卷（持久化数据与宿主机解耦）
+volumes:
+  mysql_data:
+  redis_data:
+  es_data:
+  neo4j_data:
+
+# 定义服务
 services:
   base_nginx:
     image: nginx:latest

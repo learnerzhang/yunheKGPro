@@ -75,6 +75,11 @@ Docker 使用 overlay2 存储驱动程序来管理容器和镜像的存储。随
     
     docker builder prune
 
+docker-compose down -v  # 清理旧容器和卷
+
+docker-compose build --no-cache  # 强制重新构建镜像
+
+docker-compose up -d
 
 ### 启动服务
     
@@ -82,7 +87,15 @@ Docker 使用 overlay2 存储驱动程序来管理容器和镜像的存储。随
 
 ### 打包镜像
 
+<<<<<<< Updated upstream
     docker-compose up --build
+=======
+    DOCKER_BUILDKIT=0 docker build . -t yunheKGPro:latest
+
+    DOCKER_BUILDKIT=0 docker-compose build --no-cache  # 强制重新构建镜像
+
+    DOCKER_BUILDKIT=0 docker-compose up --build -d
+>>>>>>> Stashed changes
 
 ### 最后需要进入进行执行celery队列任务
 

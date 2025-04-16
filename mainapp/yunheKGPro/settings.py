@@ -129,12 +129,17 @@ else:
 # }
 #
 default_db_config = config['DATABASES']['default']
-DBHOST=default_db_config.get('HOST')
-DBNAME=default_db_config.get('NAME')
-DBUSER=default_db_config.get('USER')
-DBPORT=default_db_config.get('PORT')
-DBPASSWORD=default_db_config.get('PASSWORD')
+DB_HOST=default_db_config.get('HOST')
+DB_NAME=default_db_config.get('NAME')
+DB_USER=default_db_config.get('USER')
+DB_PORT=default_db_config.get('PORT')
+DB_PASSWORD=default_db_config.get('PASSWORD')
 
+# DB_HOST = os.environ.get('DB_HOST', DBHOST)
+# DB_NAME = os.environ.get('DB_NAME', DBNAME)
+# DB_PORT = os.environ.get('DB_PORT', DBPORT)
+# DB_USER = os.environ.get('DB_USER', DBUSER)
+# DB_PASSWORD = os.environ.get('DB_PASSWORD', DBPASSWORD)
 
 NEO4J_URI=config.get('NEO4J_URI', "bolt://127.0.0.1:7687")
 NEO4J_USERNAME=config.get('NEO4J_USERNAME', "neo4j")
@@ -147,11 +152,7 @@ NEOMODEL_USERNAME = os.environ.get('NEO4J_USERNAME', NEO4J_USERNAME)
 NEOMODEL_PASSWORD = os.environ.get('NEO4J_PASSWORD', NEO4J_PASSWORD)
 REDIS_URL = os.environ.get('REDIS_URL', REDIS_URL)
 
-DB_HOST = os.environ.get('DB_HOST', DBHOST)
-DB_NAME = os.environ.get('DB_NAME', DBNAME)
-DB_PORT = os.environ.get('DB_PORT', DBPORT)
-DB_USER = os.environ.get('DB_USER', DBUSER)
-DB_PASSWORD = os.environ.get('DB_PASSWORD', DBPASSWORD)
+
 
 ES_HOST = os.environ.get('ES_HOST', "127.0.0.1")
 ES_PORT = os.environ.get('ES_PORT', "9200")
@@ -173,6 +174,12 @@ DATABASES = {
         'PORT': DB_PORT,
     }
 }
+
+print('====>当前数据库为 %s <====' % DB_NAME)
+print('====>当前数据库用户名为 %s <====' % DB_USER)
+print('====>当前数据库密码为 %s <====' % DB_PASSWORD)
+print('====>当前数据库主机为 %s <====' % DB_HOST)
+print('====>当前数据库端口为 %s <====' % DB_PORT)
 
 ELASTICSEARCH_DSL = {
     'default': {

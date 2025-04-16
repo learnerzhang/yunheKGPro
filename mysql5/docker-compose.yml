@@ -6,14 +6,16 @@ services:
     environment:
       MYSQL_ROOT_PASSWORD: 20221qaz@WSX
       MYSQL_DATABASE: kgproj
-      MYSQL_USER: yh_user
+      MYSQL_USER: user
       MYSQL_PASSWORD: 20221qaz@WSX
+    tmpfs:  # 确保 /tmp 可写
+      - /tmp:rw,noexec,nosuid,uid=999,gid=999
     ports:
       - "3306:3306"
     volumes:
-      - ./my.cnf:/etc/my.cnf
-      - ./logs:/var/logs
-      - ./data:/var/lib/mysql
+      - /etc/mysql/my.cnf:/etc/my.cnf
+      - /var/mysql/logs:/var/logs:rw
+      - /var/mysql/data:/var/lib/mysql:rw
     restart: unless-stopped
     privileged: true
     networks:

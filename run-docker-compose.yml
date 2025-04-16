@@ -1,0 +1,118 @@
+version: '3.8'
+services:
+  kgproj:
+    container_name: kgproj
+    build: .
+    command: python manage.py runserver 0.0.0.0:8000
+    volumes:
+      - .:/app
+      - /dev/sda3/data:/data
+    ports:
+      - "8000:8000"
+    environment:
+      - DEBUG=0
+      - DB_HOST=mysql9
+      - DB_NAME=kgproj
+      - DB_USER=root
+      - DB_PORT=3306
+      - DB_PASSWORD=20221qaz@WSX
+      - NEO4J_URI=bolt://neo4j:7687
+      - NEO4J_USERNAME=neo4j
+      - NEO4J_PASSWORD=12345678
+      - REDIS_URL=redis://redis:6379
+      - ES_URL=http://elasticsearch:9200
+      - ES_PORT=9200
+      - ES_HOST=elasticsearch
+      - ES_USER=elastic
+      - ES_PWD=elastic
+    networks:
+      - mynetwork
+    depends_on:
+      - mysql9
+      - redis
+      - elasticsearch
+      - neo4j
+  mysql5:
+    image: mysql:5.7
+    container_name: mysql
+    environment:
+      MYSQL_ROOT_PASSWORD: 20221qaz@WSX
+      MYSQL_DATABASE: kgproj
+      MYSQL_USER: yh_user
+      MYSQL_PASSWORD: 20221qaz@WSX
+    ports:
+      - "3306:3306"
+    volumes:
+      - /etc/mysql/my.cnf:/etc/my.cnf
+      - /var/mysql/logs:/var/logs
+      - /var/mysql/data:/var/lib/mysql
+    restart: unless-stopped
+    privileged: true
+    networks:
+      - mynetwork
+  redis:
+    image: redis:7.2-alpine
+    container_name: base_redis
+    ports:
+      - "6379:6379"
+    command: >
+      redis-server 
+      --requirepass ${REDIS_PWD} 
+      --bind 0.0.0.0
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 2s
+      retries: 5
+    volumes:
+      - ./run/redis_data:/data
+    networks:
+      - mynetwork
+  elasticsearch:
+    image: docker.elastic.co/elasticsearch/elasticsearch:7.17.2
+    container_name: base_elastic
+    environment:
+      - "discovery.type=single-node"
+      - "ES_JAVA_OPTS=-Xms512m -Xmx512m"
+      - "xpack.security.enabled=true"
+      - "ELASTIC_PASSWORD=${ES_PASSWORD}"
+      - "KIBANA_SYSTEM_PASSWORD=${KIBANA_PASSWORD}"
+    volumes:
+      - ./run/es_data:/usr/share/elasticsearch/data:rw
+    ports:
+      - 9200:9200
+      - 9300:9300
+    networks:
+      - mynetwork
+  kibana:
+    image: docker.elastic.co/kibana/kibana:7.17.2
+    container_name: base_kibana
+    depends_on:
+      - elasticsearch
+    ports:
+      - 5601:5601
+    environment:
+      ELASTICSEARCH_HOSTS: http://elasticsearch:9200
+      ELASTICSEARCH_URL: http://elasticsearch:9200
+      ELASTICSEARCH_USERNAME: ${ES_USER}
+      ELASTICSEARCH_PASSWORD: ${ES_PASSWORD}
+    networks:
+      - mynetwork
+  neo4j:
+    image: neo4j:latest
+    container_name: base_neo4j
+    ports:
+      - "7474:7474"
+      - "7473:7473"
+      - "7687:7687"
+    environment:
+      NEO4J_AUTH: neo4j/${NEO4J_PWD}
+    volumes:
+      - ./run/neo4j_data:/data
+      - ./run/neo4j_logs:/logs
+    networks:
+      - mynetwork
+
+networks:
+  mynetwork:
+    driver: bridge
