@@ -767,7 +767,7 @@ class PlanFactory:
                 sw2image[swname] = tmp_ddgc_img
                 tmp_ddgc_img_desc = f"{swname}调度过程({date_list[0]}~{date_list[-1]})"
                 tmp_result = f"预计{max_date}，{swname}出现{max_ll}立方米每秒的洪峰流量\n"
-                hd_result = paraHtml(tmp_result) + divHtml(
+                hd_result += paraHtml(tmp_result) + divHtml(
                     "<img src='data:image/png;base64," + tmp_ddgc_img + "'  width='60%' >") + "\n" + paraHtml(
                     tmp_ddgc_img_desc) + "\n"
                 hd_ddjg.append({"img64": tmp_ddgc_img, "desc": tmp_result, "tmp_ddgc_img_desc": tmp_ddgc_img_desc})
@@ -1330,7 +1330,7 @@ class PlanFactory:
             ylh_yuqing = self.params["yuqing"]
             hdsq = huanghe_hedaoshuiqing_generate(self.params)
             sksq = huanghe_shuikushuiqing_generate(self.params)
-#            gqxq = huanghe_gongqing_generate_html(self.params)
+            #gqxq = huanghe_gongqing_generate_html(self.params)
             gqxq = self.params['xianqing']
             # 返回网页表格数据
             for n in self.node.wordParagraphs.all():
