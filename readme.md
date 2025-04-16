@@ -87,15 +87,12 @@ docker-compose up -d
 
 ### 打包镜像
 
-<<<<<<< Updated upstream
     docker-compose up --build
-=======
     DOCKER_BUILDKIT=0 docker build . -t yunheKGPro:latest
 
     DOCKER_BUILDKIT=0 docker-compose build --no-cache  # 强制重新构建镜像
 
     DOCKER_BUILDKIT=0 docker-compose up --build -d
->>>>>>> Stashed changes
 
 ### 最后需要进入进行执行celery队列任务
 
