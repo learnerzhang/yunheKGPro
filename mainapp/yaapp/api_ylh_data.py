@@ -19,7 +19,7 @@ from yaapp.base_data import BaseDataFactory
 from yaapp import oauth_login,generate_rainfall_report,get_rainfall_data_day,format_hydrometric_data,format_reservoir_data
 # from mainapp.yaapp import generate_rainfall_report,get_rainfall_data_day,format_hydrometric_data,format_reservoir_data
 # from mainapp.yaapp.base_data import BaseDataFactory  #tests.py文件测试用
-
+from yaapp.ylh_interface import generate_rainfall_map
 class YLHDataFactory(BaseDataFactory):
 
     def __init__(self, dataType=0):
@@ -58,13 +58,13 @@ class YLHDataFactory(BaseDataFactory):
         return {"xianqing": "调水调沙以来，黄河下游累计有39处工程123道坝出险214次，抢险用石5.08万方，耗资1723.27万元。其中：河南河段累计有30处工程107道坝出险197次，抢险用石4.09万方，耗资1354.85万元；山东段累计有9处工程17道坝出险18次，抢险用石0.99立方米，耗资377.81万元。",
             "jyyb_desc": "7月24日至7月27日，伊洛河流域中游大部地区降小雨，其中伊河下游洛河部分地区大部降中到大雨、部分站暴雨，最大点雨量伊洛河古城站87毫米。",
     "jyyb_imgs":[
-        {"url": "1.png", "desc": "7月27日，黄河上游大部有小雨，局部中到大雨；黄河中游大部小到中雨，其中山陕南部部分地区、泾渭洛河大部大到暴雨，局部大暴雨。"},
-        {"url": "2.png", "desc": "7月28日，黄河中下游大部有中雨，其中山陕南部、泾渭洛河、伊洛河、金堤河部分地区有大雨，局部暴雨。"},
-        {"url": "3.png", "desc": "7月29日，黄河中游大部有小到中雨，其中汾河、龙三干流部分地区大雨，三花区间大部大到暴雨；黄河下游大部有大到暴雨。"},
-        {"url": "4.png", "desc": "7月30日，黄河上游大部有小雨，局部中到大雨；黄河中游大部小到中雨，其中山陕南部部分地区、泾渭洛河大部大到暴雨，局部大暴雨。"},
-        {"url": "5.png", "desc": "7月31日，黄河中下游大部有中雨，其中山陕南部、泾渭洛河、伊洛河、金堤河部分地区有大雨，局部暴雨。"},
-        {"url": "6.png", "desc": "8月1日，黄河中游大部有小到中雨，其中汾河、龙三干流部分地区大雨，三花区间大部大到暴雨；黄河下游大部有大到暴雨。"},
-        {"url": "7.png", "desc": "8月2日，黄河中游大部有小到中雨，其中汾河、龙三干流部分地区大雨，三花区间大部大到暴雨；黄河下游大部有大到暴雨。"}
+        {"url": "1.png", "desc": ""},
+        {"url": "2.png", "desc": ""},
+        {"url": "3.png", "desc": ""},
+        {"url": "4.png", "desc": ""},
+        {"url": "5.png", "desc": ""},
+        {"url": "6.png", "desc": ""},
+        {"url": "7.png", "desc": ""}
     ],
     "ylhjyyb": [
     {"区域": "龙三干流", "0-24小时": "3-8", "24-48小时": "1-5", "48-72小时": "1-5"},

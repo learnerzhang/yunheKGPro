@@ -1401,13 +1401,11 @@ def oauth_login(
 
 
 
-def format_hydrometric_data(auth_token=None,station_code=None):
+def format_hydrometric_data_v1(auth_token=None,station_code=None):
     """
     获取并格式化水文站数据（仅返回YLH_HD列表中的站点）
-
     参数:
         station_code: 水文站代码 (可选)
-
     返回:
         (status_code, formatted_data) 元组
         formatted_data格式示例:
@@ -1425,7 +1423,7 @@ def format_hydrometric_data(auth_token=None,station_code=None):
     # 首先获取原始数据
     auth_token = auth_token#oauth_login()
     status_code, raw_data = get_hydrometric_station(auth_token=auth_token,station_code=station_code)
-    lyh_hd = ["卢氏", "长水", "宜阳", "白马寺", "黑石头","东湾", "陆军", "龙门镇", "花园口"]
+    lyh_hd = ["卢氏", "长水", "宜阳", "白马寺", "黑石关", "东湾", "陆军", "龙门镇", "花园口"]
     # 如果请求不成功，直接返回原始结果
     if status_code != 200:
         return status_code, raw_data
@@ -1443,7 +1441,6 @@ def format_hydrometric_data(auth_token=None,station_code=None):
                     yesterday_avg_flow = None
                     if dayrt_status == 200 and dayrt_data.get('data') and len(dayrt_data['data']) > 0:
                         yesterday_avg_flow = dayrt_data['data'][0]["flow"]
-
                     # 检查时间是否为当日8点
                     timestamp = station.get('date')
                     eight_am_flow = None
@@ -1452,12 +1449,75 @@ def format_hydrometric_data(auth_token=None,station_code=None):
                         now = datetime.now()
                         if dt.date() == now.date() and dt.hour == 8:  # 仅当日期为今日且时间为8点时记录流量
                             eight_am_flow = station.get('dstrvm')
-
                     # 构建格式化条目
                     formatted_entry = {
                         "站名": station.get('stnm', '未知站名'),
                         "当日8时流量(m³/s)": eight_am_flow,  # 非8点数据为None
                         "昨日日均流量": yesterday_avg_flow
+                    }
+                    formatted_data["hdsq"].append(formatted_entry)
+        return status_code, formatted_data
+
+    except Exception as e:
+        return 500, {"error": f"数据处理错误: {str(e)}"}
+
+
+def format_hydrometric_data(auth_token=None, station_code=None):
+    """
+    获取并格式化水文站数据（仅返回YLH_HD列表中的站点）
+    修改：只返回8点的流量数据，不包含日均流量
+
+    参数:
+        auth_token: 认证令牌
+        station_code: 水文站代码 (可选)
+    返回:
+        (status_code, formatted_data) 元组
+        formatted_data格式示例:
+        {
+            "hdsq": [
+                {
+                    "站名": "站名1",
+                    "流量(m³/s)": 100.5,  # 仅8点数据有值，否则为None
+                    "时间": "2023-01-01 08:00"  # 8点的完整日期时间
+                },
+                ...
+            ]
+        }
+    """
+    # 首先获取原始数据
+    auth_token = auth_token  # oauth_login()
+    status_code, raw_data = get_hydrometric_station(auth_token=auth_token, station_code=station_code)
+    lyh_hd = ["卢氏", "长水", "宜阳", "白马寺", "黑石关", "东湾", "陆军", "龙门镇", "花园口"]
+
+    # 如果请求不成功，直接返回原始结果
+    if status_code != 200:
+        return status_code, raw_data
+
+    # 初始化格式化后的数据
+    formatted_data = {"hdsq": []}
+
+    try:
+        # 处理数据
+        if 'data' in raw_data and isinstance(raw_data['data'], list):
+            for station in raw_data['data']:
+                # 只处理416开头的站点且在YLH_HD列表中的站点
+                if str(station.get('stcd', '')).startswith('416') and station.get('stnm') in lyh_hd:
+                    # 检查时间是否为8点（不考虑日期）
+                    timestamp = station.get('date')
+                    eight_am_flow = None
+                    time_str = None
+
+                    if timestamp:
+                        dt = datetime.fromtimestamp(timestamp / 1000)
+                        if dt.hour == 8:  # 仅当时间为8点时记录流量
+                            eight_am_flow = station.get('dstrvm')
+                            time_str = dt.strftime("%Y-%m-%d %H:%M")  # 格式化为"年-月-日 时:分"
+
+                    # 构建格式化条目
+                    formatted_entry = {
+                        "站名": station.get('stnm', '未知站名'),
+                        "流量(m³/s)": eight_am_flow,
+#                        "时间": time_str  # 8点的完整日期时间
                     }
                     formatted_data["hdsq"].append(formatted_entry)
 
@@ -1607,7 +1667,7 @@ def get_reservoir_kurong(auth_token,resname):
         return 500, {"error": f"请求异常: {str(e)}"}
     except ValueError as e:
         return 500, {"error": f"响应数据解析失败: {str(e)}"}
-def format_reservoir_data(auth_token):
+def format_reservoir_data_v1(auth_token):
     """
     获取并格式化水库数据（包含汛限水位信息）
 
@@ -1684,6 +1744,61 @@ def format_reservoir_data(auth_token):
         return {"sksq": []}
 
 
+def format_reservoir_data(auth_token):
+    """
+    获取并格式化水库数据（包含汛限水位信息）
+    修改：添加河名字段，简化返回字段
+
+    返回:
+        dict: 格式化后的水库数据，结构如下:
+        {
+            "sksq": [
+                {
+                    "河名": str,
+                    "水库名称": str,
+                    "水位（m）": float,
+                    "蓄量（亿m³）": float
+                },
+                ...
+            ]
+        }
+    """
+    status_code, raw_data = get_sk_data(auth_token=auth_token)
+    lyh_sk = ["陆浑", "故县"]
+    # 水库与河名对应关系
+    reservoir_to_river = {
+        "陆浑": "伊河",
+        "故县": "洛河"
+    }
+
+    formatted_data = {"sksq": []}
+    try:
+        if (
+                status_code == 200
+                and isinstance(raw_data, dict)
+                and "data" in raw_data
+                and isinstance(raw_data["data"], list)
+        ):
+            for reservoir in raw_data["data"]:
+                reservoir_name = reservoir.get("ennm", "未知水库")
+                if reservoir_name in lyh_sk:
+                    # 获取对应河名
+                    river_name = reservoir_to_river.get(reservoir_name, "")
+
+                    # 构建简化后的格式化条目
+                    formatted_entry = {
+                        "河名": river_name,
+                        "水库名称": reservoir_name,
+                        "水位（m）": round(float(reservoir.get("level", 0)), 2),
+                        "蓄量（亿m³）": round(float(reservoir.get("wq", 0)), 3)
+                    }
+                    formatted_data["sksq"].append(formatted_entry)
+        return formatted_data
+    except Exception as e:
+        print(f"数据格式化错误: {str(e)}")
+        return {"sksq": []}
+
+
 
 def get_hydrometric_dayrt_list(auth_token,hysta=None, start_date=None, end_date=None):
     """
@@ -1731,6 +1846,194 @@ def get_hydrometric_dayrt_list(auth_token,hysta=None, start_date=None, end_date=
         return 500, {"error": f"请求失败: {str(e)}"}
     except ValueError:
         return 500, {"error": "返回数据格式异常"}
+
+def get_rain_polygon_geojson(base_url: str, stdt: str, dt: str, prtime: int):
+    # ...（保持之前的参数和请求部分不变）...
+    endpoint = "/api/v1/ybrain/GetRainPolygonGeojson"
+    url = urljoin(base_url, endpoint)
+    params = {
+        "stdt": stdt,
+        "dt": dt,
+        "prtime": str(prtime)  # 确保参数为字符串
+    }
+
+    headers = {
+        "Accept": "application/json",
+        "Content-Type": "application/json"
+    }
+
+    try:
+        response = requests.get(
+            url,
+            params=params,
+            headers=headers,
+            timeout=(10, 30)
+        )
+
+        print(f"请求URL: {response.url}")
+        print(f"状态码: {response.status_code}")
+
+        response.raise_for_status()
+        content = response.text.strip()
+
+        # 调试：打印原始响应前200字符
+        print("原始响应片段:", content[:200])
+
+        # 修复步骤1：去除外层双引号（如果存在）
+        if content.startswith('"') and content.endswith('"'):
+            content = content[1:-1]
+
+        # 修复步骤2：处理转义字符
+        content = content.encode().decode('unicode_escape')
+
+        # 调试：打印处理后的前200字符
+        print("处理后片段:", content[:200])
+
+        # 解析JSON
+        json_data = json.loads(content)
+
+        # 验证数据结构
+        if not isinstance(json_data, dict) or "features" not in json_data:
+            return 500, {"error": "无效的GeoJSON格式", "data": json_data}
+
+        return response.status_code, json_data
+
+    except json.JSONDecodeError as e:
+        # 提供更多调试信息
+        error_position = e.pos
+        context = content[max(0, error_position - 20):error_position + 20]
+        return 500, {
+            "error": f"JSON解析错误: {str(e)}",
+            "position": error_position,
+            "context": context,
+            "full_response": content[:1000]  # 限制长度防止过大
+        }
+    except Exception as e:
+        return 500, {"error": f"处理失败: {str(e)}"}
+
+import requests
+import json
+from urllib.parse import urljoin
+from typing import Tuple, Dict, Any
+import geopandas as gpd
+from matplotlib.colors import Normalize
+from matplotlib.cm import ScalarMappable
+def get_china_geojson() -> gpd.GeoDataFrame:
+    """获取中国行政区划GeoJSON数据"""
+    try:
+        # 从本地文件或URL获取中国地图数据
+        # 这里使用一个公开的GeoJSON数据源（省级行政区划）
+        china_url = "https://geo.datav.aliyun.com/areas_v3/bound/100000_full.json"
+        response = requests.get(china_url, timeout=10)
+        response.raise_for_status()
+        china_geojson = response.json()
+        return gpd.GeoDataFrame.from_features(china_geojson["features"])
+    except Exception as e:
+        print(f"获取中国地图数据失败: {str(e)}")
+        # 如果在线获取失败，可以尝试从本地文件加载
+        try:
+            return gpd.read_file("data/geojson/china.geojson")  # 假设有本地文件
+        except:
+            raise Exception("无法加载中国地图数据")
+
+
+def plot_rainfall_data(geojson_data: Dict[str, Any], output_path: str = None) -> None:
+    """
+    可视化降雨多边形数据（带中国地图背景）
+    修改：将降雨数据颜色设置为绿色
+
+    参数:
+        geojson_data: GeoJSON格式的降雨数据
+        output_path: 图片保存路径 (可选)
+    """
+    try:
+        # 设置中文字体
+        plt.rcParams['font.sans-serif'] = ['SimHei', 'Microsoft YaHei', 'WenQuanYi Zen Hei', 'Noto Sans CJK SC']
+        plt.rcParams['axes.unicode_minus'] = False
+
+        # 获取中国地图数据
+        china_gdf = get_china_geojson()
+
+        # 转换降雨数据为GeoDataFrame
+        rain_gdf = gpd.GeoDataFrame.from_features(geojson_data["features"])
+
+        # 创建图形和坐标轴
+        fig, ax = plt.subplots(figsize=(14, 12))
+
+        # 先绘制中国地图背景
+        china_gdf.plot(
+            ax=ax,
+            color="lightgray",
+            edgecolor="black",
+            linewidth=0.5,
+            alpha=0.5
+        )
+
+        # 绘制降雨数据（如果有CONTOUR字段）
+        if "CONTOUR" in rain_gdf.columns:
+            # 计算颜色范围
+            vmin = rain_gdf["CONTOUR"].min()
+            vmax = rain_gdf["CONTOUR"].max()
+            norm = Normalize(vmin=vmin, vmax=vmax)
+
+            # 修改：使用绿色渐变颜色映射
+            cmap = plt.get_cmap("Greens")  # 将"Blues"改为"Greens"
+
+            # 绘制降雨多边形
+            rain_gdf.plot(
+                ax=ax,
+                column="CONTOUR",
+                cmap=cmap,
+                norm=norm,
+                alpha=0.7,
+                edgecolor="none",
+                legend=False
+            )
+
+            # 添加颜色条
+            sm = ScalarMappable(norm=norm, cmap=cmap)
+            sm.set_array([])
+            cbar = plt.colorbar(sm, ax=ax, shrink=0.6)
+            cbar.set_label("降雨量 (mm)")
+        else:
+            # 如果没有CONTOUR字段，使用统一颜色（改为绿色）
+            rain_gdf.plot(
+                ax=ax,
+                color="green",  # 将"blue"改为"green"
+                alpha=0.5
+            )
+
+        # 设置图形属性
+        # title = f"降雨分布图\n时间范围: {geojson_data.get('name', '未知')}"
+        # ax.set_title(title, fontsize=16, pad=20)
+        # ax.set_xlabel("经度", fontsize=12)
+        # ax.set_ylabel("纬度", fontsize=12)
+        # 删除x轴和y轴的标签和刻度
+        ax.set_xticks([])  # 删除x轴刻度
+        ax.set_yticks([])  # 删除y轴刻度
+        ax.set_xlabel("")  # 删除x轴标签
+        ax.set_ylabel("")  # 删除y轴标签
+        # 设置显示范围为中国大陆大致范围
+        ax.set_xlim(70, 140)
+        ax.set_ylim(15, 55)
+
+        # 添加网格
+        ax.grid(True, linestyle='--', alpha=0.5)
+
+        # 保存或显示
+        if output_path:
+            plt.savefig(output_path, dpi=300, bbox_inches='tight')
+            print(f"地图已保存到: {output_path}")
+
+        plt.tight_layout()
+        plt.show()
+
+    except ImportError:
+        print("可视化需要安装 geopandas 和 matplotlib")
+        print("请运行: pip install geopandas matplotlib")
+    except Exception as e:
+        print(f"可视化失败: {str(e)}")
+
 
 if __name__ == '__main__':
     import time

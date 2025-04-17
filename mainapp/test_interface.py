@@ -329,13 +329,11 @@ def oauth_login(
 
 
 
-def format_hydrometric_data(auth_token=None,station_code=None):
+def format_hydrometric_data_v1(auth_token=None,station_code=None):
     """
     获取并格式化水文站数据（仅返回YLH_HD列表中的站点）
-
     参数:
         station_code: 水文站代码 (可选)
-
     返回:
         (status_code, formatted_data) 元组
         formatted_data格式示例:
@@ -353,7 +351,7 @@ def format_hydrometric_data(auth_token=None,station_code=None):
     # 首先获取原始数据
     auth_token = auth_token#oauth_login()
     status_code, raw_data = get_hydrometric_station(auth_token=auth_token,station_code=station_code)
-    lyh_hd = ["卢氏", "长水", "宜阳", "白马寺", "黑石头","东湾", "陆军", "龙门镇", "花园口"]
+    lyh_hd = ["卢氏", "长水", "宜阳", "白马寺", "黑石关", "东湾", "陆军", "龙门镇", "花园口"]
     # 如果请求不成功，直接返回原始结果
     if status_code != 200:
         return status_code, raw_data
@@ -371,7 +369,6 @@ def format_hydrometric_data(auth_token=None,station_code=None):
                     yesterday_avg_flow = None
                     if dayrt_status == 200 and dayrt_data.get('data') and len(dayrt_data['data']) > 0:
                         yesterday_avg_flow = dayrt_data['data'][0]["flow"]
-
                     # 检查时间是否为当日8点
                     timestamp = station.get('date')
                     eight_am_flow = None
@@ -380,12 +377,75 @@ def format_hydrometric_data(auth_token=None,station_code=None):
                         now = datetime.now()
                         if dt.date() == now.date() and dt.hour == 8:  # 仅当日期为今日且时间为8点时记录流量
                             eight_am_flow = station.get('dstrvm')
-
                     # 构建格式化条目
                     formatted_entry = {
                         "站名": station.get('stnm', '未知站名'),
                         "当日8时流量(m³/s)": eight_am_flow,  # 非8点数据为None
                         "昨日日均流量": yesterday_avg_flow
+                    }
+                    formatted_data["hdsq"].append(formatted_entry)
+        return status_code, formatted_data
+
+    except Exception as e:
+        return 500, {"error": f"数据处理错误: {str(e)}"}
+
+
+def format_hydrometric_data(auth_token=None, station_code=None):
+    """
+    获取并格式化水文站数据（仅返回YLH_HD列表中的站点）
+    修改：只返回8点的流量数据，不包含日均流量
+
+    参数:
+        auth_token: 认证令牌
+        station_code: 水文站代码 (可选)
+    返回:
+        (status_code, formatted_data) 元组
+        formatted_data格式示例:
+        {
+            "hdsq": [
+                {
+                    "站名": "站名1",
+                    "流量(m³/s)": 100.5,  # 仅8点数据有值，否则为None
+                    "时间": "2023-01-01 08:00"  # 8点的完整日期时间
+                },
+                ...
+            ]
+        }
+    """
+    # 首先获取原始数据
+    auth_token = auth_token  # oauth_login()
+    status_code, raw_data = get_hydrometric_station(auth_token=auth_token, station_code=station_code)
+    lyh_hd = ["卢氏", "长水", "宜阳", "白马寺", "黑石关", "东湾", "陆军", "龙门镇", "花园口"]
+
+    # 如果请求不成功，直接返回原始结果
+    if status_code != 200:
+        return status_code, raw_data
+
+    # 初始化格式化后的数据
+    formatted_data = {"hdsq": []}
+
+    try:
+        # 处理数据
+        if 'data' in raw_data and isinstance(raw_data['data'], list):
+            for station in raw_data['data']:
+                # 只处理416开头的站点且在YLH_HD列表中的站点
+                if str(station.get('stcd', '')).startswith('416') and station.get('stnm') in lyh_hd:
+                    # 检查时间是否为8点（不考虑日期）
+                    timestamp = station.get('date')
+                    eight_am_flow = None
+                    time_str = None
+
+                    if timestamp:
+                        dt = datetime.fromtimestamp(timestamp / 1000)
+                        if dt.hour == 8:  # 仅当时间为8点时记录流量
+                            eight_am_flow = station.get('dstrvm')
+                            time_str = dt.strftime("%Y-%m-%d %H:%M")  # 格式化为"年-月-日 时:分"
+
+                    # 构建格式化条目
+                    formatted_entry = {
+                        "站名": station.get('stnm', '未知站名'),
+                        "流量(m³/s)": eight_am_flow,
+#                        "时间": time_str  # 8点的完整日期时间
                     }
                     formatted_data["hdsq"].append(formatted_entry)
 
@@ -535,7 +595,8 @@ def get_reservoir_kurong(auth_token,resname):
         return 500, {"error": f"请求异常: {str(e)}"}
     except ValueError as e:
         return 500, {"error": f"响应数据解析失败: {str(e)}"}
-def format_reservoir_data(auth_token):
+
+def format_reservoir_data_v1(auth_token):
     """
     获取并格式化水库数据（包含汛限水位信息）
 
@@ -612,6 +673,59 @@ def format_reservoir_data(auth_token):
         return {"sksq": []}
 
 
+def format_reservoir_data(auth_token):
+    """
+    获取并格式化水库数据（包含汛限水位信息）
+    修改：添加河名字段，简化返回字段
+
+    返回:
+        dict: 格式化后的水库数据，结构如下:
+        {
+            "sksq": [
+                {
+                    "河名": str,
+                    "水库名称": str,
+                    "水位（m）": float,
+                    "蓄量（亿m³）": float
+                },
+                ...
+            ]
+        }
+    """
+    status_code, raw_data = get_sk_data(auth_token=auth_token)
+    lyh_sk = ["陆浑", "故县"]
+    # 水库与河名对应关系
+    reservoir_to_river = {
+        "陆浑": "伊河",
+        "故县": "洛河"
+    }
+
+    formatted_data = {"sksq": []}
+    try:
+        if (
+                status_code == 200
+                and isinstance(raw_data, dict)
+                and "data" in raw_data
+                and isinstance(raw_data["data"], list)
+        ):
+            for reservoir in raw_data["data"]:
+                reservoir_name = reservoir.get("ennm", "未知水库")
+                if reservoir_name in lyh_sk:
+                    # 获取对应河名
+                    river_name = reservoir_to_river.get(reservoir_name, "")
+
+                    # 构建简化后的格式化条目
+                    formatted_entry = {
+                        "河名": river_name,
+                        "水库名称": reservoir_name,
+                        "水位（m）": round(float(reservoir.get("level", 0)), 2),
+                        "蓄量（亿m³）": round(float(reservoir.get("wq", 0)), 3)
+                    }
+                    formatted_data["sksq"].append(formatted_entry)
+        return formatted_data
+    except Exception as e:
+        print(f"数据格式化错误: {str(e)}")
+        return {"sksq": []}
 
 def get_hydrometric_dayrt_list(auth_token,hysta=None, start_date=None, end_date=None):
     """
@@ -811,35 +925,36 @@ if __name__ == "__main__":
     #     print(f"请求失败 (状态码 {status}): {data}")
     #
 
-    # auth_token = oauth_login()
+    auth_token = oauth_login()
     # status, data = get_rainfall_data_day(auth_token=auth_token)
     # res = generate_rainfall_report(response_data=data)
     # print("降雨报告：",res)
     # data = get_hydrometric_station(auth_token=auth_token)
     # print("河道实时水情:",data)
     # code, res = format_hydrometric_data(auth_token=auth_token)
-    # print("河道站实时水情格式化:",res)
-    #
+
+
+    # #
     # code,res = get_reservoir_kurong(auth_token=auth_token,resname="BDA00000121")
     # print("res:",res)
-    # code , res = get_sk_data(auth_token)
-    # print("水库数据：",res)
-    #
-    # res = format_reservoir_data(auth_token=auth_token)
-    # print("水库数据格式化：",res)
+    code , res = get_sk_data(auth_token)
+    print("水库数据：",res)
+
+    res = format_reservoir_data(auth_token=auth_token)
+    print("水库数据格式化：",res)
 
     # 示例1：全部使用默认参数（STDT=现在，DT=明天此时，PRTIME=24）
-    BASE_URL = "http://10.4.158.35:8093"  # 替换为实际API地址
-    START_TIME = "2021100308"  # 开始时间
-    END_TIME = "2021100408"  # 结束时间
-    TIME_SPAN = 24  # 时间跨度(小时)
-    OUTPUT_PATH = "rainfall_polygon.png"  # 输出图片路径
-
-    # 执行
-    fetch_and_plot_rainfall(
-        base_url=BASE_URL,
-        stdt=START_TIME,
-        dt=END_TIME,
-        prtime=TIME_SPAN,
-        output_path=OUTPUT_PATH
-    )
+    # BASE_URL = "http://10.4.158.35:8093"  # 替换为实际API地址
+    # START_TIME = "2021100308"  # 开始时间
+    # END_TIME = "2021100408"  # 结束时间
+    # TIME_SPAN = 24  # 时间跨度(小时)
+    # OUTPUT_PATH = "rainfall_polygon.png"  # 输出图片路径
+    #
+    # # 执行
+    # fetch_and_plot_rainfall(
+    #     base_url=BASE_URL,
+    #     stdt=START_TIME,
+    #     dt=END_TIME,
+    #     prtime=TIME_SPAN,
+    #     output_path=OUTPUT_PATH
+    # )

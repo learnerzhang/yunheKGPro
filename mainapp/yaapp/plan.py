@@ -707,6 +707,7 @@ class PlanFactory:
                 logger.info(f"{yadate}调度方案单绘制图片")
             else:
                 logger.info(f"{yadate}调度方案单已存在")
+
             # df = pd.read_excel(ddfa_excel)
             # ddfad = pd2HtmlCSS() + df.to_html(index=False, justify="center")
             html_table = excel_to_html_with_merged_cells(ddfa_excel)

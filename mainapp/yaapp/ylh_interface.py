@@ -232,27 +232,3 @@ def generate_rainfall_map(start_date: str, end_date: str, time_span: int, sequen
             print(f"错误上下文: {data.get('context')}")
             print(f"响应片段: {data.get('full_response')}")
         return False, None
-
-if __name__ == "__main__":
-    BASE_URL = "http://10.4.158.35:8093"
-    START_DATE = "2024071008"
-    END_DATE = "2024071108"
-    TIME_SPAN = 24#24
-    generate_rainfall_map("2024071008", "2024071108", 24, sequence_num=1)
-    # status, data = get_rain_polygon_geojson(BASE_URL, START_DATE, END_DATE, TIME_SPAN)
-    #
-    # if status == 200:
-    #     print("成功获取数据！")
-    #     print(f"包含 {len(data['features'])} 个特征")
-    #
-    #     # 可视化
-    #     plot_rainfall_data(data, "rainfall_map_with_china_green_copy.png")  # 修改输出文件名以反映绿色主题
-    # else:
-    #     print(f"失败 (状态码 {status}): {data}")
-    #
-    #     # 如果是JSON解析错误，输出更多细节
-    #     if "JSON" in str(data.get("error", "")):
-    #         print("\n调试信息：")
-    #         print(f"错误位置: {data.get('position')}")
-    #         print(f"错误上下文: {data.get('context')}")
-    #         print(f"响应片段: {data.get('full_response')}")
