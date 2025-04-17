@@ -1276,6 +1276,12 @@ class PlanFactory:
     def get_aqjc_api(self):
         if self.context['type'] == 4:
             self.yjdj_api()
+
+            ryzq = self.params['ryzyfa'] if 'ryzyfa' in self.params else []
+            self.context['results']['renyuanzhuanyi'] = {
+                "ryzq": ryzq,
+                "desc": "人员转移方案"
+            }
             zzbz = "故县水库行政责任人:洛阳市委常委，常务副市长\n职责:负贵故县水库大坝安全然管领导责任，统 指泽故县水车防讯抗早、拍险救灾工作，协调指导解决故县水库大规安全管理的重大问题，组织面大实发事件和安全事故的应急处置，负责放县水库应食拾险和于安救护工作，督促水库主管部门责任人、技术责任人、巡查责任人履行工作职责,"
             dwbz = "陆浑水库汛期常设防汛巡逻队和水库处职工一起，主要负责险情巡查报告工作，并协助水库应急抢险专家组，做好抢险技术指导工作。\n\t人民解放军洛阳驻军部队是水库应急抢险的主力军嵩具和伊川人武部地方基干民兵是水库应急抢险的骨干和后备军，主要负责水库防汛抢险工作，同时也要协助地方政府做好下游危险区域人员和财产的应急转移安置工作及转移后的警戒工作。\n\t陆浑水库的防汛抢险实行军民联防制，以部队为主力，地方基干民兵为骨干，在陆浑水库防汛指挥部的统一领导下和水库职工一起，同心同德、众志成城，确保水库安全度汛。拟定部队官兵300名，嵩县民兵1200人，伊川县抢险后备队1000人，共计2500人，参加防汛抢险人员于每年6月10日完成编队造册，做到官民官兵相识，并报到陆浑水库防汛指挥部办公室，随时听调。防汛抢险人员调动安排由水库防指统一指挥。"
             wzbz = self.params["goodsTable"] if 'goodsTable' in self.params else []
@@ -1300,10 +1306,14 @@ class PlanFactory:
             self.context['results']['yingjibaozhang'] = {
                 "value": {
                     'zzbz': zzbz,
+                    'zzbzTable': self.params["zzbzTable"] if 'zzbzTable' in self.params else [],
                     'dwbz': dwbz,
+                    'dwbzTable': self.params["dwbzTable"] if 'dwbzTable' in self.params else [],
                     'wzbz': wzbz,
                     'jsbz': jsbz,
+                    'jsbzTable': self.params["jsbzTable"] if 'jsbzTable' in self.params else [],
                     'txbz': txbz,
+                    'txbzTable': self.params["txbzTable"] if 'txbzTable' in self.params else [],
                     'zmyjbz': zmyjbz,
                     'aqbz': aqbz,
                     'wsbz': wsbz,
