@@ -670,7 +670,7 @@ class RagSingleNodePlan(generics.GenericAPIView):
         # 制作预案工厂类
         pf = PlanFactory(context=ctx, node=node)
         # 生成对应描述
-        pf.make_context()
+        pf.make_context_by_rag()
         data = {"code": 200, "data": model_to_dict(node, exclude=['parent', 'wordParagraphs']), "msg": "生成成功！"}
         serializers = YuAnAppResponseSerializer(data=data, many=False)
         serializers.is_valid()

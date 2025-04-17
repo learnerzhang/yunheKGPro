@@ -131,7 +131,13 @@ def excel_to_dict(ddfa_file_path):
             elif '月.日' in record_keys:
                 date_list.append(record['月.日'])
         
-        return skMapData, swMapData, date_list
+        def custom_time_parser(s):
+            dt = pd.to_datetime(s)
+            # 若分钟≥59，强制进位到下一小时（需根据实际场景调整）
+            if dt.minute >= 59:
+                dt = dt + pd.Timedelta(hours=1)
+            return str(dt.replace(minute=0, second=0, microsecond=0))
+        return skMapData, swMapData, [custom_time_parser(date) for date in date_list if date is not None]
     except Exception as e:
         return None
     

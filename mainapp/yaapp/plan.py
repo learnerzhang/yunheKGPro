@@ -20,10 +20,12 @@ class PlanFactory:
         self.node = node
         # 搜集生成预案所需要的参数！！！
         self.param_path = self.context.get("param_path", "")
+        logger.info("param_path: %s"%self.param_path)
         try:
             with open(self.param_path, 'r', encoding='utf-8') as f:
                 self.params = json.load(f)
         except Exception as e:
+            logger.error(f"读取参数文件失败: {e}")
             self.params = {}
 
         self.yadate = self.context['yadate']
@@ -1458,13 +1460,16 @@ class PlanFactory:
                 }
             }
 #            gqxq = huanghe_gongqing_generate_html(self.params)
-            gqxq = self.params['xianqing']
+            gqxq = self.params['xianqing'] if 'xianqing' in self.params else '暂无数据'
             self.context['results']['xianqing'] = {
                 "value": gqxq,
                 "desc": "伊洛河区域险情描述"
             }
 
 
+    def make_context_by_rag(self,):
+        # logger.debug("make_context:", self.context, self.params)
+        pass
     def make_context(self,):
         # logger.debug("make_context:", self.context, self.params)
         label = self.node.label
