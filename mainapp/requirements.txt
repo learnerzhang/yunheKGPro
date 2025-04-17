@@ -168,4 +168,3 @@ whitenoise==6.8.2
 yarl==1.16.0
 future==1.0.0
 faiss-cpu
-yaml
