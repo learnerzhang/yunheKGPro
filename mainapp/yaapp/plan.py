@@ -25,6 +25,22 @@ class PlanFactory:
                 self.params = json.load(f)
         except Exception as e:
             self.params = {}
+
+        self.yadate = self.context['yadate']
+        self.yatype = self.context['type']
+        self.ddfa_excel = os.path.join("data", "yuan_data", f"{self.yatype}", "ddfad", f"{self.yadate}.xlsx")
+        # logger.debug(ddfa_excel)
+        if not os.path.exists(self.ddfa_excel):
+            self.ddfa_excel = os.path.join("data", "yuan_data", "4", "ddfad", "default.xlsx")
+            logger.info(f"当天调度方案单不存在,采用默认调度方案单 {self.ddfa_excel}")
+        else:
+            logger.info(f"存在{self.ddfa_excel}调度方案单")
+        self.skMapData, self.swMapData, self.date_list = yautils.excel_to_dict(self.ddfa_excel)
+        logger.info("水库站点数据： %s "% self.skMapData.keys())
+        logger.info("水文站点数据： %s "% self.swMapData.keys())
+        logger.info("日期列表数量： %s "% len(self.date_list))
+        logger.info("FC DONE!")
+
     def get_ysq(self):
         if self.context['type'] == 0:
             # 黄河中下游的河道水情
@@ -1201,20 +1217,65 @@ class PlanFactory:
             self.node.wordParagraphs.add(wp)
         return bold_left_align("预警分级响应") + str(yjdj)+"级预警"+bold_left_align("应对措施") + ydcs +bold_left_align("应急保障") +bold_left_align("组织保障")+zzbz+bold_left_align("队伍保障")+dwbz+bold_left_align("物资保障")+fxwz+bold_left_align("技术保障")+jsbz+bold_left_align("通信保障")+txbz+bold_left_align("照明应急保障")+zmyjbz+bold_left_align("安全保障")+aqbz+bold_left_align("卫生保障")+wsbz+bold_left_align("其他保障")+qtbz+bold_left_align("宣传和卫生演练")+xcyy
     
+
+    def yjdj_api(self):
+        yjdj = yujingdengji()["level"]  # "黄色预警"
+
+        
+        hdsq = self.params["hdsq"] if "hdsq" in self.params else []
+        sksq = self.params["sksq"] if "sksq" in self.params else []
+        sk2RealData = {ent['水库名称']: ent for ent in sksq}
+        sw2RealData = {ent['站名']: ent for ent in hdsq}
+        tmpskdesc = {}
+        tmpswdesc = {}
+        for sk, skData in self.skMapData.items():
+            max_index = skData['水位'].index(max(skData['水位']))
+            max_data = skData['水位'][max_index]
+            max_time = self.date_list[max_index]
+            tmpskdesc[sk] = {
+                'sw': sk2RealData[sk]['水位（m）'],
+                'max_sw': max_data,
+                'max_time': max_time,
+            } if sk in sk2RealData else {}
+        for sw, swData in self.swMapData.items():
+            max_index = swData.index(max(swData))
+            max_data = swData[max_index]
+            max_time = self.date_list[max_index]
+            tmpswdesc[sw] = {
+                'll': sw2RealData[sw]['流量(m³/s)'],
+                'max_ll': max_data,
+                'max_time': max_time,
+            } if sw in sw2RealData else {}
+
+        def dateformat(date_str):
+            # 将字符串解析为datetime对象
+            date_obj = datetime.strptime(date_str, "%Y-%m-%d %H:%M:%S")
+            # 格式化为月日格式
+            new_date_str = date_obj.strftime("%m月%d日")
+            return new_date_str
+
+        yjdj =  f"陆浑水库当前水位({round(tmpskdesc['陆浑']['sw'], 2)}米，预计在{dateformat(tmpskdesc['陆浑']['max_time'])}达到最高水位{round(tmpskdesc['陆浑']['max_sw'], 2)}米，"\
+                f"故县水库当前水位{tmpskdesc['故县']['sw']}米，预计在{dateformat(tmpskdesc['故县']['max_time'])}日达到最高水位{round(tmpskdesc['故县']['max_sw'], 2)}米。"\
+                f"龙门镇水文站当前流量{round(tmpswdesc['龙门镇']['ll'], 2) if 'll' in tmpswdesc['龙门镇'] and tmpswdesc['龙门镇']['ll'] else '-' }m3/s，预计{dateformat(tmpswdesc['龙门镇']['max_time']) if 'max_time' in tmpswdesc['龙门镇'] else '-'}达到最大流量{round(tmpswdesc['龙门镇']['max_ll'] ) if 'max_ll' in tmpswdesc['龙门镇'] else '-'}m3/s,"\
+                f"白马寺水文站当前流量{round(tmpswdesc['白马寺']['ll']) if 'll' in tmpswdesc['白马寺'] else '-'}m3/s、预计在{dateformat(tmpswdesc['白马寺']['max_time']) if 'max_time' in tmpswdesc['白马寺'] else '-'}达到{round(tmpswdesc['白马寺']['max_ll'], 2) if 'max_ll' in tmpswdesc['白马寺'] else '-'}m3/s,"\
+                f"建议按照《黄河防汛抗旱应急预案（试行）》启动Ⅰ级应急响；按照《陆浑水库2024年防汛抢险应急预案》启动Ⅲ级应急响应；按照《故县水库应急抢险预案》启动Ⅲ级应急响应、《故县水库卢氏库区汛期高水位运用应急预案》启动Ⅰ级应急响应."
+
+        self.context['results']['yuyingfenji'] = {
+            "value": yjdj,
+            "desc": "预警分级响应"
+        }
+        ydcs = yujingdengji(lh_sw=tmpskdesc['陆浑']['max_sw'], 
+                            gx_sw=tmpskdesc['故县']['max_sw'],
+                            lm_ll=tmpswdesc['龙门镇']['max_ll'],
+                            act_flag=True, lev='Ⅰ'
+                            )["result"]
+        self.context['results']['yingducuoshi'] = {
+            "value": ydcs,
+            "desc": "应对措施"
+        }
     def get_aqjc_api(self):
         if self.context['type'] == 4:
-            yjdj = yujingdengji()["level"]  # "黄色预警"
-            ydcs = yujingdengji()["result"]
-
-            self.context['results']['yuyingfenji'] = {
-                "value": yjdj,
-                "desc": "预警分级响应"
-            }
-
-            self.context['results']['yingducuoshi'] = {
-                "value": ydcs,
-                "desc": "应对措施"
-            }
+            self.yjdj_api()
             zzbz = "故县水库行政责任人:洛阳市委常委，常务副市长\n职责:负贵故县水库大坝安全然管领导责任，统 指泽故县水车防讯抗早、拍险救灾工作，协调指导解决故县水库大规安全管理的重大问题，组织面大实发事件和安全事故的应急处置，负责放县水库应食拾险和于安救护工作，督促水库主管部门责任人、技术责任人、巡查责任人履行工作职责,"
             dwbz = "陆浑水库汛期常设防汛巡逻队和水库处职工一起，主要负责险情巡查报告工作，并协助水库应急抢险专家组，做好抢险技术指导工作。\n\t人民解放军洛阳驻军部队是水库应急抢险的主力军嵩具和伊川人武部地方基干民兵是水库应急抢险的骨干和后备军，主要负责水库防汛抢险工作，同时也要协助地方政府做好下游危险区域人员和财产的应急转移安置工作及转移后的警戒工作。\n\t陆浑水库的防汛抢险实行军民联防制，以部队为主力，地方基干民兵为骨干，在陆浑水库防汛指挥部的统一领导下和水库职工一起，同心同德、众志成城，确保水库安全度汛。拟定部队官兵300名，嵩县民兵1200人，伊川县抢险后备队1000人，共计2500人，参加防汛抢险人员于每年6月10日完成编队造册，做到官民官兵相识，并报到陆浑水库防汛指挥部办公室，随时听调。防汛抢险人员调动安排由水库防指统一指挥。"
             wzbz = self.params["goodsTable"] if 'goodsTable' in self.params else []
