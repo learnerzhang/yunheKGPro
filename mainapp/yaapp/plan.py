@@ -20,11 +20,29 @@ class PlanFactory:
         self.node = node
         # 搜集生成预案所需要的参数！！！
         self.param_path = self.context.get("param_path", "")
+        logger.info("param_path: %s"%self.param_path)
         try:
             with open(self.param_path, 'r', encoding='utf-8') as f:
                 self.params = json.load(f)
         except Exception as e:
+            logger.error(f"读取参数文件失败: {e}")
             self.params = {}
+
+        self.yadate = self.context['yadate']
+        self.yatype = self.context['type']
+        self.ddfa_excel = os.path.join("data", "yuan_data", f"{self.yatype}", "ddfad", f"{self.yadate}.xlsx")
+        # logger.debug(ddfa_excel)
+        if not os.path.exists(self.ddfa_excel):
+            self.ddfa_excel = os.path.join("data", "yuan_data", "4", "ddfad", "default.xlsx")
+            logger.info(f"当天调度方案单不存在,采用默认调度方案单 {self.ddfa_excel}")
+        else:
+            logger.info(f"存在{self.ddfa_excel}调度方案单")
+        self.skMapData, self.swMapData, self.date_list = yautils.excel_to_dict(self.ddfa_excel)
+        logger.info("水库站点数据： %s "% self.skMapData.keys())
+        logger.info("水文站点数据： %s "% self.swMapData.keys())
+        logger.info("日期列表数量： %s "% len(self.date_list))
+        logger.info("FC DONE!")
+
     def get_ysq(self):
         if self.context['type'] == 0:
             # 黄河中下游的河道水情
@@ -767,7 +785,7 @@ class PlanFactory:
                 sw2image[swname] = tmp_ddgc_img
                 tmp_ddgc_img_desc = f"{swname}调度过程({date_list[0]}~{date_list[-1]})"
                 tmp_result = f"预计{max_date}，{swname}出现{max_ll}立方米每秒的洪峰流量\n"
-                hd_result = paraHtml(tmp_result) + divHtml(
+                hd_result += paraHtml(tmp_result) + divHtml(
                     "<img src='data:image/png;base64," + tmp_ddgc_img + "'  width='60%' >") + "\n" + paraHtml(
                     tmp_ddgc_img_desc) + "\n"
                 hd_ddjg.append({"img64": tmp_ddgc_img, "desc": tmp_result, "tmp_ddgc_img_desc": tmp_ddgc_img_desc})
@@ -1200,19 +1218,70 @@ class PlanFactory:
             self.node.wordParagraphs.add(wp)
         return bold_left_align("预警分级响应") + str(yjdj)+"级预警"+bold_left_align("应对措施") + ydcs +bold_left_align("应急保障") +bold_left_align("组织保障")+zzbz+bold_left_align("队伍保障")+dwbz+bold_left_align("物资保障")+fxwz+bold_left_align("技术保障")+jsbz+bold_left_align("通信保障")+txbz+bold_left_align("照明应急保障")+zmyjbz+bold_left_align("安全保障")+aqbz+bold_left_align("卫生保障")+wsbz+bold_left_align("其他保障")+qtbz+bold_left_align("宣传和卫生演练")+xcyy
     
+
+    def yjdj_api(self):
+        yjdj = yujingdengji()["level"]  # "黄色预警"
+
+        
+        hdsq = self.params["hdsq"] if "hdsq" in self.params else []
+        sksq = self.params["sksq"] if "sksq" in self.params else []
+        sk2RealData = {ent['水库名称']: ent for ent in sksq}
+        sw2RealData = {ent['站名']: ent for ent in hdsq}
+        tmpskdesc = {}
+        tmpswdesc = {}
+        for sk, skData in self.skMapData.items():
+            max_index = skData['水位'].index(max(skData['水位']))
+            max_data = skData['水位'][max_index]
+            max_time = self.date_list[max_index]
+            tmpskdesc[sk] = {
+                'sw': sk2RealData[sk]['水位（m）'],
+                'max_sw': max_data,
+                'max_time': max_time,
+            } if sk in sk2RealData else {}
+        for sw, swData in self.swMapData.items():
+            max_index = swData.index(max(swData))
+            max_data = swData[max_index]
+            max_time = self.date_list[max_index]
+            tmpswdesc[sw] = {
+                'll': sw2RealData[sw]['流量(m³/s)'],
+                'max_ll': max_data,
+                'max_time': max_time,
+            } if sw in sw2RealData else {}
+
+        def dateformat(date_str):
+            # 将字符串解析为datetime对象
+            date_obj = datetime.strptime(date_str, "%Y-%m-%d %H:%M:%S")
+            # 格式化为月日格式
+            new_date_str = date_obj.strftime("%m月%d日")
+            return new_date_str
+
+        yjdj =  f"陆浑水库当前水位({round(tmpskdesc['陆浑']['sw'], 2)}米，预计在{dateformat(tmpskdesc['陆浑']['max_time'])}达到最高水位{round(tmpskdesc['陆浑']['max_sw'], 2)}米，"\
+                f"故县水库当前水位{tmpskdesc['故县']['sw']}米，预计在{dateformat(tmpskdesc['故县']['max_time'])}日达到最高水位{round(tmpskdesc['故县']['max_sw'], 2)}米。"\
+                f"龙门镇水文站当前流量{round(tmpswdesc['龙门镇']['ll'], 2) if 'll' in tmpswdesc['龙门镇'] and tmpswdesc['龙门镇']['ll'] else '-' }m3/s，预计{dateformat(tmpswdesc['龙门镇']['max_time']) if 'max_time' in tmpswdesc['龙门镇'] else '-'}达到最大流量{round(tmpswdesc['龙门镇']['max_ll'] ) if 'max_ll' in tmpswdesc['龙门镇'] else '-'}m3/s,"\
+                f"白马寺水文站当前流量{round(tmpswdesc['白马寺']['ll']) if 'll' in tmpswdesc['白马寺'] else '-'}m3/s、预计在{dateformat(tmpswdesc['白马寺']['max_time']) if 'max_time' in tmpswdesc['白马寺'] else '-'}达到{round(tmpswdesc['白马寺']['max_ll'], 2) if 'max_ll' in tmpswdesc['白马寺'] else '-'}m3/s,"\
+                f"建议按照《黄河防汛抗旱应急预案（试行）》启动Ⅰ级应急响；按照《陆浑水库2024年防汛抢险应急预案》启动Ⅲ级应急响应；按照《故县水库应急抢险预案》启动Ⅲ级应急响应、《故县水库卢氏库区汛期高水位运用应急预案》启动Ⅰ级应急响应."
+
+        self.context['results']['yuyingfenji'] = {
+            "value": yjdj,
+            "desc": "预警分级响应"
+        }
+        ydcs = yujingdengji(lh_sw=tmpskdesc['陆浑']['max_sw'], 
+                            gx_sw=tmpskdesc['故县']['max_sw'],
+                            lm_ll=tmpswdesc['龙门镇']['max_ll'],
+                            act_flag=True, lev='Ⅰ'
+                            )["result"]
+        self.context['results']['yingducuoshi'] = {
+            "value": ydcs,
+            "desc": "应对措施"
+        }
     def get_aqjc_api(self):
         if self.context['type'] == 4:
-            yjdj = yujingdengji()["level"]  # "黄色预警"
-            ydcs = yujingdengji()["result"]
+            self.yjdj_api()
 
-            self.context['results']['yuyingfenji'] = {
-                "value": yjdj,
-                "desc": "预警分级响应"
-            }
-
-            self.context['results']['yingducuoshi'] = {
-                "value": ydcs,
-                "desc": "应对措施"
+            ryzq = self.params['ryzyfa'] if 'ryzyfa' in self.params else []
+            self.context['results']['renyuanzhuanyi'] = {
+                "ryzq": ryzq,
+                "desc": "人员转移方案"
             }
             ryzyfa = f"data/yuan_data/{self.context['type']}/ryzyfa/ryzyfa.pdf"
             self.context['results']['ryzyfa'] = {
@@ -1243,12 +1312,14 @@ class PlanFactory:
             self.context['results']['yingjibaozhang'] = {
                 "value": {
                     'zzbz': zzbz,
+                    'zzbzTable': self.params["zzbzTable"] if 'zzbzTable' in self.params else [],
                     'dwbz': dwbz,
+                    'dwbzTable': self.params["dwbzTable"] if 'dwbzTable' in self.params else [],
                     'wzbz': wzbz,
                     'jsbz': jsbz,
-                    'jsbz_table':jsbz_table,
+                    'jsbzTable': self.params["jsbzTable"] if 'jsbzTable' in self.params else [],
                     'txbz': txbz,
-                    'txbz_table': txbz_table,
+                    'txbzTable': self.params["txbzTable"] if 'txbzTable' in self.params else [],
                     'zmyjbz': zmyjbz,
                     'aqbz': aqbz,
                     'wsbz': wsbz,
@@ -1337,7 +1408,7 @@ class PlanFactory:
             ylh_yuqing = self.params["yuqing"]
             hdsq = huanghe_hedaoshuiqing_generate(self.params)
             sksq = huanghe_shuikushuiqing_generate(self.params)
-#            gqxq = huanghe_gongqing_generate_html(self.params)
+            #gqxq = huanghe_gongqing_generate_html(self.params)
             gqxq = self.params['xianqing']
             # 返回网页表格数据
             for n in self.node.wordParagraphs.all():
@@ -1393,13 +1464,16 @@ class PlanFactory:
                 }
             }
 #            gqxq = huanghe_gongqing_generate_html(self.params)
-            gqxq = self.params['xianqing']
+            gqxq = self.params['xianqing'] if 'xianqing' in self.params else '暂无数据'
             self.context['results']['xianqing'] = {
                 "value": gqxq,
                 "desc": "伊洛河区域险情描述"
             }
 
 
+    def make_context_by_rag(self,):
+        # logger.debug("make_context:", self.context, self.params)
+        pass
     def make_context(self,):
         # logger.debug("make_context:", self.context, self.params)
         label = self.node.label

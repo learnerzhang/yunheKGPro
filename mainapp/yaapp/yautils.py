@@ -20,7 +20,7 @@ logger = logging.getLogger('kgproj')
 
 idx_list = ['水位', '入库', '出库', '蓄量', "流量"]
 sknames = { '三门峡', '小浪底',  '陆浑', '故县', '河口村', '西霞院', '万家寨', '龙口'}
-swznames = { '花园口', '小花间', "潼关", "古贤坝址","白马寺"}
+swznames = { '花园口', '小花间', "潼关", "古贤坝址", "龙门镇", "黑石关", "白马寺"}
 othnames = { '24h水位', '古贤坝址'}
 
 
@@ -120,7 +120,6 @@ def excel_to_dict(ddfa_file_path):
                 date_list.append(record['时间'])
             elif '月.日' in record_keys:
                 date_list.append(record['月.日'])
-
             # Then collect other data
             for skname in sknames:
                 for idx in idx_list:
@@ -134,8 +133,13 @@ def excel_to_dict(ddfa_file_path):
                 for key in record_keys:
                     if swname in key:
                         swMapData[swname].append(record[key])
-
-        return skMapData, swMapData, date_list
+        def custom_time_parser(s):
+            dt = pd.to_datetime(s)
+            # 若分钟≥59，强制进位到下一小时（需根据实际场景调整）
+            if dt.minute >= 59:
+                dt = dt + pd.Timedelta(hours=1)
+            return str(dt.replace(minute=0, second=0, microsecond=0))
+        return skMapData, swMapData, [custom_time_parser(date) for date in date_list if date is not None]
     except Exception as e:
         print(f"Error in excel_to_dict: {str(e)}")
         return None, None, None
