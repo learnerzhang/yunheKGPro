@@ -169,3 +169,5 @@ yarl==1.16.0
 future==1.0.0
 faiss-cpu
 yaml
+geopandas==1.0.1
+matplotlib==3.10.1
