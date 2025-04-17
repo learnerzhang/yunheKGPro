@@ -41,6 +41,7 @@ class YLHDataFactory(BaseDataFactory):
         """
         auth_token = oauth_login()
         code, res = format_hydrometric_data(auth_token)
+        print("res:",res)
         return {"hdsq":res["hdsq"]}
 
     def getShuiKuShuiQingData(self):

@@ -21,7 +21,7 @@ scheduler = BackgroundScheduler()
 scheduler.add_jobstore(DjangoJobStore(), "default")
 
 from django.db import close_old_connections
-@register_job(scheduler, "cron", minute='*', id='buildJsonDataJob', replace_existing=True)
+@register_job(scheduler, "cron", minute='*/10', id='buildJsonDataJob', replace_existing=True)
 def buildJsonDataJob():
     try:
         close_old_connections()  # 重置数据库连接
@@ -33,7 +33,7 @@ def buildJsonDataJob():
         close_old_connections()  # 确保连接关闭
 
 
-@register_job(scheduler, "cron", minute='*', id='generate_rainfall_map_job', replace_existing=True)
+@register_job(scheduler, "cron", minute='*/10', id='generate_rainfall_map_job', replace_existing=True)
 def generate_rainfall_map_job():
     """
     每10分钟生成降雨数据图

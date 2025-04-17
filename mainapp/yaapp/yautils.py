@@ -37,7 +37,6 @@ def process_complex_header(file_path):
     try:
         # 读取 Excel 文件，不指定表头
         df = pd.read_excel(file_path, header=None)
-        print("原始数据：\n", df.head())
         # 获取表头信息
         header_data = []
         cur = 0
@@ -108,14 +107,12 @@ def excel_to_json(file_path):
 def excel_to_dict(ddfa_file_path):
     try:
         json_data = excel_to_json(ddfa_file_path)
-        # print(file, "JSON 数据：\n", json_data)
         #print("JSON 数据：\n", ddfa_file_path)
         skMapData = collections.defaultdict(dict)
         swMapData = collections.defaultdict(list)
         date_list = []
         for record in json.loads(json_data):
             record_keys = list(record.keys())
-            new_record_keys = [ "".join(k.split("_")[:2]) for k in record_keys]
             for skname in sknames:
                 for idx in idx_list:
                     for key in record_keys:

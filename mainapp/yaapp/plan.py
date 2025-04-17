@@ -702,10 +702,11 @@ class PlanFactory:
             # logger.debug(ddfa_excel)
             if not os.path.exists(ddfa_excel):
                 ddfa_excel = os.path.join("data", "yuan_data", "4", "ddfad", "default.xlsx")
-                logger.warning(f"当天调度方案单不存在,采用默认调度方案单 {ddfa_excel}")
-                if not os.path.exists(os.path.join("data", "yuan_data", "4", "ddfadouts", yadate)):
-                    yautils.plot_save_html(ddfa_excel, business_type=4, myDate=yadate)
-                    logger.warning(f"{yadate}调度方案单绘制图片")
+                logger.info(f"当天调度方案单不存在,采用默认调度方案单 {ddfa_excel}")
+                yautils.plot_save_html(ddfa_excel, business_type=4, myDate=yadate)
+                logger.info(f"{yadate}调度方案单绘制图片")
+            else:
+                logger.info(f"{yadate}调度方案单已存在")
             # df = pd.read_excel(ddfa_excel)
             # ddfad = pd2HtmlCSS() + df.to_html(index=False, justify="center")
             html_table = excel_to_html_with_merged_cells(ddfa_excel)
@@ -820,8 +821,10 @@ class PlanFactory:
             ddfa_excel = os.path.join("data", "yuan_data", "4", "ddfad", f"{yadate}.xlsx")
             # logger.debug(ddfa_excel)
             if not os.path.exists(ddfa_excel):
-                logger.warning("当天调度方案单不存在,采用默认调度方案单")
                 ddfa_excel = os.path.join("data", "yuan_data", "4", "ddfad", "default.xlsx")
+                logger.info(f"当天调度方案单不存在,采用默认调度方案单 {ddfa_excel}")
+            else:
+                logger.info(f"存在{ddfa_excel}调度方案单")
             
             skMapData, swMapData, date_list = yautils.excel_to_dict(ddfa_excel)
             ## 根据调度方案生成水库运作方式

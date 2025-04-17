@@ -37,7 +37,12 @@ from rest_framework.parsers import (
 
 from apiapp.serializers import ApiAppResponseSerializer
 from yunheKGPro import CsrfExemptSessionAuthentication
+from django.http import JsonResponse
 
+def health_check(request):
+    return JsonResponse({"status": "ok"}, status=200)
+
+    
 class YLHYuAnApiGet(mixins.ListModelMixin,
                            mixins.CreateModelMixin,
                            generics.GenericAPIView):

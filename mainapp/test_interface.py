@@ -4,84 +4,7 @@ import requests
 from datetime import datetime, timedelta
 import json
 from xml.etree import ElementTree
-
-
-def get_rain_polygon(stdt=None, dt=None, prtime=24):
-    """
-    获取降雨多边形GeoJSON数据（适配10.4.158.35接口）
-
-    参数:
-        stdt: 预报制作时间 (datetime/字符串，默认当前时间)
-        dt: 产品截止时间 (datetime/字符串，默认stdt后24小时)
-        prtime: 时段长(小时，默认24)
-
-    返回:
-        (success, result)
-        - success: bool 是否成功
-        - result: 成功返回解析后的GeoJSON字典，失败返回错误信息
-    """
-    # 基础URL
-    base_url = "http://10.4.158.35:8093"
-
-    # 时间格式化函数
-    def format_time(t):
-        if isinstance(t, datetime):
-            return t.strftime("%Y%m%d%H")
-        return str(t)
-
-    # 设置智能默认值
-    now = datetime.now()
-    stdt = stdt or now
-    dt = dt or (stdt + timedelta(hours=24) if isinstance(stdt, datetime) else None)
-
-    # 参数验证
-    try:
-        params = {
-            "stdt": format_time(stdt),
-            "dt": format_time(dt),
-            "prtime": int(prtime)
-        }
-    except (ValueError, TypeError) as e:
-        return False, f"参数格式错误: {e}"
-
-    # 构造请求
-    url = f"{base_url}/api/v1/ybrain/GetRainPolygonGeojson"
-
-    try:
-        response = requests.get(
-            url,
-            params=params,
-            timeout=(3.05, 10),  # 连接3秒+读取10秒超时
-            headers={"Accept": "application/xml"}  # 该接口返回XML包装的JSON
-        )
-        response.raise_for_status()
-
-        # 解析XML包装的JSON响应
-        root = ElementTree.fromstring(response.content)
-        json_str = root.text.strip()
-        geojson = json.loads(json_str)
-
-        # 验证GeoJSON结构
-        if not isinstance(geojson, dict) or 'features' not in geojson:
-            return False, "返回数据不是有效GeoJSON格式"
-
-        return True, geojson
-
-    except requests.exceptions.RequestException as e:
-        error_msg = f"API请求失败: {str(e)}"
-        if hasattr(e, 'response'):
-            try:
-                error_detail = e.response.json().get('message', e.response.text)
-                error_msg += f" | 服务端错误: {error_detail}"
-            except:
-                error_msg += f" | 响应状态码: {e.response.status_code}"
-        return False, error_msg
-    except ElementTree.ParseError as e:
-        return False, f"XML解析失败: {str(e)}"
-    except json.JSONDecodeError as e:
-        return False, f"JSON解析失败: {str(e)}"
-
-
+BASE_API_URL= "http://wt.hxyai.cn/fx/"#"http://10.4.158.35:8070/"
 def get_rainfall_data_hour(basin=None, start_time=None, end_time=None):
     """
     获取实时雨量数据（带完整错误处理和JWT鉴权）
@@ -109,7 +32,7 @@ def get_rainfall_data_hour(basin=None, start_time=None, end_time=None):
 
         # 添加超时和请求头
         response = requests.get(
-            url="http://10.4.158.35:8070/rainfall/hourrth/getRainfall",
+            url=f"{BASE_API_URL}/rainfall/hourrth/getRainfall",
             params=params,
             headers={
                 "Accept": "application/json",
@@ -156,7 +79,7 @@ def get_rainfall_data_day(auth_token,basin=None, start_time=None, end_time=None)
 
         # 添加超时和请求头
         response = requests.get(
-            url="http://10.4.158.35:8070/rainfall/dayrt/getRainfall",
+            url=f"{BASE_API_URL}/rainfall/dayrt/getRainfall",
             params=params,
             headers={
                 "Accept": "application/json",
@@ -286,7 +209,7 @@ def get_hydrometric_station(auth_token=None, station_code=None, ):
         params = {}
         if station_code:
             params["stcd"] = station_code
-        HYDROMETRIC_API_URL = "http://10.4.158.35:8070/hydrometric/hourrt/listLatest"
+        HYDROMETRIC_API_URL = f"{BASE_API_URL}/hydrometric/hourrt/listLatest"
         response = requests.get(
             HYDROMETRIC_API_URL,
             params=params,
@@ -313,7 +236,8 @@ def oauth_login(
 ) :
     """
     """
-    url = "http://10.4.158.35:8070/oauth/login"
+    #url = "http://10.4.158.35:8070/oauth/login"
+    url = f"{BASE_API_URL}oauth/login"
     headers = {"Content-Type": "application/json",
         "Accept": "application/json"}
     payload = {"accessKey": access_key, "secretKey": secret_key, "userType": user_type}
@@ -392,8 +316,8 @@ def format_hydrometric_data_v1(auth_token=None,station_code=None):
 
 def format_hydrometric_data(auth_token=None, station_code=None):
     """
-    获取并格式化水文站数据（仅返回YLH_HD列表中的站点）
-    修改：只返回8点的流量数据，不包含日均流量
+    获取并格式化水文站数据（固定返回9个指定站点）
+    修改：返回所有指定站点的数据，没有数据的站点设为None
 
     参数:
         auth_token: 认证令牌
@@ -404,55 +328,58 @@ def format_hydrometric_data(auth_token=None, station_code=None):
         {
             "hdsq": [
                 {
-                    "站名": "站名1",
-                    "流量(m³/s)": 100.5,  # 仅8点数据有值，否则为None
-                    "时间": "2023-01-01 08:00"  # 8点的完整日期时间
+                    "站名": "卢氏",
+                    "流量(m³/s)": 100.5  # 有数据则为数值，无数据则为None
                 },
-                ...
+                {
+                    "站名": "长水",
+                    "流量(m³/s)": None  # 无数据
+                },
+                ...  # 共9个站点
             ]
         }
     """
+    # 定义固定的10个水文站列表
+    lyh_hd = ["栾川","灵口","东湾", "卢氏", "陆军","长水","龙门镇",  "宜阳", "白马寺", "黑石关"]
     # 首先获取原始数据
     auth_token = auth_token  # oauth_login()
     status_code, raw_data = get_hydrometric_station(auth_token=auth_token, station_code=station_code)
-    lyh_hd = ["卢氏", "长水", "宜阳", "白马寺", "黑石关", "东湾", "陆军", "龙门镇", "花园口"]
-
-    # 如果请求不成功，直接返回原始结果
-    if status_code != 200:
-        return status_code, raw_data
-
-    # 初始化格式化后的数据
+    # 初始化格式化后的数据（包含所有9个站点）
     formatted_data = {"hdsq": []}
-
+    # 创建站点数据字典，方便查找
+    station_data_map = {}
+    if status_code == 200 and 'data' in raw_data and isinstance(raw_data['data'], list):
+        for station in raw_data['data']:
+            if str(station.get('stcd', '')).startswith('416') and station.get('stnm') in lyh_hd:
+                station_data_map[station['stnm']] = station
     try:
-        # 处理数据
-        if 'data' in raw_data and isinstance(raw_data['data'], list):
-            for station in raw_data['data']:
-                # 只处理416开头的站点且在YLH_HD列表中的站点
-                if str(station.get('stcd', '')).startswith('416') and station.get('stnm') in lyh_hd:
-                    # 检查时间是否为8点（不考虑日期）
-                    timestamp = station.get('date')
-                    eight_am_flow = None
-                    time_str = None
+        # 确保返回所有9个站点
+        for station_name in lyh_hd:
+            flow_value = None
 
-                    if timestamp:
-                        dt = datetime.fromtimestamp(timestamp / 1000)
-                        if dt.hour == 8:  # 仅当时间为8点时记录流量
-                            eight_am_flow = station.get('dstrvm')
-                            time_str = dt.strftime("%Y-%m-%d %H:%M")  # 格式化为"年-月-日 时:分"
+            # 如果该站点有数据且是8点数据
+            if station_name in station_data_map:
+                station = station_data_map[station_name]
+                timestamp = station.get('date')
 
-                    # 构建格式化条目
-                    formatted_entry = {
-                        "站名": station.get('stnm', '未知站名'),
-                        "流量(m³/s)": eight_am_flow,
-#                        "时间": time_str  # 8点的完整日期时间
-                    }
-                    formatted_data["hdsq"].append(formatted_entry)
+                if timestamp:
+                    dt = datetime.fromtimestamp(timestamp / 1000)
+                    if dt.hour == 8:  # 仅当时间为8点时记录流量
+                        flow_value = station.get('dstrvm')
 
+            formatted_data["hdsq"].append({
+                "站名": station_name,
+                "流量(m³/s)": flow_value
+            })
         return status_code, formatted_data
-
     except Exception as e:
-        return 500, {"error": f"数据处理错误: {str(e)}"}
+        # 出错时也返回完整结构
+        for station_name in lyh_hd:
+            formatted_data["hdsq"].append({
+                "站名": station_name,
+                "流量(m³/s)": None
+            })
+        return 500, {"error": f"数据处理错误: {str(e)}", "hdsq": formatted_data["hdsq"]}
 
 def get_sk_data(auth_token):
     """
@@ -474,7 +401,7 @@ def get_sk_data(auth_token):
         }
 
         params = {}
-        HYDROMETRIC_API_URL = "http://10.4.158.35:8070/hydrometric/rhourrt/listLatest"
+        HYDROMETRIC_API_URL = f"{BASE_API_URL}/hydrometric/rhourrt/listLatest"
         response = requests.get(
             HYDROMETRIC_API_URL,
             params=params,
@@ -524,7 +451,7 @@ def get_reservoir_properties(auth_token,ennmcd=None):
         params = {}
         if ennmcd:
             params["ennmcd"] = ennmcd
-        API_URL = "http://10.4.158.35:8070/project/rprop/list"
+        API_URL = f"{BASE_API_URL}/project/rprop/list"
         response = requests.get(
             API_URL,
             params=params,
@@ -573,7 +500,7 @@ def get_reservoir_kurong(auth_token,resname):
             params["resname"] = resname.strip()  # 去除前后空格
 
         # 设置API端点
-        API_URL = "http://10.4.158.35:8070/project/resvzv/list"
+        API_URL = f"{BASE_API_URL}/project/resvzv/list"
 
         # 发送请求（设置双超时）
         response = requests.get(
@@ -758,7 +685,7 @@ def get_hydrometric_dayrt_list(auth_token,hysta=None, start_date=None, end_date=
         }
         if hysta:
             params["hysta"] = hysta
-        API_URL = "http://10.4.158.35:8070/hydrometric/dayrt/list"
+        API_URL = f"{BASE_API_URL}/hydrometric/dayrt/list"
         response = requests.get(
             API_URL,
             params=params,
@@ -926,17 +853,18 @@ if __name__ == "__main__":
     #
 
     auth_token = oauth_login()
+    print("auth_token:",auth_token)
     # status, data = get_rainfall_data_day(auth_token=auth_token)
     # res = generate_rainfall_report(response_data=data)
     # print("降雨报告：",res)
-    # data = get_hydrometric_station(auth_token=auth_token)
-    # print("河道实时水情:",data)
-    # code, res = format_hydrometric_data(auth_token=auth_token)
-
+    data = get_hydrometric_station(auth_token=auth_token)
+    print("河道实时水情:",data)
+    code, res = format_hydrometric_data(auth_token=auth_token)
+    print("格式化后的河道实时水情：",res)
 
     # #
-    # code,res = get_reservoir_kurong(auth_token=auth_token,resname="BDA00000121")
-    # print("res:",res)
+    code,res = get_reservoir_kurong(auth_token=auth_token,resname="BDA00000121")
+    print("res:",res)
     code , res = get_sk_data(auth_token)
     print("水库数据：",res)
 
