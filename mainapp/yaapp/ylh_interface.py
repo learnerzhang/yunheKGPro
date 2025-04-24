@@ -232,3 +232,57 @@ def generate_rainfall_map(start_date: str, end_date: str, time_span: int, sequen
             print(f"错误上下文: {data.get('context')}")
             print(f"响应片段: {data.get('full_response')}")
         return False, None
+
+def download_map_images(base_url="http://10.4.158.34:8090/iserver/services/map-YRGP_YLH_2D_ZT/rest/maps",
+                        start_num=18, end_num=24, output_dir="data/yuan_data/4/yubao"):
+    """
+    下载从T7_{start_num}到T7_{end_num}的地图图片，保存为1.png到N.png
+
+    参数:
+        base_url (str): 地图服务基础URL（不包含编号）
+        start_num (int): 起始编号（如18）
+        end_num (int): 结束编号（如24）
+        output_dir (str): 保存图片的基础目录（会自动追加日期）
+    """
+    # 获取当前日期（格式：年-月-日）
+    today = datetime.now().strftime("%Y-%m-%d")
+    full_output_dir = os.path.join(output_dir, today)
+
+    # 判断目录是否存在，不存在则创建
+    if not os.path.exists(full_output_dir):
+        os.makedirs(full_output_dir)
+        #print(f"目录 {full_output_dir} 不存在，已创建")
+    else:
+        print(f"目录 {full_output_dir} 已存在，直接使用")
+
+    # 确保编号范围有效
+    if start_num > end_num:
+        #print("错误：起始编号不能大于结束编号")
+        return
+
+    for i, map_num in enumerate(range(start_num, end_num + 1), start=1):
+        # 构造完整URL
+        map_name = f"T7_{map_num}"
+        url = f"{base_url}/{map_name}/entireImage.jpg"
+        filename = os.path.join(full_output_dir, f"{i}.png")
+
+        # 发送请求
+        # print(f"\n正在处理 {map_name}...")
+        # print(f"URL: {url}")
+        # print(f"将保存为: {filename}")
+
+        try:
+            response = requests.get(url, stream=True, timeout=10)
+            response.raise_for_status()  # 检查请求是否成功
+
+            # 保存图片
+            with open(filename, "wb") as f:
+                for chunk in response.iter_content(1024):
+                    f.write(chunk)
+
+            #print(f"✅ 成功保存 {filename} (大小: {os.path.getsize(filename) / 1024:.1f} KB)")
+        except requests.exceptions.RequestException as e:
+            #print(f"❌ 下载失败: {str(e)}")
+            # 如果失败，删除可能存在的空文件
+            if os.path.exists(filename):
+                os.remove(filename)

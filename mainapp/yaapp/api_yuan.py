@@ -85,8 +85,9 @@ def query_question(text):
     # 定义请求体
     data = {
         "model": "doubao-1-5-pro-32k-250115",
+        #"model":"DeepSeek-V3-250324",
         "messages": [
-            {"role": "system", "content": "你是人工智能助手."},
+            {"role": "system", "content": "你是一个擅长数据分析的人工智能小助手，能够根据用户提供的信息，生成对应的答案。"},
             {"role": "user", "content": text}
         ]
     }

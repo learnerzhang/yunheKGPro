@@ -104,33 +104,35 @@ def excel_to_json(file_path):
     except Exception as e:
         return f"Error converting Excel to JSON: {str(e)}"
 
+
 def excel_to_dict(ddfa_file_path):
     try:
         json_data = excel_to_json(ddfa_file_path)
-        #print("JSON 数据：\n", ddfa_file_path)
         skMapData = collections.defaultdict(dict)
         swMapData = collections.defaultdict(list)
         date_list = []
+
         for record in json.loads(json_data):
             record_keys = list(record.keys())
-            for skname in sknames:
-                for idx in idx_list:
-                    for key in record_keys:
-                        if skname in key and idx in key:
-                            # print(skname, idx)
-                            if idx not in skMapData[skname]:
-                                skMapData[skname][idx] = [record[key]]
-                            skMapData[skname][idx].append(record[key])
-            for swname in swznames:
-                for key in record_keys:
-                    if swname in key:
-                        swMapData[swname].append(record[key])
-            
+
+            # Collect date first
             if '时间' in record_keys:
                 date_list.append(record['时间'])
             elif '月.日' in record_keys:
                 date_list.append(record['月.日'])
-        
+            # Then collect other data
+            for skname in sknames:
+                for idx in idx_list:
+                    for key in record_keys:
+                        if skname in key and idx in key:
+                            if idx not in skMapData[skname]:
+                                skMapData[skname][idx] = []
+                            skMapData[skname][idx].append(record[key])
+
+            for swname in swznames:
+                for key in record_keys:
+                    if swname in key:
+                        swMapData[swname].append(record[key])
         def custom_time_parser(s):
             dt = pd.to_datetime(s)
             # 若分钟≥59，强制进位到下一小时（需根据实际场景调整）
@@ -139,8 +141,64 @@ def excel_to_dict(ddfa_file_path):
             return str(dt.replace(minute=0, second=0, microsecond=0))
         return skMapData, swMapData, [custom_time_parser(date) for date in date_list if date is not None]
     except Exception as e:
+        print(f"Error in excel_to_dict: {str(e)}")
+        return None, None, None
+
+
+def excel_to_dict_v2(ddfa_file_path):
+    """
+    改进版Excel数据转换函数，确保每个数据点绑定对应时间戳
+
+    参数:
+        ddfa_file_path (str): Excel文件路径
+
+    返回:
+        tuple: (skMapData, swMapData, date_list)
+        - skMapData: 水库数据字典，结构为 {水库名: {指标: [带时间戳的数据]}}
+        - swMapData: 水文站数据字典，结构为 {站点名: [带时间戳的数据]}
+        - date_list: 时间序列列表
+    """
+    try:
+        json_data = excel_to_json(ddfa_file_path)
+        skMapData = collections.defaultdict(dict)
+        swMapData = collections.defaultdict(list)
+        date_list = []
+
+        records = json.loads(json_data)
+        for i, record in enumerate(records):
+            record_keys = list(record.keys())
+
+            # 处理时间字段
+            current_time = None
+            if '时间' in record_keys:
+                current_time = record['时间']
+            elif '月.日' in record_keys:
+                current_time = record['月.日']
+
+            if current_time:
+                date_list.append(current_time)
+
+                # 处理水库数据（带时间戳）
+                for skname in sknames:
+                    for idx in idx_list:
+                        for key in record_keys:
+                            if skname in key and idx in key:
+                                if idx not in skMapData[skname]:
+                                    skMapData[skname][idx] = []
+                                # 存储为 (值, 时间戳) 元组
+                                skMapData[skname][idx].append((record[key], current_time))
+
+            # 处理水文站数据（带时间戳）
+            for swname in swznames:
+                for key in record_keys:
+                    if swname in key and current_time:
+                        swMapData[swname].append((record[key], current_time))
+
+        return skMapData, swMapData, date_list
+
+    except Exception as e:
+        logger.error(f"Error in excel_to_dict_v2: {str(e)}")
         return None
-    
 
 def plot_save_html(ddfa_file_path, business_type=0, myDate=None):
     """
