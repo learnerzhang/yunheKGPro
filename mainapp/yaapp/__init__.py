@@ -1581,7 +1581,7 @@ def format_hydrometric_data(auth_token=None, station_code=None):
                 if timestamp:
                     dt = datetime.fromtimestamp(timestamp / 1000)
                     if dt.hour == 8:  # 仅当时间为8点时记录流量
-                        flow_value = station.get('dstrvm')
+                        flow_value = station.get('flow')
 
             formatted_data["hdsq"].append({
                 "站名": station_name,
