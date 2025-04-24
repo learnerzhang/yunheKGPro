@@ -139,29 +139,44 @@ if __name__ == "__main__":
     swznames = {'花园口', '小花间', "潼关", "古贤坝址"}
     skMapData, swMapData, date_list = excel_to_dict("data/yuan_data/4/ddfad/default.xlsx")
     swData = skMapData[RESERVOIR_NAME]["水位"]
-    print(swData[69])
-    print(date_list[69])
+    print(swData[68])
+    print(date_list[68])
     print("len(swData)", len(swData))
     print("len(date_list",len(date_list))
+    # prompt = f"""
+    #         请根据提供的水库水位数据，专门分析{RESERVOIR_NAME}水库的调度过程，严格按照以下要求输出：
+    #
+    #         输入数据：
+    #         - 水库名称：{RESERVOIR_NAME}
+    #         - 水位数据：{swData}
+    #         - 时间序列：{date_list}
+    #         输出要求：
+    #         1. 只分析给定的水库{RESERVOIR_NAME}
+    #         2. 找出水位最高点的索引，然后根据索引在时间序列{date_list}查找出对应时间
+    #         3. 使用以下固定格式：
+    #            "预计{RESERVOIR_NAME}将于[对应时间]达到[最高水位]m"
+    #         4. 水位值保留4位小数
+    #         5. 时间格式必须精确到秒
+    #         请直接输出结果字符串，不要包含任何解释、注释或额外信息。
+    #         """
+    max_water_level = max(swData)
+    max_index = swData.index(max_water_level)
     prompt = f"""
-        请根据提供的水库水位数据，专门分析{RESERVOIR_NAME}水库的调度过程，严格按照以下要求输出：
-
-        输入数据：
-        - 水库名称：{RESERVOIR_NAME}
-        - 水位数据：{swData}
-        - 时间序列：{date_list}
-
-        输出要求：
-        1. 只分析给定的水库{RESERVOIR_NAME}
-        2. 找出水位最高点及其对应时间
-        3. 使用以下固定格式：
-           "预计{RESERVOIR_NAME}将于[yyyy-mm-dd HH:MM:SS]达到最高水位[XXX.XXXX]m"
-        4. 水位值保留4位小数
-        5. 时间格式必须精确到秒
-
-        请直接输出结果字符串，不要包含任何解释、注释或额外信息。
-        """
-
+            请根据提供的水库水位数据，专门分析{RESERVOIR_NAME}水库的调度过程，严格按照以下要求输出：
+            输入数据：
+            - 水库名称：{RESERVOIR_NAME}
+            - 水位数据：{swData}
+            - 时间序列：{date_list}
+            - 最大值索引：{max_index}
+            输出要求：
+            1. 只分析给定的水库{RESERVOIR_NAME}
+            2. 通过最大值索{max_index}及时间序列引匹配对应时间
+            3. 使用以下固定格式：
+               "预计{RESERVOIR_NAME}将于XX时间达到最高水位XXXm"
+            4. 水位值保留4位小数
+            5. 时间格式必须精确到秒
+            请直接输出结果字符串，不要包含任何解释、注释或额外信息。
+            """
     res = query_question(prompt)
     print(res)
 

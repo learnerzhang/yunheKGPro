@@ -98,7 +98,7 @@ def get_rainfall_data_day(auth_token,basin=None, start_time=None, end_time=None)
         return 500, {"error": "返回数据格式异常"}
 
 
-def generate_rainfall_report(response_data):
+def generate_rainfall_report_v1(response_data):
     """
     生成降雨量报告文本
 
@@ -187,6 +187,148 @@ def generate_rainfall_report(response_data):
 
     return "".join(report_parts)
 
+
+def generate_rainfall_report(response_data):
+    """
+    生成降雨量报告文本(版本1)
+    按照新的规则生成降雨报告:
+    1. 优先判断大部降雨(≥50%站点)
+    2. 其次判断局部降雨(≥20%站点)
+    3. 再次判断个别地区降雨(>0%站点)
+    4. 最后判断无降雨
+
+    参数:
+        response_data: API返回的JSON数据
+
+    返回:
+        降雨量报告文本
+    """
+    if not response_data or 'data' not in response_data:
+        return "无有效降雨数据"
+
+    # 筛选伊洛河流域站点(416开头)
+    yiluo_stations = [station for station in response_data['data']
+                      if str(station['stcd']).startswith('416')]
+
+    if not yiluo_stations:
+        return "伊洛河流域无降雨监测数据"
+
+    # 统计降雨等级和站点总数
+    rainfall_stats = {
+        '小雨': 0,
+        '中雨': 0,
+        '大雨': 0,
+        '暴雨': 0,
+        '大暴雨': 0,
+        '特大暴雨': 0
+    }
+
+    max_rainfall = 0
+    max_station = ""
+    total_stations = len(yiluo_stations)
+    rain_stations = 0  # 有降雨的站点数
+
+    for station in yiluo_stations:
+        rf = station['rf']
+
+        if rf == 0:
+            continue
+
+        rain_stations += 1
+
+        if rf < 10:
+            rainfall_stats['小雨'] += 1
+        elif 10 <= rf < 25:
+            rainfall_stats['中雨'] += 1
+        elif 25 <= rf < 50:
+            rainfall_stats['大雨'] += 1
+        elif 50 <= rf < 100:
+            rainfall_stats['暴雨'] += 1
+        elif 100 <= rf < 250:
+            rainfall_stats['大暴雨'] += 1
+        else:
+            rainfall_stats['特大暴雨'] += 1
+
+        # 记录最大降雨量
+        if rf > max_rainfall:
+            max_rainfall = rf
+            max_station = station['stnm']
+
+    # 如果没有降雨
+    if rain_stations == 0:
+        today = datetime.now()
+        return f"{today.month}月{today.day}日，伊洛河流域无降雨"
+
+    # 计算各雨型的站点比例
+    ratios = {
+        '小雨': rainfall_stats['小雨'] / total_stations,
+        '中雨': rainfall_stats['中雨'] / total_stations,
+        '大雨': rainfall_stats['大雨'] / total_stations,
+        '暴雨': rainfall_stats['暴雨'] / total_stations,
+        '大暴雨': rainfall_stats['大暴雨'] / total_stations,
+        '特大暴雨': rainfall_stats['特大暴雨'] / total_stations
+    }
+
+    # 生成报告文本
+    today = datetime.now()
+    report_parts = [f"{today.month}月{today.day}日，伊洛河流域"]
+
+    # 判断降雨范围
+    # 1. 优先判断大部降雨(≥50%)
+    # 大部暴雨
+    if ratios['暴雨'] >= 0.5:
+        report_parts.append("大部地区降暴雨")
+    # 大部大雨
+    elif ratios['大雨'] >= 0.5:
+        report_parts.append("大部地区降大雨")
+    # 大部中雨
+    elif ratios['中雨'] >= 0.5:
+        report_parts.append("大部地区降中雨")
+    # 大部小雨
+    elif ratios['小雨'] >= 0.5:
+        report_parts.append("大部地区降小雨")
+    # 大部大到暴雨
+    elif (ratios['大雨'] + ratios['暴雨']) >= 0.5:
+        report_parts.append("大部地区降大到暴雨")
+    # 大部中到大雨
+    elif (ratios['中雨'] + ratios['大雨']) >= 0.5:
+        report_parts.append("大部地区降中到大雨")
+    # 大部小到中雨
+    elif (ratios['小雨'] + ratios['中雨']) >= 0.5:
+        report_parts.append("大部地区降小到中雨")
+
+    # 2. 其次判断局部降雨(≥20%)
+    elif ratios['暴雨'] >= 0.2:
+        report_parts.append("局部地区降暴雨")
+    elif ratios['大雨'] >= 0.2:
+        report_parts.append("局部地区降大雨")
+    elif ratios['中雨'] >= 0.2:
+        report_parts.append("局部地区降中雨")
+    elif ratios['小雨'] >= 0.2:
+        report_parts.append("局部地区降小雨")
+    elif (ratios['大雨'] + ratios['暴雨']) >= 0.2:
+        report_parts.append("局部地区降大到暴雨")
+    elif (ratios['中雨'] + ratios['大雨']) >= 0.2:
+        report_parts.append("局部地区降中到大雨")
+    elif (ratios['小雨'] + ratios['中雨']) >= 0.2:
+        report_parts.append("局部地区降小到中雨")
+
+    # 3. 再次判断个别地区降雨(>0%)
+    elif rainfall_stats['暴雨'] > 0:
+        report_parts.append("个别地区降暴雨")
+    elif rainfall_stats['大雨'] > 0:
+        report_parts.append("个别地区降大雨")
+    elif rainfall_stats['中雨'] > 0:
+        report_parts.append("个别地区降中雨")
+    elif rainfall_stats['小雨'] > 0:
+        report_parts.append("个别地区降小雨")
+
+    # 添加最大降雨点
+    if max_rainfall > 0:
+        report_parts.append(f"，最大点雨量{max_station}站{max_rainfall}毫米")
+
+    return "".join(report_parts)
+
 def get_hydrometric_station(auth_token=None, station_code=None, ):
     """
     获取河道水文站基本信息
@@ -237,7 +379,7 @@ def oauth_login(
     """
     """
     #url = "http://10.4.158.35:8070/oauth/login"
-    url = f"{BASE_API_URL}oauth/login"
+    url = f"{BASE_API_URL}/oauth/login"
     headers = {"Content-Type": "application/json",
         "Accept": "application/json"}
     payload = {"accessKey": access_key, "secretKey": secret_key, "userType": user_type}
@@ -855,6 +997,7 @@ if __name__ == "__main__":
     auth_token = oauth_login()
     print("auth_token:",auth_token)
     # status, data = get_rainfall_data_day(auth_token=auth_token)
+    # print("data：",data)
     # res = generate_rainfall_report(response_data=data)
     # print("降雨报告：",res)
     data = get_hydrometric_station(auth_token=auth_token)
