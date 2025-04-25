@@ -996,23 +996,23 @@ if __name__ == "__main__":
 
     auth_token = oauth_login()
     print("auth_token:",auth_token)
-    # status, data = get_rainfall_data_day(auth_token=auth_token)
-    # print("data：",data)
-    # res = generate_rainfall_report(response_data=data)
-    # print("降雨报告：",res)
-    data = get_hydrometric_station(auth_token=auth_token)
-    print("河道实时水情:",data)
-    code, res = format_hydrometric_data(auth_token=auth_token)
-    print("格式化后的河道实时水情：",res)
-
-    # #
-    code,res = get_reservoir_kurong(auth_token=auth_token,resname="BDA00000121")
-    print("res:",res)
-    code , res = get_sk_data(auth_token)
-    print("水库数据：",res)
-
-    res = format_reservoir_data(auth_token=auth_token)
-    print("水库数据格式化：",res)
+    status, data = get_rainfall_data_day(auth_token=auth_token)
+    print("data：",data)
+    res = generate_rainfall_report(response_data=data)
+    print("降雨报告：",res)
+    # data = get_hydrometric_station(auth_token=auth_token)
+    # print("河道实时水情:",data)
+    # code, res = format_hydrometric_data(auth_token=auth_token)
+    # print("格式化后的河道实时水情：",res)
+    #
+    # # #
+    # code,res = get_reservoir_kurong(auth_token=auth_token,resname="BDA00000121")
+    # print("res:",res)
+    # code , res = get_sk_data(auth_token)
+    # print("水库数据：",res)
+    #
+    # res = format_reservoir_data(auth_token=auth_token)
+    # print("水库数据格式化：",res)
 
     # 示例1：全部使用默认参数（STDT=现在，DT=明天此时，PRTIME=24）
     # BASE_URL = "http://10.4.158.35:8093"  # 替换为实际API地址

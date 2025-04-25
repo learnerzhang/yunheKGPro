@@ -1227,6 +1227,7 @@ class PlanFactory:
         sw2RealData = {ent['站名']: ent for ent in hdsq}
         tmpskdesc = {}
         tmpswdesc = {}
+        logger.info(f"水库真实数据：{sk2RealData}")
         for sk, skData in self.skMapData.items():
             max_index = skData['水位'].index(max(skData['水位']))
             max_data = skData['水位'][max_index]
