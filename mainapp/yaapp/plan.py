@@ -1220,8 +1220,6 @@ class PlanFactory:
     
 
     def yjdj_api(self):
-        yjdj = yujingdengji()["level"]  # "黄色预警"
-
         
         hdsq = self.params["hdsq"] if "hdsq" in self.params else []
         sksq = self.params["sksq"] if "sksq" in self.params else []
@@ -1233,11 +1231,19 @@ class PlanFactory:
             max_index = skData['水位'].index(max(skData['水位']))
             max_data = skData['水位'][max_index]
             max_time = self.date_list[max_index]
+
+            max_ll_index = skData['出库'].index(max(skData['出库']))
+            max_ll_data = skData['出库'][max_ll_index]
+            max_ll_time = self.date_list[max_ll_index]
+
             tmpskdesc[sk] = {
                 'sw': sk2RealData[sk]['水位（m）'],
                 'max_sw': max_data,
                 'max_time': max_time,
+                'max_ll': max_ll_data,
+                'max_ll_time': max_ll_time,
             } if sk in sk2RealData else {}
+        
         for sw, swData in self.swMapData.items():
             max_index = swData.index(max(swData))
             max_data = swData[max_index]
@@ -1255,25 +1261,103 @@ class PlanFactory:
             new_date_str = date_obj.strftime("%m月%d日")
             return new_date_str
 
-        yjdj =  f"陆浑水库当前水位({round(tmpskdesc['陆浑']['sw'], 2)}米，预计在{dateformat(tmpskdesc['陆浑']['max_time'])}达到最高水位{round(tmpskdesc['陆浑']['max_sw'], 2)}米，"\
-                f"故县水库当前水位{tmpskdesc['故县']['sw']}米，预计在{dateformat(tmpskdesc['故县']['max_time'])}日达到最高水位{round(tmpskdesc['故县']['max_sw'], 2)}米。"\
-                f"龙门镇水文站当前流量{round(tmpswdesc['龙门镇']['ll'], 2) if 'll' in tmpswdesc['龙门镇'] and tmpswdesc['龙门镇']['ll'] else '-' }m3/s，预计{dateformat(tmpswdesc['龙门镇']['max_time']) if 'max_time' in tmpswdesc['龙门镇'] else '-'}达到最大流量{round(tmpswdesc['龙门镇']['max_ll'] ) if 'max_ll' in tmpswdesc['龙门镇'] else '-'}m3/s,"\
-                f"白马寺水文站当前流量{round(tmpswdesc['白马寺']['ll']) if 'll' in tmpswdesc['白马寺'] else '-'}m3/s、预计在{dateformat(tmpswdesc['白马寺']['max_time']) if 'max_time' in tmpswdesc['白马寺'] else '-'}达到{round(tmpswdesc['白马寺']['max_ll'], 2) if 'max_ll' in tmpswdesc['白马寺'] else '-'}m3/s,"\
-                f"建议按照《黄河防汛抗旱应急预案（试行）》启动Ⅰ级应急响；按照《陆浑水库2024年防汛抢险应急预案》启动Ⅲ级应急响应；按照《故县水库应急抢险预案》启动Ⅲ级应急响应、《故县水库卢氏库区汛期高水位运用应急预案》启动Ⅰ级应急响应."
+        # yjdj = yujingdengji()["level"]  # "黄色预警"
+        # yjdj =  f"陆浑水库当前水位({round(tmpskdesc['陆浑']['sw'], 2)}米，预计在{dateformat(tmpskdesc['陆浑']['max_time'])}达到最高水位{round(tmpskdesc['陆浑']['max_sw'], 2)}米，"\
+        #         f"故县水库当前水位{tmpskdesc['故县']['sw']}米，预计在{dateformat(tmpskdesc['故县']['max_time'])}日达到最高水位{round(tmpskdesc['故县']['max_sw'], 2)}米。"\
+        #         f"龙门镇水文站当前流量{round(tmpswdesc['龙门镇']['ll'], 2) if 'll' in tmpswdesc['龙门镇'] and tmpswdesc['龙门镇']['ll'] else '-' }m3/s，预计{dateformat(tmpswdesc['龙门镇']['max_time']) if 'max_time' in tmpswdesc['龙门镇'] else '-'}达到最大流量{round(tmpswdesc['龙门镇']['max_ll'] ) if 'max_ll' in tmpswdesc['龙门镇'] else '-'}m3/s,"\
+        #         f"白马寺水文站当前流量{round(tmpswdesc['白马寺']['ll']) if 'll' in tmpswdesc['白马寺'] else '-'}m3/s、预计在{dateformat(tmpswdesc['白马寺']['max_time']) if 'max_time' in tmpswdesc['白马寺'] else '-'}达到{round(tmpswdesc['白马寺']['max_ll'], 2) if 'max_ll' in tmpswdesc['白马寺'] else '-'}m3/s,"\
+        #         f"建议按照《黄河防汛抗旱应急预案（试行）》启动Ⅰ级应急响；按照《陆浑水库2024年防汛抢险应急预案》启动Ⅲ级应急响应；按照《故县水库应急抢险预案》启动Ⅲ级应急响应、《故县水库卢氏库区汛期高水位运用应急预案》启动Ⅰ级应急响应."
+        
+        def getattr(obj, key, subkey):
+            if key in obj:
+                return obj[key][subkey] if subkey in obj[key] else None
+            else:
+                return None
+
+        hh_alert = hh_yujingdengji(lh_sw=getattr(tmpskdesc, '陆浑', 'max_sw'),
+                                   gx_sw=getattr(tmpskdesc, '故县','max_sw'), 
+                                   hkc_sw=getattr(tmpskdesc, '河口村', 'max_sw'),
+                                   smx_sw=getattr(tmpskdesc, '三门峡', 'max_sw'),
+                                   xld_sw=getattr(tmpskdesc, '小浪底', 'max_sw'),
+                                   lm_ll=getattr(tmpswdesc, '龙门镇','max_ll'),
+                                   bms_ll=getattr(tmpswdesc, '白马寺', 'max_ll'),
+                                   hyk_ll=getattr(tmpswdesc, '花园口','max_ll'),
+                                   )
+        
+        yjfjxy_desc = ""
+        yjfjxy_template_sk = "{}水库当前水位{}米，预计在{}达到最高水位{}米,"
+        yjfjxy_template_sw = "{}水文站当前流量{}m3/s，预计在{}达到最大流量{}m3/s,"
+        if getattr(tmpskdesc, '陆浑', 'sw') and getattr(tmpskdesc, '陆浑', 'max_time') and getattr(tmpskdesc, '陆浑', 'max_sw'):
+            yjfjxy_desc += yjfjxy_template_sk.format('陆浑', round(getattr(tmpskdesc, '陆浑', 'sw') , 2), dateformat(getattr(tmpskdesc, '陆浑', 'max_time')), round(getattr(tmpskdesc, '陆浑', 'max_sw'), 2))
+        if getattr(tmpskdesc, '故县', 'sw') and getattr(tmpskdesc, '故县', 'max_time') and getattr(tmpskdesc, '故县', 'max_sw'):
+            yjfjxy_desc += yjfjxy_template_sk.format('故县', round(getattr(tmpskdesc, '故县', 'sw') , 2), dateformat(getattr(tmpskdesc, '故县', 'max_time')), round(getattr(tmpskdesc, '故县', 'max_sw'), 2))
+        
+        logger.debug("lmz %s %s %s" % (getattr(tmpswdesc, '龙门镇', 'll'), getattr(tmpswdesc, '龙门镇', 'max_time') , getattr(tmpswdesc, '龙门镇', 'max_ll')))
+        if getattr(tmpswdesc, '龙门镇', 'll') and getattr(tmpswdesc, '龙门镇', 'max_time') and getattr(tmpswdesc, '龙门镇', 'max_ll'):
+            yjfjxy_desc += yjfjxy_template_sw.format('龙门镇', round(getattr(tmpswdesc, '龙门镇', 'll') , 2), dateformat(getattr(tmpswdesc, '龙门镇', 'max_time')), round(getattr(tmpswdesc, '龙门镇', 'max_ll'), 2))
+        logger.debug("bms %s %s %s" % (getattr(tmpswdesc, '白马寺', 'll'), getattr(tmpswdesc, '白马寺', 'max_time') , getattr(tmpswdesc, '白马寺', 'max_ll')))
+        if getattr(tmpswdesc, '白马寺', 'll') and getattr(tmpswdesc, '白马寺', 'max_time') and getattr(tmpswdesc, '白马寺', 'max_ll'):
+            yjfjxy_desc += yjfjxy_template_sw.format('白马寺', round(getattr(tmpswdesc, '白马寺', 'll') , 2), dateformat(getattr(tmpswdesc, '白马寺', 'max_time')), round(getattr(tmpswdesc, '白马寺', 'max_ll'), 2))
+
+
+        logger.debug("hh_alert")
+        logger.debug(hh_alert)
+        gx_alert = gx_yujingdengji(gx_sw=getattr(tmpskdesc, '故县','max_sw'))
+        lh_alert = lh_yujingdengji(lh_sw=getattr(tmpskdesc, '陆浑','max_sw'), lh_ll=getattr(tmpskdesc, '陆浑','max_ll'))
+        logger.debug("lh_alert")
+        logger.debug(lh_alert)
+        logger.debug("gx_alert")
+        logger.debug(gx_alert)
+
+        ylh_alert = ylh_yujingdengji(bms_ll=getattr(tmpswdesc, '白马寺', 'max_ll'), lm_ll=getattr(tmpswdesc, '龙门镇','max_ll'), hsg_ll=getattr(tmpswdesc, '黑石关','max_ll'))
+        sx_alert = sx_yujingdengji(lh_sw=getattr(tmpskdesc, '陆浑','max_sw'))
+        logger.debug("ylh_alert")
+        logger.debug(ylh_alert)
+        logger.debug("sx_alert")
+        logger.debug(sx_alert)
+
+        dengjiType = {
+            1: "I",
+            2: "II",
+            3: "III",
+            4: "IV",
+            5: "无预警"
+        }
+
+        hh_level = hh_alert['level']
+        hh_desc = hh_alert['result']
+        gx_level = gx_alert['level']
+        gx_desc = gx_alert['result']
+        lh_level = lh_alert['level']
+        lh_desc = lh_alert['result']
+        ylh_level = ylh_alert['level']
+        ylh_desc = ylh_alert['result']
+        dengjiList = []
+        dengjiList.append({"value": "《黄河防汛抗旱应急预案》", "level": dengjiType.get(hh_level, "")})
+        dengjiList.append({"value": "《河南省黄河流域伊洛河防洪预案》", "level": dengjiType.get(ylh_level, "")})
+        dengjiList.append({"value": "《故县水库应急抢险预案》", "level": dengjiType.get(gx_level, "")})
+        dengjiList.append({"value": "《2024陆浑水库防汛抢险应急预案》", "level": dengjiType.get(lh_level, "")})
+        dengjiList.append({"value": "《嵩县陆浑水库汛期高水位应急预案》", "level": dengjiType.get(lh_level, "")})
+
+        yingduicuoshiList = []
+        yingduicuoshiList.append({"value": hh_desc, "key": "黄河"})
+        yingduicuoshiList.append({"value": ylh_desc, "key": "伊洛河"})
+
+        yingduicuoshiList.append({"value": gx_desc, "key": "故县"})
+        yingduicuoshiList.append({"value": lh_desc, "key": "陆浑"})
 
         self.context['results']['yuyingfenji'] = {
-            "value": yjdj,
+            "value": {
+                "yjfj_desc": yjfjxy_desc,
+                "yjdj":dengjiList
+            },
             "desc": "预警分级响应"
         }
-        ydcs = yujingdengji(lh_sw=tmpskdesc['陆浑']['max_sw'], 
-                            gx_sw=tmpskdesc['故县']['max_sw'],
-                            lm_ll=tmpswdesc['龙门镇']['max_ll'],
-                            act_flag=True, lev='Ⅰ'
-                            )["result"]
         self.context['results']['yingducuoshi'] = {
-            "value": ydcs,
+            "value": yingduicuoshiList,
             "desc": "应对措施"
         }
+
     def get_aqjc_api(self):
         if self.context['type'] == 4:
             self.yjdj_api()
