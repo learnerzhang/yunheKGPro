@@ -509,7 +509,7 @@ def skddjy_new(filepath):
         if current_length > 0:
             min_length = min(min_length, current_length)
     keys = skMapData.keys()
-    logger.debug("keys:",keys)
+    logger.debug("keys: %s" %(keys))
     # 遍历 skMapData 的键
     for key in skMapData.keys():
         if key not in results:

@@ -96,6 +96,10 @@ LOGGING = {
         'kgproj': {
             'handlers': ['console', 'file'],
             'level': LOG_LEVEL,
+            'filename': 'debug.log',
+            'maxBytes': 1024 * 1024 * 5,  # 5MB
+            'backupCount': 5,
+            'formatter':'verbose',
         },
     }
 }
