@@ -248,7 +248,7 @@ class PlanFactory:
             jiangyu_table = yiluohe_fenqu_jiangyu_forecast(self.params)
             logger.debug(f"黄河流域分区面平均雨量预报（单位：mm）：{jiangyu_table}")
             tmpfname = self.params["jlyb"]
-            tmppath = os.path.join("data", "yuan_data", str(self.context['type']), "yubao", self.context['yadate'],tmpfname)
+            tmppath = os.path.join("data", "yuan_data", str(self.context['type']), "yubao", "2025-04-24",tmpfname)#
             # tmppath ="/data/jyybimgs/2023-07-23 /1.png"
             logger.debug(f"tmppath: {tmppath}")
             if not os.path.exists(tmppath):
@@ -316,6 +316,12 @@ class PlanFactory:
             self.context['results']['qiangjiangyuyubao'] = {
                 "value": qjsyj,
                 "desc": "强降雨预报信息"
+            }
+
+            byyj = self.params['byyj'] if 'byyj' in self.params else "暂无暴雨预警信息"
+            self.context['results']['byyj'] = {
+                "value": byyj,
+                "desc": "各个区县的暴雨预警信息"
             }
 
             self.context['results']['future7dayspredict'] = {
@@ -717,12 +723,14 @@ class PlanFactory:
             import time
             yadate = self.context['plan']['yadate']
             ddfa_excel = os.path.join("data", "yuan_data", "4", "ddfad", f"{yadate}.xlsx")
+            ddfa_outs = os.path.join("data", "yuan_data", "4", "ddfadouts", f"{yadate}")
             # logger.debug(ddfa_excel)
             if not os.path.exists(ddfa_excel):
                 ddfa_excel = os.path.join("data", "yuan_data", "4", "ddfad", "default.xlsx")
                 logger.info(f"当天调度方案单不存在,采用默认调度方案单 {ddfa_excel}")
-                yautils.plot_save_html(ddfa_excel, business_type=4, myDate=yadate)
-                logger.info(f"{yadate}调度方案单绘制图片")
+                if not os.path.exists(ddfa_outs):
+                    yautils.plot_save_html(ddfa_excel, business_type=4, myDate=yadate)
+                    logger.info(f"{yadate}调度方案单绘制图片")
             else:
                 logger.info(f"{yadate}调度方案单已存在")
             # df = pd.read_excel(ddfa_excel)
@@ -1536,17 +1544,34 @@ class PlanFactory:
             # res = format_reservoir_data()
             # sksq = res["sksq"]
             hdsq = self.params['hdsq'] if self.params else []
+            hdsq_table_name = self.params['hdsq_table_name'] if self.params['hdsq_table_name'] else " "
             sksq = self.params['sksq'] if self.params else []
-
+            sksq_table_name = self.params['sksq_table_name'] if self.params['sksq_table_name'] else " "
+            zxsksq = self.params['zxsksq'] if self.params['zxsksq'] else []
             self.context['results']['shuiqing'] = {
+                "hdsq_table_name":
+                    {
+                        "value": hdsq_table_name,
+                        "desc": "河道水情表名"
+                    },
                 "hdsq":{
                     "value": hdsq,
                     "desc": "伊洛河区域河道水情"
                 },
+                "sksq_table_name":{
+
+                    "value": sksq_table_name,
+                    "desc": "水库水情表名"
+                },
                 "sksq":{
                     "value": sksq,
-                    "desc": "伊洛河区域水库水情"
+                    "desc": "伊洛河区域大型水库水情"
+                },
+                "zxsksq":{
+                    "value": zxsksq,
+                    "desc": "伊洛河区域中型水库水情"
                 }
+
             }
 #            gqxq = huanghe_gongqing_generate_html(self.params)
             gqxq = self.params['xianqing'] if 'xianqing' in self.params else '暂无数据'

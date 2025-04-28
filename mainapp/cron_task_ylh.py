@@ -11,7 +11,7 @@ from apscheduler.schedulers.background import BackgroundScheduler
 from django_apscheduler.jobstores import DjangoJobStore, register_job, register_events
 #from yaapp.api_hhxq_data import SHJDataFactory
 from yaapp.api_ylh_data import YLHDataFactory
-from yaapp.ylh_interface import generate_rainfall_map,download_map_images
+from yaapp.ylh_interface import generate_rainfall_map,download_map_images,create_flood_control_plan,call_llm_yuan_user_plan,call_llm_yuan_user_word
 print('django-apscheduler starting')
 # 或者清空所有任务（谨慎使用）
 # DjangoJob.objects.all().delete()
@@ -55,6 +55,40 @@ def generate_rainfall_map_job():
     finally:
         close_old_connections()
     # 监控任务
+
+
+@register_job(scheduler, "cron", minute='*', id='flood_control_plan_job', replace_existing=True)
+def flood_control_plan_job():
+    """
+    防汛预案定时任务
+    每5分钟执行一次，自动创建预案并处理相关数据
+    """
+    try:
+        close_old_connections()  # 重置数据库连接
+        # 1. 创建防汛预案
+        plan_id = create_flood_control_plan()
+        if plan_id:
+            logger.info(f"成功创建防汛预案，ID: {plan_id}")
+            # 2. 调用预案处理接口
+            plan_data = call_llm_yuan_user_plan(ptid=plan_id)
+            if plan_data and plan_data.get("code") == 200:
+                logger.info("预案数据处理成功")
+
+                # 3. 生成预案文档
+                word_data = call_llm_yuan_user_word(id=plan_id)
+                if word_data and word_data.get("code") == 200:
+                    logger.info("预案文档生成成功")
+                else:
+                    logger.warning("预案文档生成失败")
+            else:
+                logger.warning("预案数据处理失败")
+        else:
+            logger.warning("防汛预案创建失败")
+
+    except Exception as e:
+        logger.error(f'防汛预案定时任务失败：{str(e)}', exc_info=True)
+    finally:
+        close_old_connections()
 register_events(scheduler)
 # 调度器开始运行
 scheduler.start()

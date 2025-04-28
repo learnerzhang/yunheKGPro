@@ -286,3 +286,102 @@ def download_map_images(base_url="http://10.4.158.34:8090/iserver/services/map-Y
             # 如果失败，删除可能存在的空文件
             if os.path.exists(filename):
                 os.remove(filename)
+
+
+def create_flood_control_plan(uid=1, text="伊洛河防汛预案", date=None, base_url="http://127.0.0.1:8000"):
+    """
+    创建防汛预案并返回预案ID（带默认参数）
+
+    参数:
+        uid (int): 用户ID，默认为1
+        text (str): 预案名称/文本，默认为"伊洛河防汛预案"
+        date (str): 日期，格式为"YYYY-MM-DD"，默认为当天日期
+        base_url (str): API基础URL，默认为"http://127.0.0.1:8000"
+
+    返回:
+        int: 创建的预案ID
+        None: 如果创建失败
+    """
+    # 如果没有提供日期，则使用当天日期
+    if date is None:
+        date = datetime.now().strftime("%Y-%m-%d")
+
+    url = f"{base_url}/yaapp/yuAnUserRecom"
+    payload = {
+        "uid": uid,
+        "text": text,
+        "date": date
+    }
+
+    try:
+        response = requests.post(url, json=payload)
+        response.raise_for_status()  # 检查HTTP错误
+
+        data = response.json()
+        if data.get("success") and data.get("data"):
+            return data["data"]["id"]
+        else:
+            print(f"创建失败: {data.get('msg', '未知错误')}")
+            return None
+
+    except requests.exceptions.RequestException as e:
+        print(f"请求出错: {e}")
+        return None
+    except (KeyError, ValueError) as e:
+        print(f"解析响应数据出错: {e}")
+        return None
+
+
+def call_llm_yuan_user_plan(ptid: int = 0, base_url: str = "http://127.0.0.1:8000"):
+    """
+    调用 /yaapp/llmYuANUserPlan 接口
+
+    参数:
+        ptid (int): 预案类型ID，默认为0
+        base_url (str): API基础URL，默认为"http://127.0.0.1:8000"
+
+    返回:
+        dict: 包含完整API响应数据的字典
+        None: 如果请求失败
+    """
+    url = f"{base_url}/yaapp/llmYuANUserPlan"
+    payload = {"ptid": ptid}
+
+    try:
+        response = requests.post(url, json=payload)
+        response.raise_for_status()  # 检查HTTP错误
+        return response.json()
+
+    except requests.exceptions.RequestException as e:
+        print(f"请求出错: {str(e)}")
+        return None
+    except ValueError as e:
+        print(f"JSON解析失败: {str(e)}")
+        return None
+
+def call_llm_yuan_user_word(id: int = 0, base_url: str = "http://127.0.0.1:8000"):
+    """
+    调用 /yaapp/makeUserYuAnWord 接口
+
+    参数:
+        ptid (int): 预案类型ID，默认为0
+        base_url (str): API基础URL，默认为"http://127.0.0.1:8000"
+
+    返回:
+        dict: 包含完整API响应数据的字典
+        None: 如果请求失败
+    """
+    url = f"{base_url}/yaapp/makeUserYuAnWord"
+    payload = {"id": id}
+
+    try:
+        response = requests.post(url, json=payload)
+        response.raise_for_status()  # 检查HTTP错误
+        return response.json()
+
+    except requests.exceptions.RequestException as e:
+        print(f"请求出错: {str(e)}")
+        return None
+    except ValueError as e:
+        print(f"JSON解析失败: {str(e)}")
+        return None
