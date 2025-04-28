@@ -1078,7 +1078,7 @@ def search_fragpacks(query, top_k=5):
     highest_score_doc = max(fragpacks, key=lambda x: x[1])  # 按分数排序，取最高分
     return highest_score_doc[0].page_content
 
-BASE_API_URL= "http://wt.hxyai.cn/fx/"#"http://10.4.158.35:8070/"
+BASE_API_URL= "http://wt.hxyai.cn/fx/" #"http://10.4.158.35:8070/"
 def get_rainfall_data_hour(basin=None, start_time=None, end_time=None):
     """
     获取实时雨量数据（带完整错误处理和JWT鉴权）
@@ -1918,6 +1918,39 @@ def get_hydrometric_dayrt_list(auth_token,hysta=None, start_date=None, end_date=
         return 500, {"error": "返回数据格式异常"}
 
 
+def get_ddfad_data(auth_token, base_api_url="http://10.4.158.35:8091/"):
+    """
+    获取调度方案单的数据
+
+    参数:
+    返回:
+        (status_code, response_data) 元组
+    """
+    auth_token = auth_token#oauth_login()
+
+    try:
+        headers = {
+            "Accept": "application/json",
+            "Authorization": f"{auth_token}"
+        }
+
+        params = {}
+        HYDROMETRIC_API_URL = f"{base_api_url}/preSch/getRecommendSchData"
+        response = requests.get(
+            HYDROMETRIC_API_URL,
+            params=params,
+            headers=headers,
+            timeout=10
+        )
+        response.raise_for_status()
+        return response.status_code, response.json()
+    except requests.exceptions.Timeout:
+        return 408, {"error": "请求超时"}
+    except requests.exceptions.RequestException as e:
+        return 500, {"error": f"请求失败: {str(e)}"}
+    except ValueError:
+        return 500, {"error": "返回数据格式异常"}
+    
 if __name__ == '__main__':
     import time
     import matplotlib.pyplot as plt

@@ -1,5 +1,6 @@
 # coding=utf-8
 
+import pprint
 from django.forms import model_to_dict
 from pydantic import BaseModel
 from typing import List
@@ -16,7 +17,7 @@ import json
 import codecs
 
 from yaapp.base_data import BaseDataFactory
-from yaapp import oauth_login,generate_rainfall_report,get_rainfall_data_day,format_hydrometric_data,format_reservoir_data
+from yaapp import get_ddfad_data, oauth_login,generate_rainfall_report,get_rainfall_data_day,format_hydrometric_data,format_reservoir_data
 # from mainapp.yaapp import generate_rainfall_report,get_rainfall_data_day,format_hydrometric_data,format_reservoir_data
 # from mainapp.yaapp.base_data import BaseDataFactory  #tests.py文件测试用
 from yaapp.ylh_interface import generate_rainfall_map
@@ -24,7 +25,8 @@ class YLHDataFactory(BaseDataFactory):
 
     def __init__(self, dataType=0):
         super().__init__(dataType)
-    
+
+
     def getYuQingData(self):
         """
             获取雨情数据
@@ -1104,6 +1106,9 @@ class YLHDataFactory(BaseDataFactory):
             调度方案
         """
         print("YLH getDiaoDuFangAnData")
+        auth_token = get_access_token()
+        status, data = get_ddfad_data(auth_token=auth_token)
+        pprint.pprint(data)
         return {}
 
     def getGongChengYanPanData(self):
@@ -1130,5 +1135,7 @@ class YLHDataFactory(BaseDataFactory):
     def buildJsonData(self):
         super().buildJsonData()
 
-# if __name__ == "__main__":
-#     LYHDataFactory(dataType=4).buildJsonData()
+if __name__ == "__main__":
+    # LYHDataFactory(dataType=4).buildJsonData()
+    YLHDataFactory(dataType=4).getDiaoDuFangAnData()
+    pass
