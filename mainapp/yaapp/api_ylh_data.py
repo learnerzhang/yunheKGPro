@@ -17,7 +17,8 @@ import json
 import codecs
 
 from yaapp.base_data import BaseDataFactory
-from yaapp import get_ddfad_data, oauth_login,generate_rainfall_report,get_rainfall_data_day,format_hydrometric_data,format_reservoir_data
+from yaapp import (oauth_login,generate_rainfall_report,get_rainfall_data_day,format_hydrometric_data,format_reservoir_data,
+                   query_zx_reservoir_data,get_weather_warning,get_access_token, get_formatted_jlyb_data)
 # from mainapp.yaapp import generate_rainfall_report,get_rainfall_data_day,format_hydrometric_data,format_reservoir_data
 # from mainapp.yaapp.base_data import BaseDataFactory  #tests.py文件测试用
 from yaapp.ylh_interface import generate_rainfall_map
@@ -43,8 +44,13 @@ class YLHDataFactory(BaseDataFactory):
         """
         auth_token = oauth_login()
         code, res = format_hydrometric_data(auth_token)
-        print("res:",res)
-        return {"hdsq":res["hdsq"]}
+        # 获取当前时间并格式化
+        now = datetime.now()
+        month_day = now.strftime("%m月%d日")
+        # 构造表名
+        table_name = f"{month_day}8时伊洛河干流重要站水情"
+        #print("res:",res)
+        return {"hdsq_table_name": table_name,"hdsq": res["hdsq"]}
 
     def getShuiKuShuiQingData(self):
         """
@@ -52,7 +58,19 @@ class YLHDataFactory(BaseDataFactory):
         """
         auth_token = oauth_login()
         res = format_reservoir_data(auth_token)
-        return {"sksq":res["sksq"]}
+        now = datetime.now()
+        month_day = now.strftime("%m月%d日")
+        # 构造表名
+        table_name = f"{month_day}8时水库蓄水情况表"
+        zxsksq=query_zx_reservoir_data()
+        return {"sksq_table_name": table_name,"sksq":res["sksq"],"zxsksq":zxsksq}
+
+    def getBaoYuYuJing(self):
+        token = get_access_token()
+        result = get_weather_warning(auth_token=token)
+        byyj = result["description"]
+        jlyb  = get_formatted_jlyb_data(auth_token=token)
+        return {"byyj": byyj,"ylhjyyb": jlyb}
 
     def getGongQingXianQingData(self):
         """
@@ -69,13 +87,13 @@ class YLHDataFactory(BaseDataFactory):
         {"url": "6.png", "desc": ""},
         {"url": "7.png", "desc": ""}
     ],
-    "ylhjyyb": [
-    {"区域": "龙三干流", "0-24小时": "3-8", "24-48小时": "1-5", "48-72小时": "1-5"},
-    {"区域": "三花干流", "0-24小时": "0-4", "24-48小时": "0-4", "48-72小时": "1-5"},
-    {"区域": "伊、洛河", "0-24小时": "0-3", "24-48小时": "1-5", "48-72小时": "1-5"},
-    {"区域": "沁 河", "0-24小时": "1-5", "24-48小时": "0-3", "48-72小时": "0-4"},
-    {"区域": "黄河下游", "0-24小时": "1-5", "24-48小时": "0-3", "48-72小时": "1-5"}
-],
+#     "ylhjyyb": [
+#     {"区域": "龙三干流", "0-24小时": "3-8", "24-48小时": "1-5", "48-72小时": "1-5"},
+#     {"区域": "三花干流", "0-24小时": "0-4", "24-48小时": "0-4", "48-72小时": "1-5"},
+#     {"区域": "伊、洛河", "0-24小时": "0-3", "24-48小时": "1-5", "48-72小时": "1-5"},
+#     {"区域": "沁 河", "0-24小时": "1-5", "24-48小时": "0-3", "48-72小时": "0-4"},
+#     {"区域": "黄河下游", "0-24小时": "1-5", "24-48小时": "0-3", "48-72小时": "1-5"}
+# ],
     "qjsyj": "预计，7月24日，伊河、洛河局地有短时强降水，小时雨量20-40毫米。",
     "jlyb": "jlyb.png",
     "hhfloodforecast": [

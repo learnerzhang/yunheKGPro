@@ -645,7 +645,7 @@ def query_question(text):
 import pprint
 
 if __name__ == "__main__":
-    #pass
+    pass
     #skddjy("../../mainapp/media/ddfa/2025-02-08.xlsx")
     # for file in os.listdir("data/ddfa"):
     #     file_path = f"data/ddfa/{file}"
@@ -699,22 +699,22 @@ if __name__ == "__main__":
     #     res = query_question(prompt)
     #     print(res)
     # 记录开始时间
-    r = excel_to_dict("../../mainapp/media/ddfa/3/2025-03-13.xlsx")
-    # pprint.pprint(r)
-    start_time = time.time()
-    # 调用函数并获取结果
-    res = yautils.skddjy_new("../../mainapp/media/ddfa/3/2025-03-13.xlsx")
-    ddjy_list = []
-    # 遍历返回的结果字典
-    for key, value in res.items():
-        # 处理每个水库的出流量
-        ckll = process_outflow(value, date_list)
-        ddjy_list.append(f"{key}水库：{ckll}")
-    # 将所有水库的调度建议合并为一个字符串
-    ddjy = "\n".join(ddjy_list)
-    # 记录结束时间
-    end_time = time.time()
-    # 计算并打印执行时间
-    execution_time = end_time - start_time
-    print(f"执行结果：{res}")
-    print(f"代码执行时间：{execution_time:.4f} 秒")
+    # r = excel_to_dict("../../mainapp/media/ddfa/3/2025-03-13.xlsx")
+    # # pprint.pprint(r)
+    # start_time = time.time()
+    # # 调用函数并获取结果
+    # res = yautils.skddjy_new("../../mainapp/media/ddfa/3/2025-03-13.xlsx")
+    # ddjy_list = []
+    # # 遍历返回的结果字典
+    # for key, value in res.items():
+    #     # 处理每个水库的出流量
+    #     ckll = process_outflow(value, date_list)
+    #     ddjy_list.append(f"{key}水库：{ckll}")
+    # # 将所有水库的调度建议合并为一个字符串
+    # ddjy = "\n".join(ddjy_list)
+    # # 记录结束时间
+    # end_time = time.time()
+    # # 计算并打印执行时间
+    # execution_time = end_time - start_time
+    # print(f"执行结果：{res}")
+    # print(f"代码执行时间：{execution_time:.4f} 秒")

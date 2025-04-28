@@ -65,12 +65,23 @@ def get_rainfall_data_day(auth_token,basin=None, start_time=None, end_time=None)
     """
     # 构造请求参数
     params = {}
+    # 如果当前时间小于8点，则开始时间是昨天8点，否则是今天8点
+    now = datetime.now()
+    if now.hour < 8:
+        start_default = (now.replace(hour=8, minute=0, second=0, microsecond=0))- timedelta(days=1)
+    else:
+        start_default = now.replace(hour=8, minute=0, second=0, microsecond=0)
+
+    end_default = now#start_default + timedelta(days=1)
     # 设置默认时间范围（今天和昨天）
-    today = datetime.now().strftime("%Y-%m-%d")
-    yesterday = (datetime.now() - timedelta(days=1)).strftime("%Y-%m-%d")
-    # 处理时间参数
-    params["endDate"] = end_time if end_time else today
-    params["startDate"] = start_time if start_time else yesterday
+    # today = datetime.now().strftime("%Y-%m-%d")
+    # yesterday = (datetime.now() - timedelta(days=1)).strftime("%Y-%m-%d")
+    # # 处理时间参数
+    # params["endDate"] = end_default #end_time if end_time else today
+    # params["startDate"] = start_default #start_time if start_time else yesterday
+    params["endDate"] = end_time if end_time else end_default.strftime("%Y-%m-%d %H:%M:%S")
+    params["startDate"] = start_time if start_time else start_default.strftime("%Y-%m-%d %H:%M:%S")
+    print("params:",params)
     if basin:
         params["stcd"] = basin
     try:
@@ -79,7 +90,7 @@ def get_rainfall_data_day(auth_token,basin=None, start_time=None, end_time=None)
 
         # 添加超时和请求头
         response = requests.get(
-            url=f"{BASE_API_URL}/rainfall/dayrt/getRainfall",
+            url=f"{BASE_API_URL}/rainfall/hourrth/getRainfall",#dayrt
             params=params,
             headers={
                 "Accept": "application/json",
@@ -188,6 +199,44 @@ def generate_rainfall_report_v1(response_data):
     return "".join(report_parts)
 
 
+def get_ylh_rainfall():
+    """
+    获取伊洛河流域面雨量数据
+    返回格式：字符串 "伊洛河流域面雨量XX毫米" 或错误信息字符串
+    """
+    # 计算时间范围（昨天8点到今天8点）
+    now = datetime.now()
+    end_time = now.replace(hour=8, minute=0, second=0, microsecond=0)
+    start_time = end_time - timedelta(days=1)
+
+    # 格式化时间参数
+    params = {
+        "startTime": start_time.strftime("%Y-%m-%d %H:%M:%S"),
+        "endTime": end_time.strftime("%Y-%m-%d %H:%M:%S")
+    }
+
+    try:
+        # 发送请求
+        response = requests.get(
+            "http://10.4.158.35:8092/rfFace/YLH/RainAnalysis",#经过nginx转发的地址
+            #"http://10.4.158.36:9091/YLH/RainAnalysis",#原始地址
+            params=params,
+            #timeout=10
+        )
+        response.raise_for_status()
+
+        # 解析响应数据
+        data = response.json()
+        if data.get("code") == "200":
+            return f"伊洛河流域面雨量{data.get('meanrain', 0)}毫米"
+        return data.get("message", "接口返回数据异常")
+
+    except requests.exceptions.Timeout:
+        return "请求超时，请稍后重试"
+    except requests.exceptions.RequestException as e:
+        return f"请求失败：{str(e)}"
+    except (KeyError, ValueError) as e:
+        return "数据解析错误"
 def generate_rainfall_report(response_data):
     """
     生成降雨量报告文本(版本1)
@@ -203,15 +252,16 @@ def generate_rainfall_report(response_data):
     返回:
         降雨量报告文本
     """
+    today = datetime.now()
     if not response_data or 'data' not in response_data:
-        return "无有效降雨数据"
+        return f"{today.month}月{today.day}日，未获取到伊洛河流域降雨数据。"
 
     # 筛选伊洛河流域站点(416开头)
     yiluo_stations = [station for station in response_data['data']
                       if str(station['stcd']).startswith('416')]
 
     if not yiluo_stations:
-        return "伊洛河流域无降雨监测数据"
+        return f"{today.month}月{today.day}日，伊洛河流域无降雨。"#"伊洛河流域无降雨监测数据"
 
     # 统计降雨等级和站点总数
     rainfall_stats = {
@@ -257,7 +307,7 @@ def generate_rainfall_report(response_data):
     # 如果没有降雨
     if rain_stations == 0:
         today = datetime.now()
-        return f"{today.month}月{today.day}日，伊洛河流域无降雨"
+        return f"{today.month}月{today.day}日，伊洛河流域无降雨。"
 
     # 计算各雨型的站点比例
     ratios = {
@@ -271,8 +321,14 @@ def generate_rainfall_report(response_data):
 
     # 生成报告文本
     today = datetime.now()
-    report_parts = [f"{today.month}月{today.day}日，伊洛河流域"]
-
+    meanrain = get_ylh_rainfall()
+    print("面雨量：",meanrain)
+    report_parts = [f"{today.month}月{today.day}日"]
+    if isinstance(meanrain, str) and "面雨量" in meanrain:
+        report_parts.append(f"，{meanrain}")
+    else:
+        pass
+    report_parts.append("，伊洛河流域")
     # 判断降雨范围
     # 1. 优先判断大部降雨(≥50%)
     # 大部暴雨
@@ -325,7 +381,7 @@ def generate_rainfall_report(response_data):
 
     # 添加最大降雨点
     if max_rainfall > 0:
-        report_parts.append(f"，最大点雨量{max_station}站{max_rainfall}毫米")
+        report_parts.append(f"，最大点雨量{max_station}站{max_rainfall}毫米。")
 
     return "".join(report_parts)
 
@@ -980,8 +1036,258 @@ def fetch_and_plot_rainfall(base_url, stdt, dt, prtime, output_path=None):
     # 2. 渲染地图
     plot_rain_polygon(data, output_path)
 
+
+import requests
+from typing import Optional, Dict
+
+
+def get_access_token(
+        username: str = "admin1",
+        password: str = "Yrec!@#2025",
+        client_id: str = "e5cd7e4891bf95d1d19206ce24a7b32e",
+        grant_type: str = "password",
+        base_url: str = "http://10.4.158.35:8091"  # 根据实际环境修改
+) -> Optional[str]:
+    """
+    获取认证Token
+
+    参数:
+        username: 用户名 (默认示例值)
+        password: 密码 (默认示例值)
+        client_id: 客户端ID (默认示例值)
+        grant_type: 授权类型 (固定password)
+        base_url: 接口基础地址
+
+    返回:
+        str: 成功返回access_token，失败返回None
+    """
+    url = f"{base_url}/auth/login"
+    payload = {
+        "username": username,
+        "password": password,
+        "clientId": client_id,
+        "grantType": grant_type
+    }
+    try:
+        response = requests.post(
+            url=url,
+            json=payload,  # 使用json参数自动设置Content-Type为application/json
+            timeout=10
+        )
+        response.raise_for_status()
+
+        data = response.json()
+        if data.get("code") == 200:
+            return data["data"]["access_token"]
+        else:
+            print(f"登录失败: {data.get('msg')}")
+            return None
+
+    except requests.exceptions.RequestException as e:
+        print(f"请求异常: {str(e)}")
+        return None
+    except (KeyError, ValueError) as e:
+        print(f"数据解析错误: {str(e)}")
+        return None
+
+# 使用示例
+def get_weather_warning(auth_token: str, timeout: int = 10):
+    """
+    获取天气预警信息并生成描述文本（带去重功能）
+
+    参数:
+        auth_token (str): 认证Token
+        timeout (int): 请求超时时间(秒)，默认10秒
+
+    返回:
+        dict: 包含响应状态和数据的字典，格式:
+        {
+            "status_code": int,    # HTTP状态码
+            "data": dict | str,    # 成功时为JSON数据，失败时为错误信息
+            "description": str     # 生成的预警描述文本
+        }
+    """
+    url = "http://10.4.158.35:8091/pre/getWeatherWarning"
+    try:
+        response = requests.get(
+            url=url,
+            headers={
+                "ClientId": "e5cd7e4891bf95d1d19206ce24a7b32e",
+                "Authorization": f"Bearer {auth_token}"
+            },
+            timeout=timeout
+        )
+        response.raise_for_status()
+        result = response.json()
+
+        # 初始化预警分类字典（使用集合自动去重）
+        warning_levels = {
+            "红色": set(),
+            "橙色": set(),
+            "黄色": set(),
+            "蓝色": set()
+        }
+
+        # 处理数据并生成描述
+        description = "根据伊洛河流域县区气象台发布的预警信息"
+
+        if result.get("code") == 200 and result.get("data"):
+            # 提取并分类预警信息（自动去重）
+            for warning in result["data"]:
+                city_name = warning.get("cityName", "")
+                warning_name = warning.get("warningName", "")
+
+                # 提取县区名称（改进的提取逻辑）
+                county = extract_county_name(city_name)
+
+                # 分类预警级别
+                if county:  # 只有有效县区名称才添加
+                    if "红色" in warning_name:
+                        warning_levels["红色"].add(county)
+                    elif "橙色" in warning_name:
+                        warning_levels["橙色"].add(county)
+                    elif "黄色" in warning_name:
+                        warning_levels["黄色"].add(county)
+                    elif "蓝色" in warning_name:
+                        warning_levels["蓝色"].add(county)
+
+            # 构建描述文本
+            parts = []
+            for level, counties in warning_levels.items():
+                if counties:
+                    # 将集合转为列表并排序，确保输出顺序一致
+                    sorted_counties = sorted(list(counties))
+                    counties_str = "、".join(sorted_counties)
+                    # 单数/复数处理
+                    if len(sorted_counties) > 1:
+                        parts.append(f"{counties_str}等{len(sorted_counties)}个县区发布了暴雨{level}预警")
+                    else:
+                        parts.append(f"{counties_str}发布了暴雨{level}预警")
+
+            if parts:
+                description += "，" + "，".join(parts) + "。"
+            else:
+                description += "当前无暴雨预警。"
+        else:
+            description += "当前无暴雨预警。"
+
+        return {
+            "status_code": response.status_code,
+            "data": result,
+            "description": description
+        }
+
+    except requests.exceptions.Timeout:
+        return {
+            "status_code": 408,
+            "data": "请求超时",
+            "description": "获取预警信息超时"
+        }
+    except requests.exceptions.RequestException as e:
+        return {
+            "status_code": 500,
+            "data": f"请求失败: {str(e)}",
+            "description": "获取预警信息失败"
+        }
+    except ValueError:
+        return {
+            "status_code": 500,
+            "data": "返回数据格式异常",
+            "description": "预警信息解析错误"
+        }
+
+
+def extract_county_name(city_name: str) -> str:
+    """
+    从cityName字段中提取县区名称
+
+    参数:
+        city_name: 原始城市名称字符串（如"河南省洛阳市嵩县气象台发布..."）
+
+    返回:
+        提取后的县区名称（如"嵩县"），提取失败返回空字符串
+    """
+    if not city_name:
+        return ""
+
+    # 尝试按"气象台"分割
+    parts = city_name.split("气象台")
+    if len(parts) > 0:
+        # 尝试按省市区分割
+        address_parts = parts[0].split("省")[-1].split("市")
+        if len(address_parts) > 1:
+            return address_parts[-1]
+        return parts[0]
+    return ""
+
+
+def get_formatted_jlyb_data(auth_token, dateTime=None):
+    """
+    获取格式化后的降雨预报数据
+
+    参数:
+    dateTime -- 查询时间字符串，格式为'YYYY-MM-DD HH:MM:SS'，默认为当天8点
+
+    返回:
+    格式化后的降雨数据列表，或None(如果出错)
+    """
+    # API基础URL
+    base_url = "http://10.4.158.35:8091/pre/getPreRainDataByTime"
+
+    # 设置默认时间为当天8点
+    if dateTime is None:
+        today = datetime.now().strftime("%Y-%m-%d")
+        dateTime = f"{today} 08:00:00"
+
+    try:
+        # 发送GET请求带参数
+        params = {"dateTime": dateTime}
+        response = requests.get(base_url,  headers={
+                "ClientId": "e5cd7e4891bf95d1d19206ce24a7b32e",
+                "Authorization": f"Bearer {auth_token}"
+            }, params=params)
+        response.raise_for_status()  # 检查请求是否成功
+
+        # 解析JSON响应
+        data = response.json()
+
+        # 检查返回状态码
+        if data.get("code") != 200:
+            raise ValueError(f"API返回错误: {data.get('msg', '未知错误')}")
+
+        # 转换数据格式
+        formatted_data = []
+        for item in data.get("data", []):
+            formatted_item = {
+                "区域": item.get("stationName", ""),
+                "0-24小时": item.get("value24", ""),
+                "24-48小时": item.get("value48", ""),
+                "48-72小时": item.get("value72", "")
+            }
+            formatted_data.append(formatted_item)
+
+        return formatted_data
+
+    except requests.exceptions.RequestException as e:
+        print(f"请求API时出错: {e}")
+        return None
+    except ValueError as e:
+        print(f"数据处理错误: {e}")
+        return None
+    except Exception as e:
+        print(f"发生未知错误: {e}")
+        return None
+
+
+from yaapp.ylh_interface import create_flood_control_plan,call_llm_yuan_user_plan,call_llm_yuan_user_word
 from datetime import datetime, timedelta
 if __name__ == "__main__":
+    # plan_id = create_flood_control_plan()
+    # print("planid:",plan_id)
+    # plan_data = call_llm_yuan_user_plan(ptid=plan_id)
+    # print(plan_data)
+    # word_data = call_llm_yuan_user_word(id=plan_id)
+    # print(word_data)
     # end_time = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
     # start_time = (datetime.now() - timedelta(hours=1)).strftime("%Y-%m-%d %H:%M:%S")
     #
@@ -993,26 +1299,43 @@ if __name__ == "__main__":
     # else:
     #     print(f"请求失败 (状态码 {status}): {data}")
     #
+    # res = get_formatted_rain_data()
+    # print("径流预报:",res)
+    token = get_access_token()
+    if token:
+        print("获取Token成功:", token)
+    else:
+        print("获取Token失败")
+    result = get_weather_warning(auth_token=token)
+    # 3. 处理结果
+    if result["status_code"] == 200:
+        print("获取预警数据成功:", result["description"])
+    else:
+        print(f"请求失败 (状态码 {result['status_code']}):", result["data"])
+    res = get_formatted_jlyb_data(auth_token=token)
+    print("径流预报:",res)
+
+
 
     auth_token = oauth_login()
     print("auth_token:",auth_token)
-    # status, data = get_rainfall_data_day(auth_token=auth_token)
-    # print("data：",data)
-    # res = generate_rainfall_report(response_data=data)
-    # print("降雨报告：",res)
-    data = get_hydrometric_station(auth_token=auth_token)
-    print("河道实时水情:",data)
-    code, res = format_hydrometric_data(auth_token=auth_token)
-    print("格式化后的河道实时水情：",res)
-
-    # #
-    code,res = get_reservoir_kurong(auth_token=auth_token,resname="BDA00000121")
-    print("res:",res)
-    code , res = get_sk_data(auth_token)
-    print("水库数据：",res)
-
-    res = format_reservoir_data(auth_token=auth_token)
-    print("水库数据格式化：",res)
+    status, data = get_rainfall_data_day(auth_token=auth_token)
+    print("data：",data)
+    res = generate_rainfall_report(response_data=data)
+    print("降雨报告：",res)
+    # data = get_hydrometric_station(auth_token=auth_token)
+    # print("河道实时水情:",data)
+    # code, res = format_hydrometric_data(auth_token=auth_token)
+    # print("格式化后的河道实时水情：",res)
+    #
+    # # #
+    # code,res = get_reservoir_kurong(auth_token=auth_token,resname="BDA00000121")
+    # print("res:",res)
+    # code , res = get_sk_data(auth_token)
+    # print("水库数据：",res)
+    #
+    # res = format_reservoir_data(auth_token=auth_token)
+    # print("水库数据格式化：",res)
 
     # 示例1：全部使用默认参数（STDT=现在，DT=明天此时，PRTIME=24）
     # BASE_URL = "http://10.4.158.35:8093"  # 替换为实际API地址
