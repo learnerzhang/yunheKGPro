@@ -1130,6 +1130,7 @@ class YLHDataFactory(BaseDataFactory):
         # print("auth_token:", auth_token)
         status, dataJson = get_ddfad_data(auth_token=auth_token,base_url="http://10.4.158.35:8091")
         if dataJson['code'] != 200:
+            logger.error("获取调度方案失败,使用默认JSON数据生成调度方案单！！！")
             with open("data/examples/ddfad.json", mode="r", encoding="utf-8") as json_file:
                 dataJson = json.load(json_file)
         datalist = dataJson['data']
