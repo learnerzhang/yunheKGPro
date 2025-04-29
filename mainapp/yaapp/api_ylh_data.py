@@ -15,13 +15,15 @@ from io import StringIO
 import requests
 import json
 import codecs
-
+import logging
 from yaapp.base_data import BaseDataFactory
-from yaapp import (oauth_login,generate_rainfall_report,get_rainfall_data_day,format_hydrometric_data,format_reservoir_data,
+from yaapp import (get_ddfad_data, oauth_login,generate_rainfall_report,get_rainfall_data_day,format_hydrometric_data,format_reservoir_data,
                    query_zx_reservoir_data,get_weather_warning,get_access_token, get_formatted_jlyb_data)
 # from mainapp.yaapp import generate_rainfall_report,get_rainfall_data_day,format_hydrometric_data,format_reservoir_data
 # from mainapp.yaapp.base_data import BaseDataFactory  #tests.py文件测试用
 from yaapp.ylh_interface import generate_rainfall_map
+logger = logging.getLogger(__name__)
+
 class YLHDataFactory(BaseDataFactory):
 
     def __init__(self, dataType=0):
@@ -1123,10 +1125,37 @@ class YLHDataFactory(BaseDataFactory):
         """
             调度方案
         """
-        print("YLH getDiaoDuFangAnData")
-        auth_token = get_access_token()
-        status, data = get_ddfad_data(auth_token=auth_token)
-        pprint.pprint(data)
+        # print("YLH getDiaoDuFangAnData")
+        auth_token = get_access_token(base_url="http://10.4.158.35:8091")
+        # print("auth_token:", auth_token)
+        status, dataJson = get_ddfad_data(auth_token=auth_token,base_url="http://10.4.158.35:8091")
+        if dataJson['code'] != 200:
+            with open("data/examples/ddfad.json", mode="r", encoding="utf-8") as json_file:
+                dataJson = json.load(json_file)
+        datalist = dataJson['data']
+        # 读取Excel文件
+        import openpyxl
+        workbook = openpyxl.load_workbook("data/yuan_templet/ddfad.xlsx")
+        # 时间	三门峡				小浪底				陆浑				故县				河口村				龙门镇	白马寺	黑石关	花园口
+        # 时间	水位	蓄量	入库	出库	水位	蓄量	入库	出库	水位	蓄量	入库	出库	水位	蓄量	入库	出库	水位	蓄量	入库	出库	流量	流量	流量	流量
+        keylist = ['dateTime', 
+                   'sanmenxiaShuiwei', 'sanmenxiaXuliang', 'sanmenxiaRuKu', 'sanmenxiaChuKu',
+                   'xiaolangdiShuiwei','xiaolangdiXuliang','xiaolangdiRuKu','xiaolangdiChuKu',
+                   'luhunShuiwei','luhunXuliang','luhunRuKu','luhunChuKu',
+                   'guxianShuiwei','guxianXuliang','guxianRuKu','guxianChuKu',
+                   'hekoucunShuiwei','hekoucunXuliang','hekoucunRuKu','hekoucunChuKu',
+                   'longmenzhenLiuliang', 'baimasiLiuliang', 'heishiguanLiuliang', 'huayuankouLiuliang'
+                   ]
+        # 获取活动工作表
+        sheet = workbook.active
+        # 遍历数据并逐行追加到工作表中
+        for data in datalist:
+            row =[data.get(key, 0) for key in keylist]
+            # 往EXCEL写入，从第一列开始
+            sheet.append(row)
+        ddfadFilePath = f"data/yuan_data/4/ddfad/{self.date}.xlsx"
+        workbook.save(ddfadFilePath)
+        logger.info(ddfadFilePath, "保存成功")
         return {}
 
     def getGongChengYanPanData(self):
@@ -1154,6 +1183,6 @@ class YLHDataFactory(BaseDataFactory):
         super().buildJsonData()
 
 if __name__ == "__main__":
-    # LYHDataFactory(dataType=4).buildJsonData()
+    # YLHDataFactory(dataType=4).buildJsonData()
     YLHDataFactory(dataType=4).getDiaoDuFangAnData()
     pass

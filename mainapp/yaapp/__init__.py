@@ -2278,6 +2278,36 @@ def get_formatted_jlyb_data(auth_token, dateTime=None):
         print(f"发生未知错误: {e}")
         return None
 
+
+def get_ddfad_data(auth_token, base_url="http://10.4.158.35:8091"):
+    """
+        调度方案单数据
+    """
+    # API基础URL
+
+    try:
+        headers = {
+            "Authorization": f"Bearer {auth_token}",
+            "ClientId": "e5cd7e4891bf95d1d19206ce24a7b32e"
+        }
+        url = f"{base_url}/preSch/getRecommendSchData"
+        # print("ddfad:", url, headers)
+        response = requests.get(
+            url,
+            headers=headers,
+            timeout=10
+        )
+
+        response.raise_for_status()
+        return response.status_code, response.json()
+
+    except requests.exceptions.Timeout:
+        return 408, {"error": "请求超时"}
+    except requests.exceptions.RequestException as e:
+        return 500, {"error": f"请求失败: {str(e)}"}
+    except ValueError:
+        return 500, {"error": "返回数据格式异常"}
+
 if __name__ == '__main__':
     import time
     import matplotlib.pyplot as plt
