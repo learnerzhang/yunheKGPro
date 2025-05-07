@@ -272,7 +272,9 @@ def plot_save_html(ddfa_file_path, business_type=0, myDate=None):
         cfg = imgkit.config(wkhtmltoimage=settings.WKING_PATH)
         options = {
             'load-error-handling': 'ignore',
-            'javascript-delay': 1100,  # 延迟 1000 毫秒，根据需要调整
+            'javascript-delay': 2000,
+            # 'disable-smart-width': '',  # 禁用智能宽度
+            'width': 880  # 可根据需要调整宽度
         }
         logger.warning(f"开始绘制水文站调度过程曲线{list(swMapData.keys())}")
         for sw in swznames:
@@ -284,7 +286,13 @@ def plot_save_html(ddfa_file_path, business_type=0, myDate=None):
             image_filepath = os.path.join(imgs_dir, f"{sw}.png")
 
             # 创建折线图
-            line = Line(init_opts=opts.InitOpts(theme='white'))
+            # line = Line(init_opts=opts.InitOpts(theme='white'))
+            # 修改后（添加自适应宽度和高度）
+            line = Line(
+                init_opts=opts.InitOpts(
+                    theme='white',
+                )
+            )
             # 添加 X 轴数据
             line.add_xaxis(xaxis_data=date_list)
             
@@ -312,6 +320,22 @@ def plot_save_html(ddfa_file_path, business_type=0, myDate=None):
                 ),
             )
             line.render(html_filepath)
+            # line.render(
+            #     html_filepath,
+            #     extra_content='''
+            #     <style>
+            #         body {margin: 10px 0 0 0; padding: 0;}
+            #         .chart-container {width: 95%; margin: 0 auto;}
+            #     </style>
+            #     '''
+            # )
+            options = {
+                'load-error-handling': 'ignore',
+                'javascript-delay': 2000,
+                # 'disable-smart-width': '',  # 禁用智能宽度
+                'quality': '100',
+                'width': 840  # 可根据需要调整宽度
+            }
             imgkit.from_file(html_filepath, image_filepath, config=cfg, options=options)
         # print("开始绘制小浪底调度过程曲线", list(skMapData.keys()))
         logger.warning(f"开始绘制水库调度过程曲线{list(skMapData.keys())}")
@@ -323,7 +347,13 @@ def plot_save_html(ddfa_file_path, business_type=0, myDate=None):
             image_filepath = os.path.join(imgs_dir, f"{sk}.png")
             
             # 创建折线图
-            line = Line(init_opts=opts.InitOpts(theme='white'))
+            # line = Line(init_opts=opts.InitOpts(theme='white'))
+            # 修改后（添加自适应宽度和高度）
+            line = Line(
+                init_opts=opts.InitOpts(
+                    theme='white',
+                )
+            )
             line.add_xaxis(xaxis_data=date_list)
             logger.debug(f"data key: {list(record_data.keys())}")
             if '水位' in record_data:
@@ -419,11 +449,28 @@ def plot_save_html(ddfa_file_path, business_type=0, myDate=None):
             # 设置全局配置项
             # 渲染图表到 HTML 文件
             line.render(html_filepath)
+            # 在render调用处添加样式
+            # line.render(
+            #     html_filepath,
+            #     extra_content='''
+            #     <style>
+            #         body {margin: 10px 0 0 0; padding: 0;}
+            #         .chart-container {width: 95%; margin: 0 auto;}
+            #     </style>
+            #     '''
+            # )
+            options = {
+                'load-error-handling': 'ignore',
+                'javascript-delay': 2000,
+                'quality': '100',
+                # 'disable-smart-width': '',  # 禁用智能宽度
+                'width': 800  # 可根据需要调整宽度
+            }
             imgkit.from_file(html_filepath, image_filepath, config=cfg, options=options)
             # imgkit.from_url('https://httpbin.org/ip', 'ip.jpg', config=cfg) # 从url获取html，再转为图片
             # imgkit.from_string('Hello!','hello.jpg', config=cfg)  #将字符串转为图片
 
-        logger.debug("绘图完成")
+        logger.warning("绘图完成")
         # 创建临时文件夹
     except Exception as e:
         print(e)
@@ -642,19 +689,17 @@ def query_question(text):
     llm = Ollama(model="deepseek-r1:14b")
     res = llm(text)
     return res
-import pprint
 
 if __name__ == "__main__":
-    pass
     #skddjy("../../mainapp/media/ddfa/2025-02-08.xlsx")
-    # for file in os.listdir("data/ddfa"):
-    #     file_path = f"data/ddfa/{file}"
-    #     # df = pd.read_excel(file_path, sheet_name='Sheet1')
-    #     # print(df.head(10))
-    #     plot_save_html(file_path,)
-    #     break
-    #
-    # print("="*100)
+    for file in os.listdir("data/yuan_data/4/ddfad"):
+        file_path = f"data/yuan_data/4/ddfad/{file}"
+        # df = pd.read_excel(file_path, sheet_name='Sheet1')
+        # print(df.head(10))
+        plot_save_html(file_path,)
+        break
+    
+    print("="*100)
     # # # 文件列表
     # files = [
     #     "调度方案单13.xlsx",
@@ -718,3 +763,4 @@ if __name__ == "__main__":
     # execution_time = end_time - start_time
     # print(f"执行结果：{res}")
     # print(f"代码执行时间：{execution_time:.4f} 秒")
+    pass
