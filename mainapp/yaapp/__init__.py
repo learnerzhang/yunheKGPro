@@ -2308,11 +2308,10 @@ def get_ddfad_data(auth_token, base_url="http://10.4.158.35:8091"):
         isRecommend = response.json()["data"][0]["isRecommend"]
         logger.info(f"get_ddfad_data schId: {schId}, isRecommend: {isRecommend}")
         print(f"get_ddfad_data schId: {schId}, isRecommend: {isRecommend}")
-
-        url = f"{base_url}/preSch/getSchDataBySchId?schId={schId}"
+        xurl = f"{base_url}/preSch/getSchDataBySchId?schId={schId}"
         # print("ddfad:", url, headers)
         response = requests.get(
-            url,
+            xurl,
             headers=headers,
             timeout=10
         )
