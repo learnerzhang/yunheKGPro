@@ -690,6 +690,57 @@ def query_question(text):
     res = llm(text)
     return res
 
+import pprint
+from datetime import datetime
+def get_cleaned_json_from_excel(file_path):
+    # 1. 读取Excel文件
+    df = pd.read_excel(file_path, header=None)
+
+    # 2. 提取前三行作为多级表头，并合并成一维列名
+    # headers = []
+    # for col in df.iloc[:, :].apply(lambda x: [str(cell) if pd.notna(cell) else '' for cell in x], axis=0):
+    #     combined = ' '.join(col[:3]).strip()  # 确保每个元素都是字符串
+    #     headers.append(combined)
+
+    # 设置新的列名并删除前三行
+    #df.columns = headers
+    df = df.drop([0, 1, 2]).reset_index(drop=True)
+
+    # 3. 定义需要保留的列名（按你的需求顺序）
+    desired_columns = [
+        '时间',
+        '三门峡 水位 (m)', '三门峡 蓄量 (亿m³)', '三门峡 入库 (m³/s)', '三门峡 出库 (m³/s)',
+        '小浪底 水位 (m)', '小浪底 蓄量 (亿m³)', '小浪底 入库 (m³/s)', '小浪底 出库 (m³/s)',
+        '陆浑 水位 (m)', '陆浑 蓄量 (亿m³)', '陆浑 入库 (m³/s)', '陆浑 出库 (m³/s)',
+        '故县 水位 (m)', '故县 蓄量 (亿m³)', '故县 入库 (m³/s)', '故县 出库 (m³/s)',
+        '河口村 水位 (m)', '河口村 蓄量 (亿m³)', '河口村 入库 (m³/s)', '河口村 出库 (m³/s)',
+        '龙门镇 流量 (m³/s)', '白马寺 流量 (m³/s)', '黑石关 流量 (m³/s)', '花园口 流量 (m³/s)'
+    ]
+
+    # 4. 映射为简洁列名
+    column_mapping = {
+        src: dst for src, dst in zip(df.columns.tolist(), desired_columns)
+    }
+
+    df.rename(columns=column_mapping, inplace=True)
+
+    # 5. 去除全空行
+    df.dropna(how='all', inplace=True)
+
+    # 6. 将时间戳转为标准时间格式
+    def convert_timestamp(ts):
+        try:
+            ts_float = float(ts)
+            dt = datetime.fromtimestamp(ts_float / 1000)  # 毫秒转秒
+            return dt.strftime('%Y-%m-%d %H:%M:%S')
+        except Exception:
+            return str(ts)  # 如果转换失败，保持原样
+
+    df['时间'] = df['时间'].apply(convert_timestamp)
+
+    # 7. 转换为JSON字符串
+    return df.to_json(orient='records', force_ascii=False)
+
 if __name__ == "__main__":
     #skddjy("../../mainapp/media/ddfa/2025-02-08.xlsx")
     for file in os.listdir("data/yuan_data/4/ddfad"):

@@ -25,15 +25,23 @@ def set_landscape(doc):
         section = doc.add_section()
     else:
         section = sections[0]
-    
+    #设置为横向
     # 获取当前的页面设置
-    page_height = section.page_height
-    page_width = section.page_width
-    
-    # 交换宽度和高度以设置为横向
-    section.page_height = page_width
-    section.page_width = page_height
-    
+    # page_height = section.page_height
+    # page_width = section.page_width
+    #
+    # # 交换宽度和高度以设置为横向
+    # section.page_height = page_width
+    # section.page_width = page_height
+    #设置为纵向
+    # A4 纸默认尺寸（纵向）单位：磅 (points)
+    A4_WIDTH = Pt(595.3)  # 宽度（纵向时）
+    A4_HEIGHT = Pt(841.9)  # 高度（纵向时）
+
+    # 设置页面尺寸为纵向
+    section.page_width = A4_WIDTH
+    section.page_height = A4_HEIGHT
+
     # 设置页边距
     section.left_margin = Inches(1)
     section.right_margin = Inches(1)
@@ -115,7 +123,7 @@ def writeParagraphs2Word(i, node: dict, doc):
             run._element.rPr.rFonts.set(qn('w:eastAsia'), '仿宋')  # 中文用仿宋
             run.font.size = Pt(16)
 
-            if len(para['content'].strip()) < 10:
+            if len(para['content'].strip()) <= 12:
                 run.font.name = 'Times New Roman'  # 数字和英文用 Times New Roman
                 run._element.rPr.rFonts.set(qn('w:eastAsia'), '楷体')  # 中文用楷体
                 run.bold = True

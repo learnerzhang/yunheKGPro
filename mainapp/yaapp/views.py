@@ -55,7 +55,7 @@ from yaapp.plan import PlanFactory
 from yaapp.wordutils import set_landscape, writeParagraphs2Word, writeTitle2Word
 from yunheKGPro import CsrfExemptSessionAuthentication
 from yaapp.serializers import YuAnAppResponseSerializer
-
+from django.db import models
 logger = logging.getLogger('kgproj')
 
 class PTBusinessList(mixins.ListModelMixin,
@@ -1015,7 +1015,7 @@ class YuAnRecomApiPost(generics.GenericAPIView):
             yuanlist = json.load(f)
         # TODO
         yuannames = list(yuanlist.keys())
-        
+        logger.info("yuannames:",yuannames)
         try:
             tmpUser = User.objects.get(id=uid)
             logger.debug("用户信息为：",tmpUser)
@@ -1796,6 +1796,57 @@ class MakePlanJson(generics.GenericAPIView):
             data.append(node)
         # 保存文档
         data = {"code": 200, "data": data, "msg": "生成Word成功！"}
+        serializers = YuAnAppResponseSerializer(data=data, many=False)
+        serializers.is_valid()
+        return Response(serializers.data, status=status.HTTP_200_OK)
+
+
+class GetLatestPlans(generics.GenericAPIView):
+    authentication_classes = (CsrfExemptSessionAuthentication, BasicAuthentication)
+    serializer_class = YuAnAppResponseSerializer
+
+    @swagger_auto_schema(
+        operation_summary='GET 获取最新预案文档列表',
+        operation_description='GET 获取所有预案文档的最新版本（按名称去重，保留最新时间）',
+        responses={
+            200: YuAnAppResponseSerializer(many=False),
+            400: "请求失败",
+        },
+        tags=['ya_api']
+    )
+    @csrf_exempt
+    def get(self, request, *args, **krgs):
+        try:
+            # 获取所有文档并按名称分组，只保留每个名称的最新版本
+            latest_docs = PlanByUserDocument.objects.values('name').annotate(
+                latest_id=models.Max('id'),
+                latest_created=models.Max('created_at')
+            ).order_by('-latest_created')
+
+            # 获取完整的文档对象
+            doc_ids = [doc['latest_id'] for doc in latest_docs]
+            documents = PlanByUserDocument.objects.filter(id__in=doc_ids).order_by('-created_at')
+            # 构建返回数据
+            result = []
+            for doc in documents:
+                doc_dict = model_to_dict(doc, exclude=["plan", "document"])
+                doc_dict['created_at'] = doc.created_at.strftime("%Y-%m-%d %H:%M:%S")
+                doc_dict['updated_at'] = doc.updated_at.strftime("%Y-%m-%d %H:%M:%S")
+                doc_dict['file_path'] = doc.document.url
+                result.append(doc_dict)
+            data = {
+                "code": 200,
+                "data": result,
+                "msg": "获取最新预案文档成功"
+            }
+        except Exception as e:
+            logger.error(f"获取预案文档失败: {str(e)}")
+            data = {
+                "code": 500,
+                "data": None,
+                "msg": f"获取预案文档失败: {str(e)}"
+            }
+
         serializers = YuAnAppResponseSerializer(data=data, many=False)
         serializers.is_valid()
         return Response(serializers.data, status=status.HTTP_200_OK)

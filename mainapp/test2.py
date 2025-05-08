@@ -8,6 +8,7 @@ from matplotlib.colors import Normalize
 from matplotlib.cm import ScalarMappable
 import os
 from datetime import datetime
+import pandas as pd
 def get_rain_polygon_geojson(base_url: str, stdt: str, dt: str, prtime: int) -> Tuple[int, Dict[str, Any]]:
     endpoint = "/api/v1/ybrain/GetRainPolygonGeojson"
     url = urljoin(base_url, endpoint)
@@ -67,6 +68,102 @@ def get_rain_polygon_geojson(base_url: str, stdt: str, dt: str, prtime: int) -> 
             "position": error_position,
             "context": context,
             "full_response": content[:1000]  # 限制长度防止过大
+        }
+    except Exception as e:
+        return 500, {"error": f"处理失败: {str(e)}"}
+
+
+def get_rain_polygon_geojson_v2(base_url: str, stdt: str, dt: str, prtime: int) -> Tuple[int, Dict[str, Any]]:
+    """
+    获取降雨多边形数据，并统一为标准 GeoJSON 格式（带 CRS），以便和其他地理数据叠加显示。
+
+    参数:
+        base_url: API 基础地址
+        stdt: 起始时间字符串 (YYYYMMDDHH)
+        dt: 结束时间字符串 (YYYYMMDDHH)
+        prtime: 时间间隔小时数
+
+    返回:
+        状态码和标准化后的 GeoJSON 数据
+    """
+    endpoint = "/api/v1/ybrain/GetRainPolygonGeojson"
+    url = urljoin(base_url, endpoint)
+    params = {
+        "stdt": stdt,
+        "dt": dt,
+        "prtime": str(prtime)  # 确保参数为字符串
+    }
+
+    headers = {
+        "Accept": "application/json",
+        "Content-Type": "application/json"
+    }
+
+    try:
+        response = requests.get(
+            url,
+            params=params,
+            headers=headers,
+            timeout=(10, 30)
+        )
+
+        print(f"请求URL: {response.url}")
+        print(f"状态码: {response.status_code}")
+
+        response.raise_for_status()
+        content = response.text.strip()
+
+        # 调试输出原始响应片段
+        print("原始响应片段:", content[:200])
+
+        # 修复步骤1：去除外层双引号（如果存在）
+        if content.startswith('"') and content.endswith('"'):
+            content = content[1:-1]
+
+        # 修复步骤2：处理转义字符
+        content = content.encode().decode('unicode_escape')
+
+        # 调试输出处理后内容
+        print("处理后片段:", content[:200])
+
+        # 解析 JSON
+        json_data = json.loads(content)
+
+        # 验证是否是 FeatureCollection
+        if not isinstance(json_data, dict) or "features" not in json_data:
+            return 500, {"error": "无效的GeoJSON格式", "data": json_data}
+
+        # ✅ 步骤一：添加 CRS 信息（EPSG:4326 - WGS84）
+        if "crs" not in json_data:
+            json_data["crs"] = {
+                "type": "name",
+                "properties": {
+                    "name": "urn:ogc:def:crs:OGC:1.3:CRS84"
+                }
+            }
+
+        # ✅ 步骤二：验证每个 feature 的 geometry 类型是否为 Polygon
+        for feature in json_data.get("features", []):
+            geom = feature.get("geometry")
+            if geom and geom.get("type") == "Polygon":
+                coords = geom.get("coordinates", [])
+                if coords and isinstance(coords[0][0], list) and len(coords[0][0]) >= 2:
+                    pass  # 合法坐标格式
+                else:
+                    print("发现异常坐标结构:", coords)
+                    continue
+
+        # ✅ 步骤三：返回标准化的 GeoJSON（含 crs）
+        return response.status_code, json_data
+
+    except json.JSONDecodeError as e:
+        error_position = e.pos
+        context = content[max(0, error_position - 20):error_position + 20]
+        return 500, {
+            "error": f"JSON解析错误: {str(e)}",
+            "position": error_position,
+            "context": context,
+            "full_response": content[:1000]
         }
     except Exception as e:
         return 500, {"error": f"处理失败: {str(e)}"}
@@ -287,21 +384,134 @@ def download_map_images(base_url="http://10.4.158.34:8090/iserver/services/map-Y
             if os.path.exists(filename):
                 os.remove(filename)
 
+
+def plot_rainfall_with_basin_and_rivers(
+        rainfall_data: Dict[str, Any],
+        basin_geojson_path: str,
+        river_line_geojson_path: str,
+        output_path: str = None
+):
+    try:
+        # 1. 处理流域数据
+        basin_gdf = gpd.read_file(basin_geojson_path)
+        if basin_gdf.crs is None:
+            basin_gdf = basin_gdf.set_crs("EPSG:4326")
+        basin_gdf = basin_gdf.to_crs("EPSG:4326")
+
+        # 2. 处理河流数据
+        river_gdf = gpd.read_file(river_line_geojson_path)
+        if river_gdf.crs is None:
+            river_gdf = river_gdf.set_crs("EPSG:4326")
+        river_gdf = river_gdf.to_crs("EPSG:4326")
+
+        # 3. 处理降雨数据 - 关键修改部分
+        rain_gdf = gpd.GeoDataFrame.from_features(
+            rainfall_data["features"],
+            crs="EPSG:4326"  # 创建时直接指定CRS
+        )
+
+        # 验证几何数据
+        if not rain_gdf.geometry.is_valid.all():
+            print("警告：降雨数据包含无效几何图形，自动过滤")
+            rain_gdf = rain_gdf[rain_gdf.geometry.is_valid]
+
+        # 确保所有数据在同一CRS下
+        rain_gdf = rain_gdf.to_crs("EPSG:4326")
+
+        # 调试信息
+        print("降雨数据CRS:", rain_gdf.crs)
+        print("流域数据CRS:", basin_gdf.crs)
+        print("河流数据CRS:", river_gdf.crs)
+
+        # 创建图形和坐标轴
+        fig, ax = plt.subplots(figsize=(12, 10))
+        ax.set_facecolor('white')
+
+        # 绘制流域面
+        basin_gdf.plot(
+            ax=ax,
+            color="lightgray",
+            edgecolor="black",
+            linewidth=1,
+            alpha=0.7,
+            label="流域范围"
+        )
+
+        # 绘制河流线
+        river_gdf.plot(
+            ax=ax,
+            color="blue",
+            linewidth=0.5,
+            label="河流网络"
+        )
+
+        # 绘制降雨区域
+        if "CONTOUR" in rain_gdf.columns:
+            vmin = rain_gdf["CONTOUR"].min()
+            vmax = rain_gdf["CONTOUR"].max()
+            rain_gdf.plot(
+                ax=ax,
+                column="CONTOUR",
+                cmap="Greens",
+                norm=Normalize(vmin, vmax),
+                alpha=0.6,
+                edgecolor="none",
+                legend=True,
+                legend_kwds={'label': "降雨量 (mm)"}
+            )
+        else:
+            rain_gdf.plot(ax=ax, color="green", alpha=0.5, label="降雨区域")
+
+        # 图例设置
+        ax.legend(loc='upper right')
+
+        # 自动调整显示范围
+        combined_bounds = gpd.GeoDataFrame(
+            pd.concat([rain_gdf,basin_gdf,river_gdf], ignore_index=True)
+        ).total_bounds
+        ax.set_xlim(combined_bounds[0] - 0.1, combined_bounds[2] + 0.1)
+        ax.set_ylim(combined_bounds[1] - 0.1, combined_bounds[3] + 0.1)
+
+        # 添加网格和标题
+        ax.grid(True, linestyle='--', alpha=0.5)
+        ax.set_title("流域降雨量分布图", fontsize=14)
+
+        # 保存或显示
+        plt.tight_layout()
+        if output_path:
+            plt.savefig(output_path, dpi=300, bbox_inches='tight')
+            print(f"地图已保存到: {output_path}")
+        plt.show()
+
+    except Exception as e:
+        print(f"绘图失败: {str(e)}")
+        import traceback
+        traceback.print_exc()  # 打印完整错误堆栈
+
 if __name__ == "__main__":
     # download_map_images()
     BASE_URL = "http://10.4.158.35:8093"
     START_DATE = "2024071008"
     END_DATE = "2024071108"
     TIME_SPAN = 24#24
-    generate_rainfall_map("2024071008", "2024071108", 24, sequence_num=1)
-    status, data = get_rain_polygon_geojson(BASE_URL, START_DATE, END_DATE, TIME_SPAN)
+    #generate_rainfall_map("2024071008", "2024071108", 24, sequence_num=1)
+    status, data = get_rain_polygon_geojson_v2(BASE_URL, START_DATE, END_DATE, TIME_SPAN)
 
     if status == 200:
         print("成功获取数据！")
         print(f"包含 {len(data['features'])} 个特征")
+        basin_file = "data/geojson/洛河流域.json"
+        river_file = "data/geojson/WTRIVRL25_洛河流域.json"
 
+        # 可视化：将降雨、流域、河流数据一起传入绘图函数
+        plot_rainfall_with_basin_and_rivers(
+            data,
+            basin_file,
+            river_file,
+            output_path="rainfall_with_basin_and_rivers.png"
+        )
         # 可视化
-        plot_rainfall_data(data, "rainfall_map_with_china_green_copy.png")  # 修改输出文件名以反映绿色主题
+        #plot_rainfall_data(data, "rainfall_map_with_china_green_copy.png")  # 修改输出文件名以反映绿色主题
     else:
         print(f"失败 (状态码 {status}): {data}")
 
