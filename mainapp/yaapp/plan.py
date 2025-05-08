@@ -728,11 +728,11 @@ class PlanFactory:
             if not os.path.exists(ddfa_excel):
                 ddfa_excel = os.path.join("data", "yuan_data", "4", "ddfad", "default.xlsx")
                 logger.info(f"当天调度方案单不存在,采用默认调度方案单 {ddfa_excel}")
-                if not os.path.exists(ddfa_outs):
-                    yautils.plot_save_html(ddfa_excel, business_type=4, myDate=yadate)
-                    logger.info(f"{yadate}调度方案单绘制图片")
             else:
                 logger.info(f"{yadate}调度方案单已存在")
+            if not os.path.exists(ddfa_outs):
+                yautils.plot_save_html(ddfa_excel, business_type=4, myDate=yadate)
+                logger.info(f"{yadate}调度方案单绘制图片")
             # df = pd.read_excel(ddfa_excel)
             # ddfad = pd2HtmlCSS() + df.to_html(index=False, justify="center")
             html_table = excel_to_html_with_merged_cells(ddfa_excel)
@@ -803,11 +803,11 @@ class PlanFactory:
 
             for n in self.node.wordParagraphs.all():
                 n.delete()
-            wp = WordParagraph.objects.create(title="调度方案", content="调度运用方式", ctype=1)
+            wp = WordParagraph.objects.create(title="调度方案", content="3.1 调度运用方式", ctype=1)
             self.node.wordParagraphs.add(wp)
             wp = WordParagraph.objects.create(title="水库调度方案", content=json.dumps(ddfs_json), ctype=3)
             self.node.wordParagraphs.add(wp)
-            wp = WordParagraph.objects.create(title="调度结果", content="水库", ctype=1)
+            wp = WordParagraph.objects.create(title="调度结果", content="3.2 水库", ctype=1)
             self.node.wordParagraphs.add(wp)
             for item in sk_ddjg:
                 wp = WordParagraph.objects.create(title="水库调度结果描述", content=item["desc"], ctype=1)
@@ -827,11 +827,12 @@ class PlanFactory:
             self.node.wordParagraphs.add(wp)
             wp = WordParagraph.objects.create(title="滩区淹没", content=tqym, ctype=1)
             self.node.wordParagraphs.add(wp)
-            wp = WordParagraph.objects.create(title="调度方案", content="调度运用方案单", ctype=1)
-            self.node.wordParagraphs.add(wp)
-            ddfad_json = pd.read_excel(ddfa_excel).to_json(orient="records")
-            wp = WordParagraph.objects.create(title="调度方案单", content=json.dumps(ddfad_json), ctype=3)
-            self.node.wordParagraphs.add(wp)
+            # wp = WordParagraph.objects.create(title="调度方案", content="调度运用方案单", ctype=1)
+            # self.node.wordParagraphs.add(wp)
+            # #ddfad_json = pd.read_excel(ddfa_excel).to_json(orient="records")
+            # ddfad_json = yautils.get_cleaned_json_from_excel(ddfa_excel)
+            # wp = WordParagraph.objects.create(title="调度方案单", content=json.dumps(ddfad_json), ctype=3)
+            # self.node.wordParagraphs.add(wp)
 
             #(bold_left_align("调度运用方式")+ddjy+"\n"+bold_left_align("调度方案单")+ divHtml(f"伊洛河调度方案单\n")+ddfad)
             return (bold_left_align("调度运用方式")+ddjy+bold_left_align("水库")+skddresult+bold_left_align("河道")+hd_result+bold_left_align("滩区淹没")+tqym+"\n"+bold_left_align("调度方案单")+ divHtml(f"伊洛河调度方案单\n")+ddfad)#+
@@ -1135,32 +1136,32 @@ class PlanFactory:
                 final_level = "无预警"  # 处理意外输入
             for n in self.node.wordParagraphs.all():
                 n.delete()
-            wp = WordParagraph.objects.create(title=f"调度结果及应对措施", content="预警分级响应", ctype=1)
+            wp = WordParagraph.objects.create(title=f"调度结果及应对措施", content="4.1 预警分级响应", ctype=1)
             self.node.wordParagraphs.add(wp)
             wp = WordParagraph.objects.create(title=f"预警等级", content=final_level, ctype=1)
             self.node.wordParagraphs.add(wp)
-            wp = WordParagraph.objects.create(title=f"调度结果及应对措施", content="应对措施", ctype=1)
+            wp = WordParagraph.objects.create(title=f"调度结果及应对措施", content="4.2 应对措施", ctype=1)
             self.node.wordParagraphs.add(wp)
             wp = WordParagraph.objects.create(title=f"应对措施", content=ydcs, ctype=1)
             self.node.wordParagraphs.add(wp)
-            wp = WordParagraph.objects.create(title=f"调度结果及应对措施", content="人员转移方案", ctype=1)
+            wp = WordParagraph.objects.create(title=f"调度结果及应对措施", content="4.3 人员转移方案", ctype=1)
             self.node.wordParagraphs.add(wp)
             ryzyfa = ("根据《故县水库卢氏库区汛期高水位运用应急预案>>统计库区转移人口,供调度参考,具体转移方案见水库库区汛期高水位运用部分；\n"
                       "水库下游根据《故县水库抗险应急预案》具体转移方案由地方政府制定并组织实施，尽量减少损失。故县水库下游共有洛宁县、宜阳县、洛阳城区、偃师和巩义")
             wp = WordParagraph.objects.create(title=f"调度结果及应对措施", content=ryzyfa, ctype=1)
             self.node.wordParagraphs.add(wp)
             zzbz= "故县水库行政责任人:洛阳市委常委，常务副市长\n职责:负贵故县水库大坝安全然管领导责任，统 指泽故县水车防讯抗早、拍险救灾工作，协调指导解决故县水库大规安全管理的重大问题，组织面大实发事件和安全事故的应急处置，负责放县水库应食拾险和于安救护工作，督促水库主管部门责任人、技术责任人、巡查责任人履行工作职责。\n  为保证故县水库抢险应急工作落实，故县水利枢纽管理局(以下简称“故县局”)设立防汛指挥部，在黄河水利委员会(以下简称“黄委”)、洛阳市防汛抗旱指挥部(以下简称“洛阳市防指”)的领导下，统一组织、指挥、协调、指导和督促全局防。"
-            wp = WordParagraph.objects.create(title=f"调度结果及应对措施", content="组织保障", ctype=1)
+            wp = WordParagraph.objects.create(title=f"调度结果及应对措施", content="4.4 组织保障", ctype=1)
             self.node.wordParagraphs.add(wp)
             wp = WordParagraph.objects.create(title=f"组织保障", content=zzbz, ctype=1)
             self.node.wordParagraphs.add(wp)
-            wp = WordParagraph.objects.create(title=f"组织保障", content="\t\t\t陆浑水库防汛指挥部领导成员责任人及联系方式", ctype=1)
+            wp = WordParagraph.objects.create(title=f"组织保障", content="\t   陆浑水库防汛指挥部领导成员责任人及联系方式", ctype=1)
             self.node.wordParagraphs.add(wp)
             zzbz_json = pd.DataFrame(self.params["zzbzTable"]).to_json(orient="records")
             wp = WordParagraph.objects.create(title=f"组织保障表", content=json.dumps(zzbz_json), ctype=3)
             self.node.wordParagraphs.add(wp)
             dwbz = "\t陆浑水库汛期常设防汛巡逻队和水库处职工一起，主要负责险情巡查报告工作，并协助水库应急抢险专家组，做好抢险技术指导工作。\n\t人民解放军洛阳驻军部队是水库应急抢险的主力军嵩具和伊川人武部地方基干民兵是水库应急抢险的骨干和后备军，主要负责水库防汛抢险工作，同时也要协助地方政府做好下游危险区域人员和财产的应急转移安置工作及转移后的警戒工作。\n\t陆浑水库的防汛抢险实行军民联防制，以部队为主力，地方基干民兵为骨干，在陆浑水库防汛指挥部的统一领导下和水库职工一起，同心同德、众志成城，确保水库安全度汛。拟定部队官兵300名，嵩县民兵1200人，伊川县抢险后备队1000人，共计2500人，参加防汛抢险人员于每年6月10日完成编队造册，做到官民官兵相识，并报到陆浑水库防汛指挥部办公室，随时听调。防汛抢险人员调动安排由水库防指统一指挥。"
-            wp = WordParagraph.objects.create(title=f"调度结果及应对措施", content="队伍保障", ctype=1)
+            wp = WordParagraph.objects.create(title=f"调度结果及应对措施", content="4.5 队伍保障", ctype=1)
             self.node.wordParagraphs.add(wp)
             wp = WordParagraph.objects.create(title=f"队伍保障", content=dwbz, ctype=1)
             self.node.wordParagraphs.add(wp)
@@ -1168,12 +1169,12 @@ class PlanFactory:
             wp = WordParagraph.objects.create(title=f"队伍保障表", content=json.dumps(dwbz_json), ctype=3)
             self.node.wordParagraphs.add(wp)
             wuzi_json = pd.DataFrame(self.params["goodsTable"]).to_json(orient="records")
-            wp = WordParagraph.objects.create(title=f"调度结果及应对措施", content="物资保障", ctype=1)
+            wp = WordParagraph.objects.create(title=f"调度结果及应对措施", content="4.6 物资保障", ctype=1)
             self.node.wordParagraphs.add(wp)
             wp = WordParagraph.objects.create(title=f"物资保障", content=json.dumps(wuzi_json),ctype=3)
             self.node.wordParagraphs.add(wp)
             jsbz = "\t黄委及洛阳市防指建立有防汛抢险专家库。当故县水库发生大洪水灾害时，由黄委及洛阳市防指负责防洪抢险及迁安救护统一调度，并派出专家组，指导故县水库防洪抢险及迁安救护工作。"
-            wp = WordParagraph.objects.create(title=f"调度结果及应对措施", content="技术保障", ctype=1)
+            wp = WordParagraph.objects.create(title=f"调度结果及应对措施", content="4.7 技术保障", ctype=1)
             self.node.wordParagraphs.add(wp)
             wp = WordParagraph.objects.create(title=f"技术保障", content=jsbz, ctype=1)
             self.node.wordParagraphs.add(wp)
@@ -1186,7 +1187,7 @@ class PlanFactory:
                     "\n\t已从洛宁县故县镇电信所接入多部外线电话和中继线，分别装于故县局主要部门及电话总机机房。\n公共移动通信网络"
                     "\n\t本辖区有移动公司、电信公司和联通公司的手机通信基站，手机信号已覆盖大部分办公场所，其中移动公司在大坝附近设置有手机信号放大器，对大坝和电厂的信号覆盖要好于其它通信公司。目前移动通信基站的供电有一些单薄，需要时刻关注，必要时提供帮助。\n卫星通信电话"
                     "\n\t目前故县局有3台手持式卫星电话，能确保与黄委、国家防御局进行通信。")
-            wp = WordParagraph.objects.create(title=f"调度结果及应对措施", content="通信保障", ctype=1)
+            wp = WordParagraph.objects.create(title=f"调度结果及应对措施", content="4.8 通信保障", ctype=1)
             self.node.wordParagraphs.add(wp)
             wp = WordParagraph.objects.create(title=f"通信保障", content=txbz, ctype=1)
             self.node.wordParagraphs.add(wp)
@@ -1195,19 +1196,19 @@ class PlanFactory:
             wp = WordParagraph.objects.create(title=f"技术保障表", content=json.dumps(txbz_json), ctype=3)
             self.node.wordParagraphs.add(wp)
             zmyjbz = "\t陆浑水库防汛照明系统有:(一)沿防汛公路照明系故县局目前储备有室外移动式汽油发电机、电缆、照明灯具统:共有照明灯具92个，功率为250W;（二)坝顶明灯具，东西坝头高杆灯2个，东坝头功率为2000W，西坝头可满足室外应急照明。小型发动机、柴油(或汽油)功率为14~400W;(三)大坝背水坡面320平台东西发电机组存二坝肩高杆灯2个，东坝肩功率为8~400W，_西坝肩功放时，应分类、分规格摆放整齐，铭牌朝外，存放在底层。功率为2*2000W;(四)溢洪道闸墩照明灯具2个，功率为400W;(五)泄洪洞交通桥照明灯具2个功率为400W;(六)防汛仓库便携式工作灯55个，投光灯4只。"
-            wp = WordParagraph.objects.create(title=f"调度结果及应对措施", content="照明应急保障", ctype=1)
+            wp = WordParagraph.objects.create(title=f"调度结果及应对措施", content="4.9 照明应急保障", ctype=1)
             self.node.wordParagraphs.add(wp)
             wp = WordParagraph.objects.create(title=f"照明应急保障", content=zmyjbz , ctype=1)
             self.node.wordParagraphs.add(wp)
             aqbz = ("\t故县局成立安全生产管理委员会，构成故县局安全生产管理领导机构，对故县局安全生产工作进行管理决策。建立安全生产管理网络，开展故县局安全生产管理工作，各单位、分场、班组三级专(兼)职安全管理人员，构成本单位三级安全生产管理网络，担负各自职责范围内的安全生产管理责任，开展本单位安全生产管理工作。"
                     "\n\t各单位主要负责人对本单位安全生产工作负全面领导责任;分管安全生产的负责人对本单位安全生产工作负综合监管领导责任;工程管理处负安全技术责任;分管其它业务的行政副职和各职能部门，对分管业务范围内的安全生产工作负直接领导责任;职工对所从事岗位的安全生产工作负责。"
                     "\n\t深入开展事故隐患排查治理，消除各类安全生产事故隐患通过定期、不定期及专项等各种形式安全检查，排查各类安全隐患，落实整改，及时纠正各种不安全现象和行为，有效的控制和预防安全事故的发生;持续推进双重预防体系建设，对设备、设")
-            wp = WordParagraph.objects.create(title=f"调度结果及应对措施", content="安全保障", ctype=1)
+            wp = WordParagraph.objects.create(title=f"调度结果及应对措施", content="4.10 安全保障", ctype=1)
             self.node.wordParagraphs.add(wp)
             wp = WordParagraph.objects.create(title=f"安全保障", content=aqbz, ctype=1)
             self.node.wordParagraphs.add(wp)
             wsbz = ("\t水库防汛工作与卫生保障密切相关，必须统筹推进以确保安全度汛和公众健康。在防汛方面，要严格落实责任制，加强大坝、泄洪设施和水位监测系统的巡查维护，科学调度库容并严格执行汛限水位管控，同时完善应急预案，强化24小时值守和抢险演练。在卫生保障方面，需重点防范汛期可能引发的水源污染和传染病风险，加强水质监测和饮用水安全保护，做好洪水退后的环境消杀和病媒生物防治，配备应急医疗力量并储备防疫物资，同时向群众普及汛期卫生防病知识。只有将防汛抢险与卫生防控有机结合，构建从灾害预警到应急处置的全链条防护体系，才能有效降低洪涝灾害对人民群众生命健康和经济社会发展的影响。")
-            wp = WordParagraph.objects.create(title=f"调度结果及应对措施", content="卫生保障", ctype=1)
+            wp = WordParagraph.objects.create(title=f"调度结果及应对措施", content="4.11 卫生保障", ctype=1)
             self.node.wordParagraphs.add(wp)
             wp = WordParagraph.objects.create(title=f"卫生保障", content=wsbz, ctype=1)
             self.node.wordParagraphs.add(wp)
@@ -1215,17 +1216,16 @@ class PlanFactory:
                     "(2) 交通运输保障\n\t故县局通往外界的交通有水陆两种方式。\n\t若故县至郑卢高速路中断，要及时向地方防汛指挥部反映;若短时问不能抢修通行时，可由故县至杜河的“村村通”公路和故县至兴华镇省道或利用水库水面交通工具通过卢氏县运输防汛物咨和抢险人员、也可以用车辆倒坛工作人员经过道路塌方段，及时让抢险人员到达工作岗位。"
                     "\n(3) 治安保障\n\t  洛阳市及所辖公安部门负贵做好故县水库有关灾区的治安管理工作，依法严厉打击破坏抗洪抢险行动和工程设施安全的行为，保证抗灾救灾工作的顺利进行;负责组织搞好防洪抢险的戒严、警卫工作。故县局库区管理分局和洛河发电公司负责故县水库抗洪抢险的治安管理和安全保卫工作。\n(4)供电保障"
                     "\n\t故县水库防汛电源有三种方式保障:一是10kv电网系统正常供电，二是电厂厂用电 400v系统备用供电，三是备用发电机。")
-            wp = WordParagraph.objects.create(title=f"调度结果及应对措施", content="其他保障", ctype=1)
+            wp = WordParagraph.objects.create(title=f"调度结果及应对措施", content="4.12 其他保障", ctype=1)
             self.node.wordParagraphs.add(wp)
             wp = WordParagraph.objects.create(title=f"其他保障", content=qtbz, ctype=1)
             self.node.wordParagraphs.add(wp)
             xcyy = "\t故县水库汛情、工情、险情、灾情及防洪抢险工作等方面的公众信息交流，实行分级负责制，一般公众信息由洛阳市防指负责同志审批后，可通过媒体向社会发布。故县局内部根据需要可通过电话、手机短信、微信群和办公自动化网络等形式发布，当洛河发生超警戒水位以上洪水，呈上涨趋势;山区发生暴雨山洪，造成较为严重影响，按分管权限，由洛阳市防指统一发布汛情、险情通报，以引起社会公众关注，参与防洪抢险工作。"
-            wp = WordParagraph.objects.create(title=f"调度结果及应对措施", content="宣传和卫生演练", ctype=1)
+            wp = WordParagraph.objects.create(title=f"调度结果及应对措施", content="4.13 宣传和卫生演练", ctype=1)
             self.node.wordParagraphs.add(wp)
             wp = WordParagraph.objects.create(title=f"宣传和卫生演练", content=xcyy, ctype=1)
             self.node.wordParagraphs.add(wp)
         return bold_left_align("预警分级响应") + str(yjdj)+"级预警"+bold_left_align("应对措施") + ydcs +bold_left_align("应急保障") +bold_left_align("组织保障")+zzbz+bold_left_align("队伍保障")+dwbz+bold_left_align("物资保障")+fxwz+bold_left_align("技术保障")+jsbz+bold_left_align("通信保障")+txbz+bold_left_align("照明应急保障")+zmyjbz+bold_left_align("安全保障")+aqbz+bold_left_align("卫生保障")+wsbz+bold_left_align("其他保障")+qtbz+bold_left_align("宣传和卫生演练")+xcyy
-    
 
     def yjdj_api(self):
         
@@ -1506,29 +1506,37 @@ class PlanFactory:
             # 返回网页表格数据
             for n in self.node.wordParagraphs.all():
                 n.delete()
-            wp = WordParagraph.objects.create(title="雨情实况", content="雨情", ctype=1)
+            wp = WordParagraph.objects.create(title="雨情实况", content="1.1 雨情", ctype=1)
             self.node.wordParagraphs.add(wp)
             wp = WordParagraph.objects.create(title="雨情实况描述", content=ylh_yuqing, ctype=1)
             self.node.wordParagraphs.add(wp)
-            wp = WordParagraph.objects.create(title="雨情实况", content="河道水情", ctype=1)
+            wp = WordParagraph.objects.create(title="雨情实况", content="1.2 河道水情", ctype=1)
+            self.node.wordParagraphs.add(wp)
+            hdsq_table_name = self.params["hdsq_table_name"] if self.params["hdsq_table_name"] else "伊洛河干流重要站水情"
+            wp = WordParagraph.objects.create(title="雨情实况", content=f"\t\t\t{hdsq_table_name}", ctype=1)
             self.node.wordParagraphs.add(wp)
             df = pd.DataFrame(self.params['hdsq'])
             hdsq_json = df.to_json(orient='records')
             wp = WordParagraph.objects.create(title="河道水情表格", content=json.dumps(hdsq_json), ctype=3)
             self.node.wordParagraphs.add(wp)
-            wp = WordParagraph.objects.create(title="雨情实况", content="水库水情", ctype=1)
+            wp = WordParagraph.objects.create(title="雨情实况", content="1.3 水库水情", ctype=1)
+            self.node.wordParagraphs.add(wp)
+            sksq_table_name = self.params["sksq_table_name"] if self.params["sksq_table_name"] else "水库蓄水情况表"
+            wp = WordParagraph.objects.create(title="雨情实况", content=f"\t\t\t  {sksq_table_name}", ctype=1)
             self.node.wordParagraphs.add(wp)
             df = pd.DataFrame(self.params['sksq'])
             sksq_json = df.to_json(orient='records')
             wp = WordParagraph.objects.create(title="水库水情表格", content=json.dumps(sksq_json), ctype=3)
             self.node.wordParagraphs.add(wp)
-            wp = WordParagraph.objects.create(title="雨情实况", content="工情险情", ctype=1)
+            zxsksq_df = pd.DataFrame(self.params['zxsksq'])
+            zxsksq_json = zxsksq_df.to_json(orient='records')
+            wp = WordParagraph.objects.create(title="中型水库水情表格", content=json.dumps(zxsksq_json), ctype=3)
             self.node.wordParagraphs.add(wp)
-            wp = WordParagraph.objects.create(title="工情险情描述", content=gqxq, ctype=1)
-            self.node.wordParagraphs.add(wp)
-            return bold_left_align("雨情")+"\n"+ylh_yuqing+bold_left_align("水情")+"\n"+bold_left_align("河道水情")+divHtml(f"黄河主要站点流量表\n") + hdsq+ bold_left_align("水库水情")+ divHtml(f"黄河主要水库蓄水情况表\n") + sksq +bold_left_align("工情险情") + gqxq
-
-
+            # wp = WordParagraph.objects.create(title="雨情实况", content="工情险情", ctype=1)
+            # self.node.wordParagraphs.add(wp)
+            # wp = WordParagraph.objects.create(title="工情险情描述", content=gqxq, ctype=1)
+            # self.node.wordParagraphs.add(wp)
+            return bold_left_align("雨情")+"\n"+ylh_yuqing+bold_left_align("水情")+"\n"+bold_left_align("河道水情")+divHtml(f"黄河主要站点流量表\n") + hdsq+ bold_left_align("水库水情")+ divHtml(f"黄河主要水库蓄水情况表\n") + sksq# +bold_left_align("工情险情") + gqxq
     def get_ysgxq_api(self):
         if self.context['type'] == 4:
             #ylh_yuqing = yiluohe_yuqing_generate(self.params)
@@ -1539,6 +1547,8 @@ class PlanFactory:
                 "value": ylh_yuqing,
                 "desc": "伊洛河区域雨情数据"
             }
+            yuliang_img = self.params["yuliang_img"] if "yuliang_img" in self.params else ""
+            yuliang_url = f"data/yuan_data/{self.context['type']}/yubao/{self.context['yadate']}/{yuliang_img}"
             # code, res = format_hydrometric_data()
             # hdsq = res["hdsq"]
             # res = format_reservoir_data()
@@ -1570,8 +1580,12 @@ class PlanFactory:
                 "zxsksq":{
                     "value": zxsksq,
                     "desc": "伊洛河区域中型水库水情"
-                }
-
+                },
+                "yuliang":
+                    {
+                        "value": yuliang_img,
+                        "url":yuliang_url
+                    }
             }
 #            gqxq = huanghe_gongqing_generate_html(self.params)
             gqxq = self.params['xianqing'] if 'xianqing' in self.params else '暂无数据'

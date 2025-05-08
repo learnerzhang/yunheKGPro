@@ -868,8 +868,7 @@ def lh_yujingdengji(
     logger.debug("""预警等级: 按照《2024陆浑水库防汛抢险应急预案》，当前无预警""")
     return {"level":level,"result": result}
 
-def sx_yujingdengji(
-                 lh_sw=None):
+def sx_yujingdengji(lh_sw=None):
     logger.debug("预警等级")
     """
     嵩县预警等级

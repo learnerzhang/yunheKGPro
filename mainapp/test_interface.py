@@ -5,6 +5,116 @@ from datetime import datetime, timedelta
 import json
 from xml.etree import ElementTree
 BASE_API_URL= "http://wt.hxyai.cn/fx/"#"http://10.4.158.35:8070/"
+
+# _last_auth_token = None
+# _last_token_time = None
+# TOKEN_EXPIRY_MINUTES = 5  # token有效期5分钟
+# def oauth_login(
+#         access_key: str = "fxylh2",
+#         secret_key: str = "899d657383d458a546bd80f1a0753263",
+#         user_type: int = 3,
+#         use_cache: bool = True  # 是否使用缓存token
+# ):
+#     """
+#     获取认证token，支持缓存机制
+#     """
+#     global _last_auth_token, _last_token_time
+#
+#     # 如果使用缓存且缓存未过期，直接返回缓存的token
+#     if use_cache and _last_auth_token and _last_token_time:
+#         if datetime.now() - _last_token_time < timedelta(minutes=TOKEN_EXPIRY_MINUTES):
+#             return _last_auth_token
+#
+#     url = f"{BASE_API_URL}oauth/login"
+#     headers = {
+#         "Content-Type": "application/json",
+#         "Accept": "application/json"
+#     }
+#     payload = {
+#         "accessKey": access_key,
+#         "secretKey": secret_key,
+#         "userType": user_type
+#     }
+#
+#     try:
+#         response = requests.post(
+#             url=url,
+#             headers=headers,
+#             data=json.dumps(payload),
+#             timeout=10
+#         )
+#         response.raise_for_status()
+#         token_data = response.json().get('data')
+#
+#         # 更新缓存
+#         if token_data:
+#             _last_auth_token = token_data
+#             _last_token_time = datetime.now()
+#
+#         return token_data
+#
+#     except requests.exceptions.RequestException as e:
+#         # 如果请求失败但有有效缓存，返回缓存token
+#         if use_cache and _last_auth_token and _last_token_time:
+#             if datetime.now() - _last_token_time < timedelta(minutes=TOKEN_EXPIRY_MINUTES):
+#                 print(f"获取新token失败，使用缓存的token。错误: {str(e)}")
+#                 return _last_auth_token
+#         return None
+#
+#     except ValueError:
+#         # 如果解析失败但有有效缓存，返回缓存token
+#         if use_cache and _last_auth_token and _last_token_time:
+#             if datetime.now() - _last_token_time < timedelta(minutes=TOKEN_EXPIRY_MINUTES):
+#                 print("解析新token失败，使用缓存的token")
+#                 return _last_auth_token
+#         return None
+
+def oauth_login(
+        access_key: str = "fxylh",#"fxylh2",
+        secret_key: str = "656ed363fa5513bb9848b430712290b2",#"899d657383d458a546bd80f1a0753263",#
+        user_type: int = 3
+) :
+    """
+    """
+    #url = "http://10.4.158.35:8070/oauth/login"
+    url = f"{BASE_API_URL}/oauth/login"
+    headers = {"Content-Type": "application/json",
+        "Accept": "application/json"}
+    payload = {"accessKey": access_key, "secretKey": secret_key, "userType": user_type}
+    try:
+        response = requests.post(url=url,headers=headers,data=json.dumps(payload),timeout=10)
+        response.raise_for_status()
+        return response.json()['data']
+
+    except requests.exceptions.RequestException as e:
+        return {"code": 500,"data": None,"msg": f"请求失败: {str(e)}"}
+    except ValueError:
+        return {"code": 500,"data": None,"msg": "响应数据解析失败"}
+
+
+# def oauth_login():
+#     url = "http://10.4.158.35:8091/map/xiaoyu/getTK"
+#     params = {"auth": "ylh"}
+#
+#     try:
+#         response = requests.get(url, params=params)
+#         response.raise_for_status()  # 检查HTTP错误
+#
+#         json_data = response.json()
+#         if json_data.get("code") == 200:
+#             return json_data.get("msg")
+#         else:
+#             print(f"API returned non-200 code: {json_data.get('code')}")
+#             return None
+#
+#     except requests.exceptions.RequestException as e:
+#         print(f"Request failed: {str(e)}")
+#         return None
+#     except ValueError:
+#         print("Failed to parse JSON response")
+#         return None
+
+
 def get_rainfall_data_hour(basin=None, start_time=None, end_time=None):
     """
     获取实时雨量数据（带完整错误处理和JWT鉴权）
@@ -108,6 +218,37 @@ def get_rainfall_data_day(auth_token,basin=None, start_time=None, end_time=None)
     except ValueError:  # JSON解析错误
         return 500, {"error": "返回数据格式异常"}
 
+def get_max_rainfall_station(data):
+    """
+    从降雨量数据中找出降雨量最大的站点
+
+    参数:
+        data: 列表，包含各个站点的数据字典，格式见示例
+
+    返回:
+        dict: 包含最大降雨量站点的 'stnm'(站名), 'lgtd'(经度), 'lttd'(纬度)
+        或 None（如果所有站点降雨量都为0）
+    """
+    max_rainfall = -1
+    max_station = None
+    yiluo_stations = [station for station in data
+                      if str(station['stcd']).startswith('416')]
+    for station in yiluo_stations:
+        rainfall = station.get("rf", 0)
+        if rainfall > max_rainfall:
+            max_rainfall = rainfall
+            max_station = station
+
+    # 如果所有站点的降雨量都是0，则返回None
+    if max_rainfall == 0:
+        return None
+
+    return {
+        "stnm": max_station["stnm"],
+        "lgtd": max_station["lgtd"],
+        "lttd": max_station["lttd"],
+        "rf": max_station["rf"]
+    }
 
 def generate_rainfall_report_v1(response_data):
     """
@@ -218,8 +359,8 @@ def get_ylh_rainfall():
     try:
         # 发送请求
         response = requests.get(
-            "http://10.4.158.35:8092/rfFace/YLH/RainAnalysis",#经过nginx转发的地址
-            #"http://10.4.158.36:9091/YLH/RainAnalysis",#原始地址
+            #"http://10.4.158.35:8092/rfFace/YLH/RainAnalysis",#经过nginx转发的地址
+            "http://10.4.158.36:9091/YLH/RainAnalysis",#原始地址
             params=params,
             #timeout=10
         )
@@ -424,30 +565,6 @@ def get_hydrometric_station(auth_token=None, station_code=None, ):
         return 500, {"error": f"请求失败: {str(e)}"}
     except ValueError:
         return 500, {"error": "返回数据格式异常"}
-
-
-
-def oauth_login(
-        access_key: str = "fxylh",
-        secret_key: str = "656ed363fa5513bb9848b430712290b2",
-        user_type: int = 3
-) :
-    """
-    """
-    #url = "http://10.4.158.35:8070/oauth/login"
-    url = f"{BASE_API_URL}/oauth/login"
-    headers = {"Content-Type": "application/json",
-        "Accept": "application/json"}
-    payload = {"accessKey": access_key, "secretKey": secret_key, "userType": user_type}
-    try:
-        response = requests.post(url=url,headers=headers,data=json.dumps(payload),timeout=10)
-        response.raise_for_status()
-        return response.json()['data']
-
-    except requests.exceptions.RequestException as e:
-        return {"code": 500,"data": None,"msg": f"请求失败: {str(e)}"}
-    except ValueError:
-        return {"code": 500,"data": None,"msg": "响应数据解析失败"}
 
 
 
@@ -1196,6 +1313,230 @@ def get_weather_warning(auth_token: str, timeout: int = 10):
             "description": "预警信息解析错误"
         }
 
+def get_rain_analysis(auth_token: str, timeout: int = 10):
+    """
+    获取降雨分析信息并生成描述文本（自动根据当前时间设置时间段）
+
+    参数:
+        auth_token (str): 认证Token
+        timeout (int): 请求超时时间(秒)，默认10秒
+
+    返回:
+        dict: 包含响应状态和数据的字典，格式:
+        {
+            "status_code": int,    # HTTP状态码
+            "data": dict | str,    # 成功时为JSON数据，失败时为错误信息
+            "description": str     # 生成的降雨分析描述文本
+        }
+    """
+    url = "http://10.4.158.35:8091/rainfall/chy/rainAnalysis"
+
+    # 获取当前时间
+    now = datetime.now()
+    current_hour = now.hour
+
+    # 自动判断开始时间和结束时间
+    if current_hour < 8:
+        # 当前时间小于 8 点，取昨天 08:00 到当前时间
+        start_time = (now - timedelta(days=1)).replace(hour=8, minute=0, second=0, microsecond=0)
+    else:
+        # 当前时间大于等于 8 点，取今天 08:00 到当前时间
+        start_time = now.replace(hour=8, minute=0, second=0, microsecond=0)
+
+    end_time = now
+
+    # 格式化时间字符串（ISO格式）
+    start_time_str = start_time.strftime("%Y-%m-%d %H:%M:%S")
+    end_time_str = end_time.strftime("%Y-%m-%d %H:%M:%S")
+    # start_time_str = "2025-05-04 08:00:00"
+    # end_time_str = "2025-05-05 01:00:00"
+    full_url = f"{url}?startTime={start_time_str}&endTime={end_time_str}"
+    print("full_url：",full_url)
+    try:
+        response = requests.get(
+            url=full_url,
+            headers={
+                "ClientId": "e5cd7e4891bf95d1d19206ce24a7b32e",
+                "Authorization": f"Bearer {auth_token}"
+            },
+            timeout=timeout
+        )
+        response.raise_for_status()
+
+        result = response.json()
+        print("result:",result)
+        print("type(result[data])",type(result['data']))
+        # 初始化描述文本
+        return {
+            "status_code": response.status_code,
+            "data":result['data']
+        }
+
+    except requests.exceptions.Timeout:
+        return {
+            "status_code": 408,
+            "data": "访问接口超时"
+        }
+    except requests.exceptions.RequestException as e:
+        return {
+            "status_code": 500,
+            "data": f"请求失败: {str(e)}"
+        }
+    except ValueError:
+        return {
+            "status_code": 500,
+            "data": "返回数据格式异常"
+        }
+import os
+from shapely.geometry import Point
+from matplotlib.colors import Normalize
+from matplotlib.cm import ScalarMappable
+from matplotlib.colors import ListedColormap, BoundaryNorm
+from matplotlib.patches import Patch
+from matplotlib.lines import Line2D
+def plot_yuliangmian(
+    rain_geojson_result,
+    max_rainfall_station,
+    basin_geojson_path="data/geojson/洛河流域.json",
+    water_geojson_path="data/geojson/WTRIVRL25_洛河流域.json"
+):
+    """
+    绘制洛河流域边界、雨量分布面数据、水系（河流）、最大降雨站点
+
+    参数:
+        rain_geojson_result (dict): get_rain_analysis 返回结果，可能为 None
+        max_rainfall_station (dict): get_max_rainfall_station 返回的最大降雨站点信息
+        basin_geojson_path (str): 流域 GeoJSON 文件路径
+        water_geojson_path (str): 水系 GeoJSON 文件路径
+    """
+
+    # 设置中文字体支持
+    plt.rcParams['font.sans-serif'] = ['SimHei', 'Microsoft YaHei', 'WenQuanYi Zen Hei', 'Noto Sans CJK SC']
+    plt.rcParams['axes.unicode_minus'] = False
+    plt.rcParams['axes.labelsize'] = 1  # 隐藏默认标签
+
+    # 提取雨量面数据（兼容 None）
+    data = None
+    if rain_geojson_result and isinstance(rain_geojson_result.get("data"), dict):
+        data = rain_geojson_result["data"]
+    else:
+        print("未获取到有效的雨量面数据，将不绘制雨量分布。")
+
+    # 加载洛河流域边界 GeoJSON（如果存在）
+    basin_gdf = None
+    if os.path.exists(basin_geojson_path):
+        try:
+            basin_gdf = gpd.read_file(basin_geojson_path)
+        except Exception as e:
+            print(f"读取洛河流域 GeoJSON 失败: {e}")
+    else:
+        print(f"未找到洛河流域 GeoJSON 文件: {basin_geojson_path}")
+
+    # 加载水系数据（河流线状数据）
+    water_gdf = None
+    if os.path.exists(water_geojson_path):
+        try:
+            water_gdf = gpd.read_file(water_geojson_path).to_crs("EPSG:4326")
+        except Exception as e:
+            print(f"读取水系 GeoJSON 失败: {e}")
+    else:
+        print(f"未找到水系 GeoJSON 文件: {water_geojson_path}")
+
+    # 创建绘图
+    fig, ax = plt.subplots(figsize=(12, 8))
+    ax.set_facecolor('white')
+
+    # 绘制洛河流域边界（蓝色）
+    if basin_gdf is not None:
+        basin_gdf.boundary.plot(ax=ax, color='lightgray', linewidth=1)
+
+    # 定义降雨量等级与颜色
+    bins = [0, 0.1, 10, 25, 50, 100, 250, float('inf')]
+    colors = ['white', '#eaffcc', '#b3f7a1', '#88d8ff', '#007fff', '#ff3300', '#9900cc']
+    labels = ['0 - 0.1 mm', '0.1 - 10 mm', '10 - 25 mm', '25 - 50 mm',
+              '50 - 100 mm', '100 - 250 mm', '>250 mm']
+
+    # 添加图例元素（Patch + 红点）
+    legend_elements = [
+        Patch(facecolor=color, edgecolor='gray', label=label)
+        for color, label in zip(colors, labels)
+    ]
+
+    # 如果没有有效雨量数据，在图例顶部加一个提示项
+    # if data is None or 'features' not in data:
+    #     legend_elements.insert(0, Patch(facecolor='lightgray', edgecolor='black', label='无雨量数据'))
+
+    # 如果有最大降雨站点，加入图例
+    # if max_rainfall_station:
+    #     legend_elements.append(
+    #         Line2D([0], [0], marker='o', color='none', label='最大降雨站点',
+    #                markerfacecolor='red', markersize=10, linestyle='')
+    #     )
+    # 解析并绘制雨量分布面数据（如有）
+    if data and 'features' in data:
+        try:
+            rain_gdf = gpd.GeoDataFrame.from_features(data['features'])
+            if 'value' in rain_gdf.columns:
+                cmap = ListedColormap(colors)
+                norm = BoundaryNorm(boundaries=bins, ncolors=len(colors))
+                rain_gdf.plot(
+                    ax=ax,
+                    column='value',
+                    cmap=cmap,
+                    norm=norm,
+                    edgecolor='gray',
+                    linewidth=0.5,
+                    legend=False,
+                    zorder=2
+                )
+        except Exception as e:
+            print(f"解析雨量面数据失败: {e}")
+
+    # 绘制水系（河流）
+    if water_gdf is not None:
+        water_gdf.plot(
+            ax=ax,
+            color='darkblue',
+            linewidth=0.8,
+            zorder=1,
+            label='河流网络'
+        )
+        # legend_elements.append(
+        #     Line2D([0], [0], color='darkblue', lw=1.5, label='河流网络')
+        # )
+
+    # 绘制最大降雨站点（红点 + 站名标注）
+    if max_rainfall_station:
+        point = Point(max_rainfall_station['lgtd'], max_rainfall_station['lttd'])
+        point_gdf = gpd.GeoDataFrame([{'geometry': point, 'name': max_rainfall_station['stnm']}],
+                                     crs="EPSG:4326")
+        point_gdf.plot(ax=ax, color='red', marker='o', markersize=70, zorder=3)
+
+        # 添加站名和雨量标注
+        ax.text(max_rainfall_station['lgtd'], max_rainfall_station['lttd'],
+                f" {max_rainfall_station['stnm']}\n{max_rainfall_station['rf']}mm",
+                fontsize=11, ha='left', va='bottom', color='darkred')
+
+    # 设置标题
+    ax.set_title("伊洛河流域面雨量", fontsize=14)
+    ax.set_axis_off()  # 不显示坐标轴
+
+    # 添加图例（放在右下角）
+    ax.legend(handles=legend_elements, loc='lower right', fontsize=9, title="降雨量等级")
+
+    plt.tight_layout()
+
+    # 自动创建输出文件夹并保存图片
+    today = datetime.now().strftime("%Y-%m-%d")
+    output_folder = os.path.join("data", "yuan_data", "4", "yubao", today)
+    os.makedirs(output_folder, exist_ok=True)
+    output_path = os.path.join(output_folder, "yuliang.png")
+
+    plt.savefig(output_path, dpi=300, bbox_inches='tight')
+    print(f"✅ 图片已保存至: {output_path}")
+
+    # 关闭图像以释放内存
+    plt.close()
 
 def extract_county_name(city_name: str) -> str:
     """
@@ -1265,7 +1606,6 @@ def get_formatted_jlyb_data(auth_token, dateTime=None):
                 "48-72小时": item.get("value72", "")
             }
             formatted_data.append(formatted_item)
-
         return formatted_data
 
     except requests.exceptions.RequestException as e:
@@ -1301,28 +1641,50 @@ if __name__ == "__main__":
     #
     # res = get_formatted_rain_data()
     # print("径流预报:",res)
+    # meanrain = get_ylh_rainfall()
+    # print("面雨量：",meanrain)
+
+
     token = get_access_token()
-    if token:
-        print("获取Token成功:", token)
+    # if token:
+    #     print("获取Token成功:", token)
+    # else:
+    #     print("获取Token失败")
+    # result = get_weather_warning(auth_token=token)
+    # # 3. 处理结果
+    # if result["status_code"] == 200:
+    #     print("获取预警数据成功:", result["description"])
+    # else:
+    #     print(f"请求失败 (状态码 {result['status_code']}):", result["data"])
+    #
+    rain_geojson_result = get_rain_analysis(auth_token=token)
+    if rain_geojson_result["status_code"] == 200:
+        print("获取降雨分析数据成功:")
+        #print("降雨数据:", result["data"])
     else:
-        print("获取Token失败")
-    result = get_weather_warning(auth_token=token)
-    # 3. 处理结果
-    if result["status_code"] == 200:
-        print("获取预警数据成功:", result["description"])
-    else:
-        print(f"请求失败 (状态码 {result['status_code']}):", result["data"])
-    res = get_formatted_jlyb_data(auth_token=token)
-    print("径流预报:",res)
+        print(f"请求失败 (状态码 {rain_geojson_result['status_code']}):", rain_geojson_result["data"])
 
 
 
+    # res = get_formatted_jlyb_data(auth_token=token)
+    # print("径流预报:",res)
+    #
+    #
+    #
     auth_token = oauth_login()
+    #auth_token = "eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJsb2dpblR5cGUiOiJsb2dpbiIsImxvZ2luSWQiOiJzeXNfdXNlcjoxODk0Mjk4NDU4Njk0MTk3MjUwIiwicm5TdHIiOiJMQmw0N0JFRTlGNDFSNTFjODNSTVRnN3Z2cTFYY0xwViIsImNsaWVudGlkIjoiZTVjZDdlNDg5MWJmOTVkMWQxOTIwNmNlMjRhN2IzMmUiLCJ0ZW5hbnRJZCI6IjAwMDAwMCIsInVzZXJJZCI6MTg5NDI5ODQ1ODY5NDE5NzI1MCwidXNlck5hbWUiOiJhZG1pbjEifQ.XzncDlKU08IBtfF4rz5crL1irC6skMv2DtxtkI3rJis"
     print("auth_token:",auth_token)
+    if auth_token:
+        auth_token = auth_token
+    else:
+        auth_token = "eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJleHAiOjE3NDcyMTU5MDEsImFjY291bnQiOiJmeHlsaCIsImN1cnJlbnRUaW1lTWlsbHMiOiIxNzQ2NjExMTAxNzE5In0.wJfe9cduJYkXUp4Aqb-9O_LVJpI9X6nZM95BmArimr8"
     status, data = get_rainfall_data_day(auth_token=auth_token)
     print("data：",data)
+    max_rainfall_station = get_max_rainfall_station(data['data'])
+    print("最大降雨站点：",max_rainfall_station)
     res = generate_rainfall_report(response_data=data)
     print("降雨报告：",res)
+    plot_yuliangmian(rain_geojson_result, max_rainfall_station)
     # data = get_hydrometric_station(auth_token=auth_token)
     # print("河道实时水情:",data)
     # code, res = format_hydrometric_data(auth_token=auth_token)

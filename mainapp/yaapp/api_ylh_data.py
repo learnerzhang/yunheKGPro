@@ -18,7 +18,7 @@ import codecs
 import logging
 from yaapp.base_data import BaseDataFactory
 from yaapp import (get_ddfad_data, oauth_login,generate_rainfall_report,get_rainfall_data_day,format_hydrometric_data,format_reservoir_data,
-                   query_zx_reservoir_data,get_weather_warning,get_access_token, get_formatted_jlyb_data)
+                   query_zx_reservoir_data,get_weather_warning,get_access_token, get_formatted_jlyb_data, get_max_rainfall_station, get_rain_analysis,plot_yuliangmian)
 # from mainapp.yaapp import generate_rainfall_report,get_rainfall_data_day,format_hydrometric_data,format_reservoir_data
 # from mainapp.yaapp.base_data import BaseDataFactory  #tests.py文件测试用
 from yaapp.ylh_interface import generate_rainfall_map
@@ -37,35 +37,51 @@ class YLHDataFactory(BaseDataFactory):
         auth_token = oauth_login()
         status, data = get_rainfall_data_day(auth_token=auth_token)
         report = generate_rainfall_report(response_data=data)
+        now = datetime.now()
+        month_day = now.strftime("%m月%d日")
+        # 构造表名
+        hdsq_table_name = f"{month_day}8时伊洛河干流重要站水情"
+        code, res_hdsq = format_hydrometric_data(auth_token)
+        # 获取当前时间并格式化
+        res_sksq = format_reservoir_data(auth_token)
+        now = datetime.now()
+        month_day = now.strftime("%m月%d日")
+        # 构造表名
+        sksq_table_name = f"{month_day}8时水库蓄水情况表"
+        zxsksq = query_zx_reservoir_data()
         print("降雨数据：", report)
-        return {"yuqing": report}
+        max_rainfall_station = get_max_rainfall_station(data['data'])
+        jiangyu_token = get_access_token()
+        rain_geojson_result = get_rain_analysis(auth_token=jiangyu_token)
+        plot_yuliangmian(rain_geojson_result, max_rainfall_station)
+        return {"yuqing": report,"hdsq_table_name": hdsq_table_name,"hdsq": res_hdsq["hdsq"],"sksq_table_name": sksq_table_name,"sksq":res_sksq["sksq"],"zxsksq":zxsksq}
 
     def getHedaoShuiQingData(self):
         """
             获取河道水情数据
         """
-        auth_token = oauth_login()
-        code, res = format_hydrometric_data(auth_token)
-        # 获取当前时间并格式化
-        now = datetime.now()
-        month_day = now.strftime("%m月%d日")
-        # 构造表名
-        table_name = f"{month_day}8时伊洛河干流重要站水情"
-        #print("res:",res)
-        return {"hdsq_table_name": table_name,"hdsq": res["hdsq"]}
+        # auth_token = oauth_login()
+        # code, res_hdsq = format_hydrometric_data(auth_token)
+        # # 获取当前时间并格式化
+        # now = datetime.now()
+        # month_day = now.strftime("%m月%d日")
+        # # 构造表名
+        # hdsq_table_name = f"{month_day}8时伊洛河干流重要站水情"
+        # #print("res:",res)
+        return {}#{"hdsq_table_name": hdsq_table_name,"hdsq": res_hdsq["hdsq"]}
 
     def getShuiKuShuiQingData(self):
         """
             获取水库水情数据
         """
-        auth_token = oauth_login()
-        res = format_reservoir_data(auth_token)
-        now = datetime.now()
-        month_day = now.strftime("%m月%d日")
-        # 构造表名
-        table_name = f"{month_day}8时水库蓄水情况表"
-        zxsksq=query_zx_reservoir_data()
-        return {"sksq_table_name": table_name,"sksq":res["sksq"],"zxsksq":zxsksq}
+        # auth_token = oauth_login()
+        # res_sksq = format_reservoir_data(auth_token)
+        # now = datetime.now()
+        # month_day = now.strftime("%m月%d日")
+        # # 构造表名
+        # sksq_table_name = f"{month_day}8时水库蓄水情况表"
+        # zxsksq=query_zx_reservoir_data()
+        return {}#{"sksq_table_name": sksq_table_name,"sksq":res_sksq["sksq"],"zxsksq":zxsksq}
 
     def getBaoYuYuJing(self):
         token = get_access_token()
@@ -89,6 +105,7 @@ class YLHDataFactory(BaseDataFactory):
         {"url": "6.png", "desc": ""},
         {"url": "7.png", "desc": ""}
     ],
+    "yuliang_img":"yuliang.png",
 #     "ylhjyyb": [
 #     {"区域": "龙三干流", "0-24小时": "3-8", "24-48小时": "1-5", "48-72小时": "1-5"},
 #     {"区域": "三花干流", "0-24小时": "0-4", "24-48小时": "0-4", "48-72小时": "1-5"},
