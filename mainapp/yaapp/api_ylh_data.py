@@ -1133,7 +1133,7 @@ class YLHDataFactory(BaseDataFactory):
             logger.error("获取调度方案失败,使用默认JSON数据生成调度方案单！！！")
             with open("data/examples/ddfad.json", mode="r", encoding="utf-8") as json_file:
                 dataJson = json.load(json_file)
-        datalist = dataJson['data']
+        datalist = dataJson['data']['skdd']
         # 读取Excel文件
         import openpyxl
         workbook = openpyxl.load_workbook("data/yuan_templet/ddfad.xlsx")
@@ -1146,7 +1146,7 @@ class YLHDataFactory(BaseDataFactory):
                    'guxianShuiwei','guxianXuliang','guxianRuKu','guxianChuKu',
                    'hekoucunShuiwei','hekoucunXuliang','hekoucunRuKu','hekoucunChuKu',
                    'longmenzhenLiuliang', 'baimasiLiuliang', 'heishiguanLiuliang', 'huayuankouLiuliang'
-                   ]
+                ]
         # 获取活动工作表
         sheet = workbook.active
         # 遍历数据并逐行追加到工作表中
