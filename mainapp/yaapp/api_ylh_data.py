@@ -1146,24 +1146,25 @@ class YLHDataFactory(BaseDataFactory):
         auth_token = get_access_token(base_url="http://10.4.158.35:8091")
         # print("auth_token:", auth_token)
         status, dataJson = get_ddfad_data(auth_token=auth_token,base_url="http://10.4.158.35:8091")
+        logger.info(f"dataJson:{dataJson}")
         if dataJson['code'] != 200:
             logger.error("获取调度方案失败,使用默认JSON数据生成调度方案单！！！")
             with open("data/examples/ddfad.json", mode="r", encoding="utf-8") as json_file:
                 dataJson = json.load(json_file)
-        datalist = dataJson['data']
+        datalist = dataJson['data']['skdd']
         # 读取Excel文件
         import openpyxl
         workbook = openpyxl.load_workbook("data/yuan_templet/ddfad.xlsx")
         # 时间	三门峡				小浪底				陆浑				故县				河口村				龙门镇	白马寺	黑石关	花园口
         # 时间	水位	蓄量	入库	出库	水位	蓄量	入库	出库	水位	蓄量	入库	出库	水位	蓄量	入库	出库	水位	蓄量	入库	出库	流量	流量	流量	流量
         keylist = ['dateTime', 
-                   'sanmenxiaShuiwei', 'sanmenxiaXuliang', 'sanmenxiaRuKu', 'sanmenxiaChuKu',
-                   'xiaolangdiShuiwei','xiaolangdiXuliang','xiaolangdiRuKu','xiaolangdiChuKu',
-                   'luhunShuiwei','luhunXuliang','luhunRuKu','luhunChuKu',
-                   'guxianShuiwei','guxianXuliang','guxianRuKu','guxianChuKu',
-                   'hekoucunShuiwei','hekoucunXuliang','hekoucunRuKu','hekoucunChuKu',
+                   'sanmenxiaShuiwei', 'sanmenxiaXuliang', 'sanmenxiaRuku', 'sanmenxiaChuku',
+                   'xiaolangdiShuiwei','xiaolangdiXuliang','xiaolangdiRuku','xiaolangdiChuku',
+                   'luhunShuiwei','luhunXuliang','luhunRuku','luhunChuku',
+                   'guxianShuiwei','guxianXuliang','guxianRuku','guxianChuku',
+                   'hekoucunShuiwei','hekoucunXuliang','hekoucunRuku','hekoucunChuku',
                    'longmenzhenLiuliang', 'baimasiLiuliang', 'heishiguanLiuliang', 'huayuankouLiuliang'
-                   ]
+                ]
         # 获取活动工作表
         sheet = workbook.active
         # 遍历数据并逐行追加到工作表中
@@ -1201,6 +1202,6 @@ class YLHDataFactory(BaseDataFactory):
         super().buildJsonData()
 
 if __name__ == "__main__":
-    # YLHDataFactory(dataType=4).buildJsonData()
-    YLHDataFactory(dataType=4).getDiaoDuFangAnData()
+    YLHDataFactory(dataType=4).buildJsonData()
+    # YLHDataFactory(dataType=4).getDiaoDuFangAnData()
     pass
