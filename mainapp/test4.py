@@ -293,7 +293,7 @@ def generate_rainfall_maps(stdt: str, output_folder: str = None):
         RIVER_FILE = "data/geojson/WTRIVRL25_洛河流域.json"
 
         # 生成图片名称
-        output_path = os.path.join(output_folder, f"{idx}.jpg")
+        output_path = os.path.join(output_folder, f"{idx}.png")
 
         # 调用统一绘图函数
         try:

@@ -2333,7 +2333,12 @@ def plot_yuliangmian(
     """
 
     # 设置中文字体支持
-    plt.rcParams['font.sans-serif'] = ['SimHei', 'Microsoft YaHei', 'WenQuanYi Zen Hei', 'Noto Sans CJK SC']
+    #plt.rcParams['font.sans-serif'] = ['SimHei', 'Microsoft YaHei', 'WenQuanYi Zen Hei', 'Noto Sans CJK SC']
+    plt.rcParams['font.sans-serif'] = [
+        'WenQuanYi Micro Hei',  # 文泉驿微米黑
+        'Noto Sans CJK JP',  # Noto 日文（兼容简体中文）
+        'Noto Serif CJK JP'  # Noto 衬线体
+    ]
     plt.rcParams['axes.unicode_minus'] = False
     plt.rcParams['axes.labelsize'] = 1  # 隐藏默认标签
 

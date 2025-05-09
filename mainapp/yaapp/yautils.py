@@ -689,7 +689,7 @@ def query_question(text):
     llm = Ollama(model="deepseek-r1:14b")
     res = llm(text)
     return res
-<<<<<<< HEAD
+
 import pprint
 from datetime import datetime
 def get_cleaned_json_from_excel(file_path):
@@ -740,8 +740,7 @@ def get_cleaned_json_from_excel(file_path):
 
     # 7. 转换为JSON字符串
     return df.to_json(orient='records', force_ascii=False)
-=======
->>>>>>> origin/main
+
 
 if __name__ == "__main__":
     #skddjy("../../mainapp/media/ddfa/2025-02-08.xlsx")

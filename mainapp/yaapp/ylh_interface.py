@@ -502,7 +502,12 @@ def plot_unified_map(
 ):
     try:
         # 设置中文字体支持
-        plt.rcParams['font.sans-serif'] = ['SimHei', 'Microsoft YaHei', 'WenQuanYi Zen Hei', 'Noto Sans CJK SC']
+        #plt.rcParams['font.sans-serif'] = ['SimHei', 'Microsoft YaHei', 'WenQuanYi Zen Hei', 'Noto Sans CJK SC']
+        plt.rcParams['font.sans-serif'] = [
+            'WenQuanYi Micro Hei',  # 文泉驿微米黑
+            'Noto Sans CJK JP',  # Noto 日文（兼容简体中文）
+            'Noto Serif CJK JP'  # Noto 衬线体
+        ]
         plt.rcParams['axes.unicode_minus'] = False
         plt.rcParams['axes.labelsize'] = 1  # 隐藏图例标签文字
 
@@ -662,7 +667,7 @@ def generate_rainfall_maps(stdt: str, output_folder: str = None):
         RIVER_FILE = "data/geojson/WTRIVRL25_洛河流域.json"
 
         # 生成图片名称
-        output_path = os.path.join(output_folder, f"{idx}.jpg")
+        output_path = os.path.join(output_folder, f"{idx}.png")
 
         # 调用统一绘图函数
         try:
