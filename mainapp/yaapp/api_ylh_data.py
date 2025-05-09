@@ -17,7 +17,7 @@ import json
 import codecs
 import logging
 from yaapp.base_data import BaseDataFactory
-from yaapp import (get_ddfad_data, oauth_login,generate_rainfall_report,get_rainfall_data_day,format_hydrometric_data,format_reservoir_data,
+from yaapp import (get_ddfad_data, oauth_login, oauth_login_new,generate_rainfall_report,get_rainfall_data_day,format_hydrometric_data,format_reservoir_data,
                    query_zx_reservoir_data,get_weather_warning,get_access_token, get_formatted_jlyb_data, get_max_rainfall_station, get_rain_analysis,plot_yuliangmian)
 # from mainapp.yaapp import generate_rainfall_report,get_rainfall_data_day,format_hydrometric_data,format_reservoir_data
 # from mainapp.yaapp.base_data import BaseDataFactory  #tests.py文件测试用
@@ -34,7 +34,8 @@ class YLHDataFactory(BaseDataFactory):
         """
             获取雨情数据
         """
-        auth_token = oauth_login()
+        #auth_token = oauth_login()
+        auth_token = oauth_login_new()
         status, data = get_rainfall_data_day(auth_token=auth_token)
         report = generate_rainfall_report(response_data=data)
         now = datetime.now()

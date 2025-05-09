@@ -4,7 +4,7 @@ import requests
 from datetime import datetime, timedelta
 import json
 from xml.etree import ElementTree
-BASE_API_URL= "http://wt.hxyai.cn/fx/"#"http://10.4.158.35:8070/"
+BASE_API_URL= "http://wt.hxyai.cn/fx/"#"http://10.4.158.35:8070"#
 
 # _last_auth_token = None
 # _last_token_time = None
@@ -68,7 +68,58 @@ BASE_API_URL= "http://wt.hxyai.cn/fx/"#"http://10.4.158.35:8070/"
 #                 print("解析新token失败，使用缓存的token")
 #                 return _last_auth_token
 #         return None
-
+# AUTH_TOKEN_PATH = "data/yuan_data/4/auth_token/auth_token.json"
+#
+# def oauth_login_new(
+#     access_key: str = "fxylh",
+#     secret_key: str = "656ed363fa5513bb9848b430712290b2",
+#     user_type: int = 3
+# ):
+#     url = f"{BASE_API_URL}/oauth/login"
+#     headers = {
+#         "Content-Type": "application/json",
+#         "Accept": "application/json"
+#     }
+#     payload = {
+#         "accessKey": access_key,
+#         "secretKey": secret_key,
+#         "userType": user_type
+#     }
+#
+#     try:
+#         response = requests.post(url=url, headers=headers, data=json.dumps(payload), timeout=10)
+#         response.raise_for_status()
+#         data = response.json().get("data")
+#
+#         if data:
+#             # 确保路径存在
+#             os.makedirs(os.path.dirname(AUTH_TOKEN_PATH), exist_ok=True)
+#
+#             # 写入新的 token 到文件
+#             with open(AUTH_TOKEN_PATH, 'w') as f:
+#                 json.dump({"auth_token": data}, f)
+#
+#             return data
+#
+#         else:
+#             # 如果没有 token 数据，尝试读取本地缓存
+#             return read_local_token()
+#
+#     except (requests.exceptions.RequestException, ValueError) as e:
+#         # 请求失败或响应解析失败时尝试读取本地 token
+#         return read_local_token()
+#
+#
+# def read_local_token():
+#     """从本地文件读取缓存的 auth_token"""
+#     if os.path.exists(AUTH_TOKEN_PATH):
+#         try:
+#             with open(AUTH_TOKEN_PATH, 'r') as f:
+#                 data = json.load(f)
+#                 return data.get("auth_token")
+#         except Exception:
+#             return None
+#     return None
 def oauth_login(
         access_key: str = "fxylh",#"fxylh2",
         secret_key: str = "656ed363fa5513bb9848b430712290b2",#"899d657383d458a546bd80f1a0753263",#
@@ -182,22 +233,22 @@ def get_rainfall_data_day(auth_token,basin=None, start_time=None, end_time=None)
     else:
         start_default = now.replace(hour=8, minute=0, second=0, microsecond=0)
 
-    end_default = now#start_default + timedelta(days=1)
+    end_default = start_default + timedelta(days=1)#now#
     # 设置默认时间范围（今天和昨天）
     # today = datetime.now().strftime("%Y-%m-%d")
     # yesterday = (datetime.now() - timedelta(days=1)).strftime("%Y-%m-%d")
     # # 处理时间参数
     # params["endDate"] = end_default #end_time if end_time else today
     # params["startDate"] = start_default #start_time if start_time else yesterday
-    params["endDate"] = end_time if end_time else end_default.strftime("%Y-%m-%d %H:%M:%S")
-    params["startDate"] = start_time if start_time else start_default.strftime("%Y-%m-%d %H:%M:%S")
+    params["endTime"] = end_time if end_time else end_default.strftime("%Y-%m-%d %H:%M:%S")
+    params["startTime"] = start_time if start_time else start_default.strftime("%Y-%m-%d %H:%M:%S")
     print("params:",params)
     if basin:
         params["stcd"] = basin
     try:
         # 使用提供的JWT token
         auth_token = auth_token#oauth_login()
-
+        url = f"{BASE_API_URL}/rainfall/hourrth/getRainfall"
         # 添加超时和请求头
         response = requests.get(
             url=f"{BASE_API_URL}/rainfall/hourrth/getRainfall",#dayrt
@@ -209,6 +260,7 @@ def get_rainfall_data_day(auth_token,basin=None, start_time=None, end_time=None)
             timeout=10  # 10秒超时
         )
         response.raise_for_status()  # 自动检查4xx/5xx错误
+        print("url:",url)
         return response.status_code, response.json()
 
     except requests.exceptions.Timeout:
@@ -1618,7 +1670,7 @@ def get_formatted_jlyb_data(auth_token, dateTime=None):
         print(f"发生未知错误: {e}")
         return None
 
-
+from yaapp import oauth_login_new
 from yaapp.ylh_interface import create_flood_control_plan,call_llm_yuan_user_plan,call_llm_yuan_user_word
 from datetime import datetime, timedelta
 if __name__ == "__main__":
@@ -1671,8 +1723,7 @@ if __name__ == "__main__":
     #
     #
     #
-    auth_token = oauth_login()
-    #auth_token = "eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJsb2dpblR5cGUiOiJsb2dpbiIsImxvZ2luSWQiOiJzeXNfdXNlcjoxODk0Mjk4NDU4Njk0MTk3MjUwIiwicm5TdHIiOiJMQmw0N0JFRTlGNDFSNTFjODNSTVRnN3Z2cTFYY0xwViIsImNsaWVudGlkIjoiZTVjZDdlNDg5MWJmOTVkMWQxOTIwNmNlMjRhN2IzMmUiLCJ0ZW5hbnRJZCI6IjAwMDAwMCIsInVzZXJJZCI6MTg5NDI5ODQ1ODY5NDE5NzI1MCwidXNlck5hbWUiOiJhZG1pbjEifQ.XzncDlKU08IBtfF4rz5crL1irC6skMv2DtxtkI3rJis"
+    auth_token = oauth_login_new()
     print("auth_token:",auth_token)
     if auth_token:
         auth_token = auth_token
@@ -1680,11 +1731,11 @@ if __name__ == "__main__":
         auth_token = "eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJleHAiOjE3NDcyMTU5MDEsImFjY291bnQiOiJmeHlsaCIsImN1cnJlbnRUaW1lTWlsbHMiOiIxNzQ2NjExMTAxNzE5In0.wJfe9cduJYkXUp4Aqb-9O_LVJpI9X6nZM95BmArimr8"
     status, data = get_rainfall_data_day(auth_token=auth_token)
     print("data：",data)
-    max_rainfall_station = get_max_rainfall_station(data['data'])
-    print("最大降雨站点：",max_rainfall_station)
+    # max_rainfall_station = get_max_rainfall_station(data['data'])
+    # print("最大降雨站点：",max_rainfall_station)
     res = generate_rainfall_report(response_data=data)
     print("降雨报告：",res)
-    plot_yuliangmian(rain_geojson_result, max_rainfall_station)
+    # plot_yuliangmian(rain_geojson_result, max_rainfall_station)
     # data = get_hydrometric_station(auth_token=auth_token)
     # print("河道实时水情:",data)
     # code, res = format_hydrometric_data(auth_token=auth_token)
@@ -1696,8 +1747,8 @@ if __name__ == "__main__":
     # code , res = get_sk_data(auth_token)
     # print("水库数据：",res)
     #
-    # res = format_reservoir_data(auth_token=auth_token)
-    # print("水库数据格式化：",res)
+    res = format_reservoir_data(auth_token=auth_token)
+    print("水库数据格式化：",res)
 
     # 示例1：全部使用默认参数（STDT=现在，DT=明天此时，PRTIME=24）
     # BASE_URL = "http://10.4.158.35:8093"  # 替换为实际API地址
