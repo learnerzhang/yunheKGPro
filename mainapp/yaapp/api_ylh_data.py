@@ -52,6 +52,7 @@ class YLHDataFactory(BaseDataFactory):
         zxsksq = query_zx_reservoir_data()
         print("降雨数据：", report)
         max_rainfall_station = get_max_rainfall_station(data['data'])
+        print("最大降雨站：", max_rainfall_station)
         jiangyu_token = get_access_token()
         rain_geojson_result = get_rain_analysis(auth_token=jiangyu_token)
         plot_yuliangmian(rain_geojson_result, max_rainfall_station)
