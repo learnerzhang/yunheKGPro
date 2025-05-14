@@ -204,7 +204,7 @@ def plot_unified_map(
             rain_in_basin.plot(ax=ax, color="lightgreen", edgecolor="green", alpha=0.5)
 
         # 河流网络
-        river_gdf.plot(ax=ax, color="darkblue", linewidth=0.8, label="河流网络")
+        river_gdf.plot(ax=ax, color="lightblue", linewidth=0.5, label="河流网络")
 
         # 设置绘图范围为流域边界
         bounds = basin_gdf.total_bounds

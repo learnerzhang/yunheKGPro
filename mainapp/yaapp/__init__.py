@@ -1539,8 +1539,8 @@ def get_hydrometric_station(auth_token=None, station_code=None, ):
 
 AUTH_TOKEN_PATH = "data/yuan_data/4/auth_token/auth_token.json"
 def oauth_login_new(
-    access_key: str = "fxylh",#"fxylh2",   #
-    secret_key: str = "656ed363fa5513bb9848b430712290b2",#"899d657383d458a546bd80f1a0753263",
+    access_key: str = "fxylh2",   #  "fxylh",#
+    secret_key: str = "899d657383d458a546bd80f1a0753263",#"656ed363fa5513bb9848b430712290b2",#
     user_type: int = 3
 ):
     url = f"{BASE_API_URL}/oauth/login"
@@ -2473,13 +2473,8 @@ def plot_yuliangmian(
 
     # 绘制水系（河流）
     if water_gdf is not None:
-        water_gdf.plot(
-            ax=ax,
-            color='darkblue',
-            linewidth=0.8,
-            zorder=1,
-            label='河流网络'
-        )
+        water_gdf.plot(ax=ax, color="lightblue", linewidth=0.5, zorder=1, label='河流网络')
+        # river_gdf.plot(ax=ax, color="#ADD8E6", linewidth=0.8, label="河流网络")
         # legend_elements.append(
         #     Line2D([0], [0], color='darkblue', lw=1.5, label='河流网络')
         # )

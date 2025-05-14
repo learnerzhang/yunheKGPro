@@ -1546,13 +1546,8 @@ def plot_yuliangmian(
 
     # 绘制水系（河流）
     if water_gdf is not None:
-        water_gdf.plot(
-            ax=ax,
-            color='darkblue',
-            linewidth=0.8,
-            zorder=1,
-            label='河流网络'
-        )
+        water_gdf.plot(ax=ax,color="lightblue",linewidth=0.5,zorder=1,label='河流网络')
+        #river_gdf.plot(ax=ax, color="#ADD8E6", linewidth=0.8, label="河流网络")
         # legend_elements.append(
         #     Line2D([0], [0], color='darkblue', lw=1.5, label='河流网络')
         # )
@@ -1731,11 +1726,11 @@ if __name__ == "__main__":
         auth_token = "eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJleHAiOjE3NDcyMTU5MDEsImFjY291bnQiOiJmeHlsaCIsImN1cnJlbnRUaW1lTWlsbHMiOiIxNzQ2NjExMTAxNzE5In0.wJfe9cduJYkXUp4Aqb-9O_LVJpI9X6nZM95BmArimr8"
     status, data = get_rainfall_data_day(auth_token=auth_token)
     print("data：",data)
-    # max_rainfall_station = get_max_rainfall_station(data['data'])
+    max_rainfall_station = get_max_rainfall_station(data['data'])
     # print("最大降雨站点：",max_rainfall_station)
     res = generate_rainfall_report(response_data=data)
     print("降雨报告：",res)
-    # plot_yuliangmian(rain_geojson_result, max_rainfall_station)
+    plot_yuliangmian(rain_geojson_result, max_rainfall_station)
     # data = get_hydrometric_station(auth_token=auth_token)
     # print("河道实时水情:",data)
     # code, res = format_hydrometric_data(auth_token=auth_token)
