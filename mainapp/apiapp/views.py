@@ -90,11 +90,16 @@ class YLHYuAnApiGet(mixins.ListModelMixin,
             serializers.is_valid()
             return Response(serializers.data, status=status.HTTP_200_OK)
         
+        tmp_const_path = os.path.join("data", "yuan_data", f"{userYuAnPlan.ctype}", "constant")
+        if not os.path.exists(tmp_const_path):
+            os.makedirs(tmp_const_path)
+
         ctx = {
             "type": userYuAnPlan.ctype,
             "yadate": userYuAnPlan.yadate,
             "plan": model_to_dict(userYuAnPlan, exclude=["html_data", "html_data", "created_at", "updated_at", "nodes"]),
             "param_path": tmp_param_path,
+            "constant_path" : tmp_const_path,
             "results": {"apiname":"ylh_yadata"}
         }
         logger.info("预案参数:%s"% ctx)
