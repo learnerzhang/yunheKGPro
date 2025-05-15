@@ -13,7 +13,7 @@ from django_apscheduler.jobstores import DjangoJobStore, register_job, register_
 from yaapp.api_ylh_data import YLHDataFactory
 from yaapp.ylh_interface import generate_rainfall_map,download_map_images,create_flood_control_plan,call_llm_yuan_user_plan,call_llm_yuan_user_word,generate_rainfall_maps
 from threading import Lock
-
+from yaapp import oauth_login_new,get_rainfall_data_day, get_max_rainfall_station
 resource_lock = Lock()
 print('django-apscheduler starting')
 # 或者清空所有任务（谨慎使用）
@@ -29,8 +29,12 @@ def buildJsonDataJob():
     with resource_lock:  # 👈 加锁
         try:
             close_old_connections()
+            # auth_token = oauth_login_new()
+            # status, data = get_rainfall_data_day(auth_token=auth_token)
+            # max_rainfall_station = get_max_rainfall_station(data['data'])
+            # logger.info(f"最大降雨站：, {max_rainfall_station}")
             YLHDataFactory(dataType=4).buildJsonData()
-            logger.info(f'任务运行成功！{time.strftime("%Y-%m-%d %H:%M:%S")}')
+            logger.info(f'JSON数据构建任务运行成功！{time.strftime("%Y-%m-%d %H:%M:%S")}')
         except Exception as e:
             logger.error(f'json数据构建任务失败：{str(e)}')
         finally:
@@ -78,11 +82,10 @@ def flood_control_plan_job():
         plan_id = create_flood_control_plan()
         if plan_id:
             logger.info(f"成功创建防汛预案，ID: {plan_id}")
-            # 2. 调用预案处理接口
+            # 2. 调用预案生成接口
             plan_data = call_llm_yuan_user_plan(ptid=plan_id)
             if plan_data and plan_data.get("code") == 200:
                 logger.info("预案数据处理成功")
-
                 # 3. 生成预案文档
                 word_data = call_llm_yuan_user_word(id=plan_id)
                 if word_data and word_data.get("code") == 200:

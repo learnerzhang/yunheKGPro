@@ -741,6 +741,7 @@ def get_cleaned_json_from_excel(file_path):
     # 7. 转换为JSON字符串
     return df.to_json(orient='records', force_ascii=False)
 
+
 if __name__ == "__main__":
     #skddjy("../../mainapp/media/ddfa/2025-02-08.xlsx")
     for file in os.listdir("data/yuan_data/4/ddfad"):

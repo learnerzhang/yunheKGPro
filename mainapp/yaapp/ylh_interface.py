@@ -502,7 +502,12 @@ def plot_unified_map(
 ):
     try:
         # 设置中文字体支持
-        plt.rcParams['font.sans-serif'] = ['SimHei', 'Microsoft YaHei', 'WenQuanYi Zen Hei', 'Noto Sans CJK SC']
+        #plt.rcParams['font.sans-serif'] = ['SimHei', 'Microsoft YaHei', 'WenQuanYi Zen Hei', 'Noto Sans CJK SC']
+        plt.rcParams['font.sans-serif'] = [
+            'WenQuanYi Micro Hei',  # 文泉驿微米黑
+            'Noto Sans CJK JP',  # Noto 日文（兼容简体中文）
+            'Noto Serif CJK JP'  # Noto 衬线体
+        ]
         plt.rcParams['axes.unicode_minus'] = False
         plt.rcParams['axes.labelsize'] = 1  # 隐藏图例标签文字
 
@@ -567,20 +572,27 @@ def plot_unified_map(
                 Patch(facecolor=color, edgecolor='gray', label=label)
                 for color, label in zip(colors, labels)
             ]
-            ax.legend(handles=legend_elements, loc='upper left', fontsize=8)
+            ax.legend(handles=legend_elements, loc='lower right', fontsize=8)
 
         else:
             rain_in_basin.plot(ax=ax, color="lightgreen", edgecolor="green", alpha=0.5)
 
         # 河流网络
-        river_gdf.plot(ax=ax, color="darkblue", linewidth=0.8, label="河流网络")
+        #river_gdf.plot(ax=ax, color="darkblue", linewidth=0.8, label="河流网络")
+        river_gdf.plot(ax=ax, color="lightblue", linewidth=0.5, label="河流网络")#改为浅蓝色
 
         # 设置绘图范围为流域边界
         bounds = basin_gdf.total_bounds
         padding = 0.05
         ax.set_xlim(bounds[0] - padding, bounds[2] + padding)
         ax.set_ylim(bounds[1] - padding, bounds[3] + padding)
-
+        # 彻底隐藏坐标轴和边框
+        ax.axis('off')
+        # 去掉经纬度坐标轴的显示
+        # ax.set_xticks([])
+        # ax.set_yticks([])
+        # ax.set_xticklabels([])
+        # ax.set_yticklabels([])
         # 图题
         ax.set_title("伊洛河流域降雨分布图", fontsize=14)
 
@@ -662,7 +674,7 @@ def generate_rainfall_maps(stdt: str, output_folder: str = None):
         RIVER_FILE = "data/geojson/WTRIVRL25_洛河流域.json"
 
         # 生成图片名称
-        output_path = os.path.join(output_folder, f"{idx}.jpg")
+        output_path = os.path.join(output_folder, f"{idx}.png")
 
         # 调用统一绘图函数
         try:

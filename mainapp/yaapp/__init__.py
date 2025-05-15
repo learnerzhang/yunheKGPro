@@ -1081,7 +1081,7 @@ def search_fragpacks(query, top_k=5):
     highest_score_doc = max(fragpacks, key=lambda x: x[1])  # 按分数排序，取最高分
     return highest_score_doc[0].page_content
 
-BASE_API_URL= "http://wt.hxyai.cn/fx/"#"http://10.4.158.35:8070/"
+BASE_API_URL= "http://wt.hxyai.cn/fx/"#"http://10.4.158.35:8070/"#
 def get_rainfall_data_hour(basin=None, start_time=None, end_time=None):
     """
     获取实时雨量数据（带完整错误处理和JWT鉴权）
@@ -1149,22 +1149,22 @@ def get_rainfall_data_day(auth_token,basin=None, start_time=None, end_time=None)
     else:
         start_default = now.replace(hour=8, minute=0, second=0, microsecond=0)
 
-    end_default = now#start_default + timedelta(days=1)
+    end_default = start_default + timedelta(days=1)#now#
     # 设置默认时间范围（今天和昨天）
     # today = datetime.now().strftime("%Y-%m-%d")
     # yesterday = (datetime.now() - timedelta(days=1)).strftime("%Y-%m-%d")
     # # 处理时间参数
     # params["endDate"] = end_default #end_time if end_time else today
     # params["startDate"] = start_default #start_time if start_time else yesterday
-    params["endDate"] = end_time if end_time else end_default.strftime("%Y-%m-%d %H:%M:%S")
-    params["startDate"] = start_time if start_time else start_default.strftime("%Y-%m-%d %H:%M:%S")
+    params["endTime"] = end_time if end_time else end_default.strftime("%Y-%m-%d %H:%M:%S")
+    params["startTime"] = start_time if start_time else start_default.strftime("%Y-%m-%d %H:%M:%S")
     print("params:",params)
     if basin:
         params["stcd"] = basin
     try:
         # 使用提供的JWT token
         auth_token = auth_token#oauth_login()
-
+        url = f"{BASE_API_URL}/rainfall/hourrth/getRainfall"
         # 添加超时和请求头
         response = requests.get(
             url=f"{BASE_API_URL}/rainfall/hourrth/getRainfall",#dayrt
@@ -1176,6 +1176,7 @@ def get_rainfall_data_day(auth_token,basin=None, start_time=None, end_time=None)
             timeout=10  # 10秒超时
         )
         response.raise_for_status()  # 自动检查4xx/5xx错误
+        print("url:",url)
         return response.status_code, response.json()
 
     except requests.exceptions.Timeout:
@@ -1536,7 +1537,55 @@ def get_hydrometric_station(auth_token=None, station_code=None, ):
     except ValueError:
         return 500, {"error": "返回数据格式异常"}
 
+AUTH_TOKEN_PATH = "data/yuan_data/4/auth_token/auth_token.json"
+def oauth_login_new(
+    access_key: str =  "fxylh2",   #"fxylh",#
+    secret_key: str = "656ed363fa5513bb9848b430712290b2",#"899d657383d458a546bd80f1a0753263",#
+    user_type: int = 3
+):
+    url = f"{BASE_API_URL}/oauth/login"
+    headers = {
+        "Content-Type": "application/json",
+        "Accept": "application/json"
+    }
+    payload = {
+        "accessKey": access_key,
+        "secretKey": secret_key,
+        "userType": user_type
+    }
+    try:
+        response = requests.post(url=url, headers=headers, data=json.dumps(payload), timeout=10)
+        response.raise_for_status()
+        data = response.json().get("data")
+        if data:
+            # 确保路径存在
+            os.makedirs(os.path.dirname(AUTH_TOKEN_PATH), exist_ok=True)
 
+            # 写入新的 token 到文件
+            with open(AUTH_TOKEN_PATH, 'w') as f:
+                json.dump({"auth_token": data}, f)
+
+            return data
+
+        else:
+            # 如果没有 token 数据，尝试读取本地缓存
+            return read_local_token()
+
+    except (requests.exceptions.RequestException, ValueError) as e:
+        # 请求失败或响应解析失败时尝试读取本地 token
+        return read_local_token()
+
+
+def read_local_token():
+    """从本地文件读取缓存的 auth_token"""
+    if os.path.exists(AUTH_TOKEN_PATH):
+        try:
+            with open(AUTH_TOKEN_PATH, 'r') as f:
+                data = json.load(f)
+                return data.get("auth_token")
+        except Exception:
+            return None
+    return None
 
 def oauth_login(
         access_key: str =  "fxylh2",#"fxylh",
@@ -2336,7 +2385,11 @@ def plot_yuliangmian(
     """
 
     # 设置中文字体支持
-    plt.rcParams['font.sans-serif'] = ['SimHei', 'Microsoft YaHei', 'WenQuanYi Zen Hei', 'Noto Sans CJK SC']
+    #plt.rcParams['font.sans-serif'] = ['SimHei', 'Microsoft YaHei', 'WenQuanYi Zen Hei', 'Noto Sans CJK SC']
+    plt.rcParams['font.sans-serif'] = ['WenQuanYi Micro Hei',  # 文泉驿微米黑
+        'Noto Sans CJK JP',  # Noto 日文（兼容简体中文）
+        'Noto Serif CJK JP'  # Noto 衬线体
+    ]
     plt.rcParams['axes.unicode_minus'] = False
     plt.rcParams['axes.labelsize'] = 1  # 隐藏默认标签
 
@@ -2419,13 +2472,8 @@ def plot_yuliangmian(
 
     # 绘制水系（河流）
     if water_gdf is not None:
-        water_gdf.plot(
-            ax=ax,
-            color='darkblue',
-            linewidth=0.8,
-            zorder=1,
-            label='河流网络'
-        )
+        water_gdf.plot(ax=ax, color="lightblue", linewidth=0.5, zorder=1, label='河流网络')
+        # river_gdf.plot(ax=ax, color="#ADD8E6", linewidth=0.8, label="河流网络")
         # legend_elements.append(
         #     Line2D([0], [0], color='darkblue', lw=1.5, label='河流网络')
         # )
