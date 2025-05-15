@@ -198,7 +198,7 @@ def plot_unified_map(
                 Patch(facecolor=color, edgecolor='gray', label=label)
                 for color, label in zip(colors, labels)
             ]
-            ax.legend(handles=legend_elements, loc='upper left', fontsize=8)
+            ax.legend(handles=legend_elements, loc='lower right', fontsize=8)
 
         else:
             rain_in_basin.plot(ax=ax, color="lightgreen", edgecolor="green", alpha=0.5)
@@ -211,7 +211,13 @@ def plot_unified_map(
         padding = 0.05
         ax.set_xlim(bounds[0] - padding, bounds[2] + padding)
         ax.set_ylim(bounds[1] - padding, bounds[3] + padding)
-
+        # 彻底隐藏坐标轴和边框
+        ax.axis('off')
+        # 去掉经纬度坐标轴的显示
+        # ax.set_xticks([])
+        # ax.set_yticks([])
+        # ax.set_xticklabels([])
+        # ax.set_yticklabels([])
         # 图题
         ax.set_title("伊洛河流域降雨分布图", fontsize=14)
 
