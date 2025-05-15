@@ -1142,10 +1142,10 @@ class YLHDataFactory(BaseDataFactory):
         """
             调度方案
         """
-        # print("YLH getDiaoDuFangAnData")
+        print("YLH getDiaoDuFangAnData")
         auth_token = get_access_token(base_url="http://10.4.158.35:8091")
         # print("auth_token:", auth_token)
-        status, dataJson = get_ddfad_data(auth_token=auth_token,base_url="http://10.4.158.35:8091")
+        status, dataJson = get_ddfad_data(auth_token=auth_token, base_url="http://10.4.158.35:8091")
         logger.info(f"dataJson:{dataJson}")
         if dataJson['code'] != 200:
             logger.error("获取调度方案失败,使用默认JSON数据生成调度方案单！！！")
@@ -1175,6 +1175,7 @@ class YLHDataFactory(BaseDataFactory):
         ddfadFilePath = f"data/yuan_data/4/ddfad/{self.date}.xlsx"
         workbook.save(ddfadFilePath)
         logger.info(ddfadFilePath, "保存成功")
+        print(f"YLH getDiaoDuFangAnData {ddfadFilePath} 保存成功")
         return {}
 
     def getGongChengYanPanData(self):

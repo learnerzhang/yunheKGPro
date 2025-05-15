@@ -2570,6 +2570,7 @@ def get_ddfad_data(auth_token, base_url="http://10.4.158.35:8091"):
         isRecommend = response.json()["data"][0]["isRecommend"]
         logger.info(f"get_ddfad_data schId: {schId}, isRecommend: {isRecommend}")
         xurl = f"{base_url}/preSch/getSchDataBySchId?schId={schId}"
+        print("ddfad:", xurl)
         # print("ddfad:", url, headers)
         response = requests.get(
             xurl,
@@ -2586,6 +2587,48 @@ def get_ddfad_data(auth_token, base_url="http://10.4.158.35:8091"):
     except ValueError:
         return 500, {"error": "返回数据格式异常"}
 
+def get_tufang_data(auth_token, base_url="http://10.4.158.35:8091"):
+    """
+        获取防汛土方数据
+    """
+    # API基础URL
+
+    try:
+        headers = {
+            "Authorization": f"Bearer {auth_token}",
+            "ClientId": "e5cd7e4891bf95d1d19206ce24a7b32e"
+        }
+
+        url = f"{base_url}/preSch/getSch"
+        # print("ddfad:", url, headers)
+        response = requests.get(
+            url,
+            headers=headers,
+            timeout=10
+        )
+
+        response.raise_for_status()  # 检查请求是否成功
+
+        schId = response.json()["data"][0]["id"]
+        isRecommend = response.json()["data"][0]["isRecommend"]
+        logger.info(f"get_tufang_data schId: {schId}, isRecommend: {isRecommend}")
+        xurl = f"{base_url}/dispatch/getDfOverLevel?schId={schId}"
+        print("get_tufang_data:", xurl)
+        # print("ddfad:", url, headers)
+        response = requests.get(
+            xurl,
+            headers=headers,
+            timeout=10
+        )
+        response.raise_for_status()  # 检查请求是否成功
+        return response.status_code, response.json()
+
+    except requests.exceptions.Timeout:
+        return 408, {"error": "请求超时"}
+    except requests.exceptions.RequestException as e:
+        return 500, {"error": f"请求失败: {str(e)}"}
+    except ValueError:
+        return 500, {"error": "返回数据格式异常"}
 # if __name__ == '__main__':
 #     import time
 #     import matplotlib.pyplot as plt
