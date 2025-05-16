@@ -2506,7 +2506,9 @@ def plot_yuliangmian(
     output_folder = os.path.join("data", "yuan_data", "4", "yubao", today)
     os.makedirs(output_folder, exist_ok=True)
     output_path = os.path.join(output_folder, "yuliang.png")
-
+    if os.path.exists(output_path):
+        os.remove(output_path)
+        print(f"🗑️ 已删除旧文件: {output_path}")
     plt.savefig(output_path, dpi=300, bbox_inches='tight')
     print(f"✅ 图片已保存至: {output_path}")
     # 关闭图像以释放内存
