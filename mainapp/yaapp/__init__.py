@@ -1197,6 +1197,8 @@ def get_max_rainfall_station(data):
         dict: 包含最大降雨量站点的 'stnm'(站名), 'lgtd'(经度), 'lttd'(纬度)
         或 None（如果所有站点降雨量都为0）
     """
+    if data == []:
+        return None
     max_rainfall = -1
     max_station = None
     yiluo_stations = [station for station in data
@@ -1540,7 +1542,7 @@ def get_hydrometric_station(auth_token=None, station_code=None, ):
 AUTH_TOKEN_PATH = "data/yuan_data/4/auth_token/auth_token.json"
 def oauth_login_new(
     access_key: str =  "fxylh2",   #"fxylh",#
-    secret_key: str = "656ed363fa5513bb9848b430712290b2",#"899d657383d458a546bd80f1a0753263",#
+    secret_key: str = "899d657383d458a546bd80f1a0753263",#"656ed363fa5513bb9848b430712290b2",#
     user_type: int = 3
 ):
     url = f"{BASE_API_URL}/oauth/login"
@@ -2504,7 +2506,9 @@ def plot_yuliangmian(
     output_folder = os.path.join("data", "yuan_data", "4", "yubao", today)
     os.makedirs(output_folder, exist_ok=True)
     output_path = os.path.join(output_folder, "yuliang.png")
-
+    if os.path.exists(output_path):
+        os.remove(output_path)
+        print(f"🗑️ 已删除旧文件: {output_path}")
     plt.savefig(output_path, dpi=300, bbox_inches='tight')
     print(f"✅ 图片已保存至: {output_path}")
     # 关闭图像以释放内存

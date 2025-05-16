@@ -1144,6 +1144,13 @@ class PlanFactory:
             self.node.wordParagraphs.add(wp)
             wp = WordParagraph.objects.create(title=f"调度结果及应对措施", content="4.2 应对措施", ctype=1)
             self.node.wordParagraphs.add(wp)
+            hhydcs = ("1、黄河防总总指挥或常务副总指挥坐镇指挥黄河抗洪工作，主持抗洪抢险会商会，研究部署坑洪抢险工作。各级防汛指挥机构领导要坐阵指挥。"
+                      "\n2、河南省、洛阳市、郑州市等省区防汛抗旱指挥机构负责同志主持会商，具体安排防汛工作;根据预案做好巡堤查险、抗洪抢险、群众转移安置等抗洪救灾工作。\n"
+                      "3、组织军民、机动抢险队坚守大堤，查险除险，防汛物资储备单位要做好物资保障。\n"
+                      "4、根据当前调度方案结果，预计巩义市河段桩号左岸17+500至33+500、右岸24+500至33+000共计7.77米堤防需加筑子堤,子堤高1-2米，宽2米，需要土方量为18.46万方。\n"
+                      "5、若伊洛河上游仍有较大来水，洪水下泄不畅，水位继续上涨，后助到洛阳、偃师城区、陇海铁路的安全或防洪大提全线危急时，报清上级防汛指挥部门批准后，从伊河右岸杨村段和洛河右岸岳滩村段爆破分洪。\n")
+            wp = WordParagraph.objects.create(title=f"应对措施", content=hhydcs, ctype=1)
+            self.node.wordParagraphs.add(wp)
             wp = WordParagraph.objects.create(title=f"应对措施", content=ydcs, ctype=1)
             self.node.wordParagraphs.add(wp)
             wp = WordParagraph.objects.create(title=f"调度结果及应对措施", content="4.3 人员转移方案", ctype=1)
