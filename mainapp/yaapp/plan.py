@@ -1,5 +1,6 @@
 import json
-from yaapp import yautils
+import math
+from yaapp import get_access_token, get_tufang_data, yautils
 from yaapp import divHtml, gx_sk, hkc_sk, img2base64, lhbs_sk, paraHtml, smx_sjt_sk, xld_sk, generate_ddjy, process_outflow,bold_left_align,pd2HtmlCSS,excel_to_html_with_merged_cells,generate_rainfall_report,get_rainfall_data_day,format_hydrometric_data,format_reservoir_data
 from yaapp.api_yuan import (huanghe_diaodu_plan_ctx, huanghe_diaodu_plan_dfjson, huanghe_hedaoshuiqing_generate_dfjson, huanghe_shuikushuiqing_generate_dfjson, huanghe_yuqing_generate,huanghe_hedaoshuiqing_generate,huanghe_shuikushuiqing_generate,huanghe_gongqing_generate,huanghe_jiangyu13_forecast,huanghe_fenqu_jiangyu_forecast,huanghe_jiangyu47_forecast,huanghe_flood_forecast,huanghe_diaodu_plan,huanghe_shuiku_diaodu_result,huanghe_tanqu_yanmo,huanghe_keneng_danger,huanghe_xiangying_level,xld_yushui_context,
                             engineer_safety_shuikuyj,engineer_safety_shuiwenyj,engineer_safety_gongchengjcyj,shuniuFangAn,xldJZStatus,xldholeStatus,JZHoleRecommend,YingjiResponse,OrganizeBaoZhang_leader,OrganizeBaoZhang_zhihuibu,company_duty,team_baozhang,fangxun_table,xld_diaodu_table,huanghe_fenqu_jiangyu_forecast_dfjson,huanghe_flood_forecast_json,engineer_safety_shuikuyj_json,engineer_safety_shuiwenyj_json,engineer_safety_gongchengjcyj_json,xldJZStatus_json,JZHoleRecommend_json,xldholeStatus_json,
@@ -10,6 +11,7 @@ from datetime import datetime
 import os
 import base64
 import re
+from collections import defaultdict
 from yaapp.rule import *
 import logging
 logger = logging.getLogger('kgproj')
@@ -1367,11 +1369,55 @@ class PlanFactory:
             "desc": "应对措施"
         }
 
+    def get_fufang(self):
+        if self.context['type'] == 0:
+            return ""
+        elif self.context['type'] == 1:
+            return ""
+        elif self.context['type'] == 2:
+            return ""
+        elif self.context['type'] == 3:
+            return ""
+        elif self.context['type'] == 4:
+            """
+            根据当前调度方案结果，预计偃师市、巩义市段堤防可能出现局部超堤顶，其中偃师市段累计超堤顶xx米，巩义市段累计超堤顶xx米。建议加高子堤，共需土方量约xx立方米，建议通过流域内土方调配与应急储备相结合的方式落实。
+            """
+            try:
+                auth_token = get_access_token(base_url="http://10.4.158.35:8091")
+                # print("auth_token:", auth_token)
+                status, dataJson = get_tufang_data(auth_token=auth_token, base_url="http://10.4.158.35:8091")
+                tmpTempate = ""
+                if status == 200:
+                    datalist = dataJson['data']
+                    tmpTuFang = 0.0
+                    tmpname2overLevel = defaultdict(float)
+                    for ent in datalist:
+                        overLevel = ent['overLevel']
+                        length = ent['len']
+                        management = ent['management']
+                        tmpTuFang += math.ceil(overLevel) * length * 2
+                        tmpname2overLevel[management] += overLevel
+                    
+                    tmpTempate = """根据当前调度方案结果，预计{}段堤防可能出现局部超堤顶，其中{}。建议加高子堤，共需土方量约{}立方米，建议通过流域内土方调配与应急储备相结合的方式落实。
+                        """.format("、".join(tmpname2overLevel.keys()), "、".join([f"{k}累计超堤顶{round(v, 2)}米" for k, v in tmpname2overLevel.items()]), round(tmpTuFang, 2))
+
+                self.context['results']['tufang'] = {
+                    "value": tmpTempate,
+                    "desc": "防汛土方方案"
+                }
+            except Exception as e:
+                logger.error(e)
+                self.context['results']['tufang'] = {
+                    "value": "",
+                    "desc": "防汛土方方案"
+                }
+        
     def get_aqjc_api(self):
         import json
         import codecs
         if self.context['type'] == 4:
             self.yjdj_api()
+            self.get_fufang()
             tmp_constant_path = self.params['constant_path'] if 'constant_path' in self.params else os.path.join("data", "yuan_data", f"{self.context['type']}", "constant")
             const_ryzy_path = os.path.join(tmp_constant_path, "renyuanzhuanyi_paln.json")
             with codecs.open(const_ryzy_path, 'r', 'utf-8') as f:
@@ -1393,6 +1439,7 @@ class PlanFactory:
                 "value": const_yjbz,
                 "desc": "应急保障"
             }
+
 
     def get_lsyg(self):
         if self.context['type'] == 0:
