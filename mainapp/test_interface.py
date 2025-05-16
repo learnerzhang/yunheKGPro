@@ -281,6 +281,8 @@ def get_max_rainfall_station(data):
         dict: 包含最大降雨量站点的 'stnm'(站名), 'lgtd'(经度), 'lttd'(纬度)
         或 None（如果所有站点降雨量都为0）
     """
+    if data == []:
+        return None
     max_rainfall = -1
     max_station = None
     yiluo_stations = [station for station in data
@@ -1727,7 +1729,7 @@ if __name__ == "__main__":
     status, data = get_rainfall_data_day(auth_token=auth_token)
     print("data：",data)
     max_rainfall_station = get_max_rainfall_station(data['data'])
-    #print("最大降雨站点：",max_rainfall_station)
+    print("最大降雨站点：",max_rainfall_station)
     res = generate_rainfall_report(response_data=data)
     print("降雨报告：",res)
     plot_yuliangmian(rain_geojson_result, max_rainfall_station)
