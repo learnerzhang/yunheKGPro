@@ -25,11 +25,14 @@ DEBUG = True
 BASE_DIR = Path(__file__).resolve().parent.parent
 logger = logging.getLogger('kgproj')
 
+# 获取自定义配置参数，如果没有设置则使用默认值
+CONFIG_NAME = os.environ.get('CONFIG_NAME', 'local')
+
 if sys.platform.startswith('linux'):
     CONFIG_FILE = os.path.join("configs", 'config.yaml')
     logger.debug('当前系统为 Linux')
 elif sys.platform.startswith('win'):
-    CONFIG_FILE = os.path.join("configs", 'config_local.yaml')
+    CONFIG_FILE = os.path.join("configs", f'config_{CONFIG_NAME}.yaml')
     logger.debug('当前系统为 Windows')
 elif sys.platform.startswith('darwin'):
     logger.debug('当前系统为 macOS')

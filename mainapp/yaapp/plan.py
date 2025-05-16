@@ -1387,22 +1387,39 @@ class PlanFactory:
                 # print("auth_token:", auth_token)
                 status, dataJson = get_tufang_data(auth_token=auth_token, base_url="http://10.4.158.35:8091")
                 tmpTempate = ""
+                newTemplate = ""
                 if status == 200:
                     datalist = dataJson['data']
                     tmpTuFang = 0.0
+                    tmpLength = 0.0
                     tmpname2overLevel = defaultdict(float)
+                    tmpname2len = defaultdict(float)
+                    tmpname2len = defaultdict(float)
+                    tmpname2txts = defaultdict(list)
                     for ent in datalist:
                         overLevel = ent['overLevel']
                         length = ent['len']
                         management = ent['management']
                         tmpTuFang += math.ceil(overLevel) * length * 2
+                        tmpLength += length
                         tmpname2overLevel[management] += overLevel
+                        tmpname2len[management] += length
+                        txtMemo1 = ent['txtMemo1']
+                        txtMemo2 = ent['txtMemo2']
+                        anBie = ent['anBie']
+                        tmpname2txts[management].append((txtMemo1, txtMemo2, length, anBie))
                     
-                    tmpTempate = """根据当前调度方案结果，预计{}段堤防可能出现局部超堤顶，其中{}。建议加高子堤，共需土方量约{}立方米，建议通过流域内土方调配与应急储备相结合的方式落实。
+                    if datalist:
+                        # XXX河段桩号XXX至XXX共计XX米堤防需加筑子堤，子堤高1-2米，宽2米，需要土方量为XXX万方
+                        tmpTempate = """根据当前调度方案结果，预计{}段堤防可能出现局部超堤顶，其中{}。建议加高子堤，共需土方量约{}立方米，建议通过流域内土方调配与应急储备相结合的方式落实。
                         """.format("、".join(tmpname2overLevel.keys()), "、".join([f"{k}累计超堤顶{round(v, 2)}米" for k, v in tmpname2overLevel.items()]), round(tmpTuFang, 2))
+                        newTemplate = f"巩义市伊洛河段桩号左岸17+500至33+500、右岸24+500至33+000"
+                        # for k, v in tmpname2txts.items():
+                        #     newTemplate += f"{k}河段桩号" + "、".join([f"{_an}{_t1}至{_t2}".format(_t1, _t2) for _t1, _t2, _, _an in v])
+                        newTemplate += f"共计{round(tmpLength, 2)}米堤防需加筑子堤,子堤高1-2米，宽2米，需要土方量为{tmpTuFang}万方"
 
                 self.context['results']['tufang'] = {
-                    "value": tmpTempate,
+                    "value": newTemplate,
                     "desc": "防汛土方方案"
                 }
             except Exception as e:
