@@ -963,18 +963,17 @@ class UpdateUserPlanDocument(generics.GenericAPIView):
 
 def deep_copy_model(instance:dict, mydate: str, user: User=None):
     # 获取模型类
-    new_instance = PlanByUser.objects.create(ctype=instance['ctype'], 
+    new_instance, _flag = PlanByUser.objects.get_or_create(ctype=instance['ctype'], 
                                              yadate=mydate,
                                              user=user,
-                                             name=getYuAnName(instance['ctype'], mydate),)
-    # 保存新实例，生成新的主键
-    new_instance.save()
-    for i, node in enumerate(instance['nodes']):
-        # 处理节点外键字段
-        new_instance_node = TemplateNode.objects.create(label=node['label'], description=node['description'], template=node['template'], order=i + 1)
-        new_instance.nodes.add(new_instance_node)
-    # 保存更新后的新实例
-    new_instance.save()
+                                             name=getYuAnName(instance['ctype'], mydate))
+    if _flag:
+        for i, node in enumerate(instance['nodes']):
+            # 处理节点外键字段
+            new_instance_node = TemplateNode.objects.create(label=node['label'], description=node['description'], template=node['template'], order=i + 1)
+            new_instance.nodes.add(new_instance_node)
+        # 保存更新后的新实例
+        new_instance.save()
     return new_instance
 
 
