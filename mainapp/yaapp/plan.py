@@ -1347,7 +1347,7 @@ class PlanFactory:
             2: ["二级响应", "橙色预警"],
             3: ["三级响应", "黄色预警"],
             4: ["四级响应", "蓝色预警"],
-            5: ["无预警", "无预警"]
+            5: ["无响应", "无预警"]
         }
 
         hh_level = hh_alert['level']
@@ -1379,8 +1379,8 @@ class PlanFactory:
             },
             "desc": "预警分级响应"
         }
-        self.context['results']['yingyinginfo'] = {
-            "value": yujing2Map.get(hh_level, ["无预警", "无预警"]),
+        self.context['results']['yujinginfo'] = {
+            "value": yujing2Map.get(hh_level, ["无响应", "无预警"]),
             "desc": "预警等级&响应级别"
         }
 
