@@ -1342,6 +1342,14 @@ class PlanFactory:
             5: "无预警"
         }
 
+        yujing2Map = {
+            1: ["一级响应", "红色预警"],
+            2: ["二级响应", "橙色预警"],
+            3: ["三级响应", "黄色预警"],
+            4: ["四级响应", "蓝色预警"],
+            5: ["无预警", "无预警"]
+        }
+
         hh_level = hh_alert['level']
         hh_desc = hh_alert['result']
         gx_level = gx_alert['level']
@@ -1371,9 +1379,9 @@ class PlanFactory:
             },
             "desc": "预警分级响应"
         }
-        self.context['results']['yingducuoshi'] = {
-            "value": yingduicuoshiList,
-            "desc": "应对措施"
+        self.context['results']['yingyinginfo'] = {
+            "value": yujing2Map.get(hh_level, ["无预警", "无预警"]),
+            "desc": "预警等级&响应级别"
         }
 
     def get_fufang(self):
@@ -1387,44 +1395,16 @@ class PlanFactory:
             return ""
         elif self.context['type'] == 4:
             """
-            根据当前调度方案结果，预计偃师市、巩义市段堤防可能出现局部超堤顶，其中偃师市段累计超堤顶xx米，巩义市段累计超堤顶xx米。建议加高子堤，共需土方量约xx立方米，建议通过流域内土方调配与应急储备相结合的方式落实。
+            "伊河段左岸桩号xxx-xxx，右岸桩号xxx-xxx，共计xx米堤防需要加筑子堤，子堤高1～2米（根据淹没高度，取整后的范围）；洛河段左岸桩号xxx-xxx，右岸桩号xxx-xxx，共计xx米堤防需要加筑子堤，子堤高1～2米；洛河段左岸桩号xxx-xxx，右岸桩号xxx-xxx，共计xx米堤防需要加筑子堤，子堤高1～2米，堤防宽度为2米，共需要土方量约xxx万方。"
             """
+            newTemplate = "当前暂无堤防淹没"
             try:
                 auth_token = get_access_token(base_url="http://10.4.158.35:8091")
                 # print("auth_token:", auth_token)
                 status, dataJson = get_tufang_data(auth_token=auth_token, base_url="http://10.4.158.35:8091")
-                tmpTempate = ""
-                newTemplate = ""
                 if status == 200:
                     datalist = dataJson['data']
-                    tmpTuFang = 0.0
-                    tmpLength = 0.0
-                    tmpname2overLevel = defaultdict(float)
-                    tmpname2len = defaultdict(float)
-                    tmpname2len = defaultdict(float)
-                    tmpname2txts = defaultdict(list)
-                    for ent in datalist:
-                        overLevel = ent['overLevel']
-                        length = ent['len']
-                        management = ent['management']
-                        tmpTuFang += math.ceil(overLevel) * length * 2
-                        tmpLength += length
-                        tmpname2overLevel[management] += overLevel
-                        tmpname2len[management] += length
-                        txtMemo1 = ent['txtMemo1']
-                        txtMemo2 = ent['txtMemo2']
-                        anBie = ent['anBie']
-                        tmpname2txts[management].append((txtMemo1, txtMemo2, length, anBie))
-                    
-                    if datalist:
-                        # XXX河段桩号XXX至XXX共计XX米堤防需加筑子堤，子堤高1-2米，宽2米，需要土方量为XXX万方
-                        tmpTempate = """根据当前调度方案结果，预计{}段堤防可能出现局部超堤顶，其中{}。建议加高子堤，共需土方量约{}立方米，建议通过流域内土方调配与应急储备相结合的方式落实。
-                        """.format("、".join(tmpname2overLevel.keys()), "、".join([f"{k}累计超堤顶{round(v, 2)}米" for k, v in tmpname2overLevel.items()]), round(tmpTuFang, 2))
-                        newTemplate = f"巩义市伊洛河段桩号左岸17+500至33+500、右岸24+500至33+000"
-                        # for k, v in tmpname2txts.items():
-                        #     newTemplate += f"{k}河段桩号" + "、".join([f"{_an}{_t1}至{_t2}".format(_t1, _t2) for _t1, _t2, _, _an in v])
-                        newTemplate += f"共计{round(tmpLength, 2)}米堤防需加筑子堤,子堤高1-2米，宽2米，需要土方量为{tmpTuFang}万方"
-
+                    newTemplate = yautils.generate_report(datalist)
                 self.context['results']['tufang'] = {
                     "value": newTemplate,
                     "desc": "防汛土方方案"
@@ -1435,13 +1415,14 @@ class PlanFactory:
                     "value": "",
                     "desc": "防汛土方方案"
                 }
+            return newTemplate
         
     def get_aqjc_api(self):
         import json
         import codecs
         if self.context['type'] == 4:
             self.yjdj_api()
-            self.get_fufang()
+            tufangTemplate = self.get_fufang()
             tmp_constant_path = self.params['constant_path'] if 'constant_path' in self.params else os.path.join("data", "yuan_data", f"{self.context['type']}", "constant")
             const_ryzy_path = os.path.join(tmp_constant_path, "renyuanzhuanyi_paln.json")
             with codecs.open(const_ryzy_path, 'r', 'utf-8') as f:
@@ -1456,6 +1437,15 @@ class PlanFactory:
                 "desc": "人员转移方案"
             }
             
+            const_ydcs_path = os.path.join(tmp_constant_path, "yingduicuoshi.json")
+            with codecs.open(const_ydcs_path, 'r', 'utf-8') as f:
+                const_ydcs = json.load(f)
+                const_ydcs[0]['values']['5'] = tufangTemplate
+            self.context['results']['yingduicuoshi'] = {
+                "value": const_ydcs,
+                "desc": "应对措施"
+            }
+
             const_yybz_path = os.path.join(tmp_constant_path, "yingjibaozhang.json")
             with codecs.open(const_yybz_path, 'r', 'utf-8') as f:
                 const_yjbz = json.load(f)

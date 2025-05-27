@@ -2658,9 +2658,8 @@ def get_tufang_data(auth_token, base_url="http://10.4.158.35:8091"):
             headers=headers,
             timeout=10
         )
-
         response.raise_for_status()  # 检查请求是否成功
-
+        print("get_tufang_data:", response.json())
         schId = response.json()["data"][0]["id"]
         isRecommend = response.json()["data"][0]["isRecommend"]
         logger.info(f"get_tufang_data schId: {schId}, isRecommend: {isRecommend}")

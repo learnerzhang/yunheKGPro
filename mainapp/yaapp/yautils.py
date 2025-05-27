@@ -12,6 +12,8 @@ from collections import defaultdict
 from pyecharts.charts import Line
 from pyecharts import options as opts
 from yunheKGPro import settings
+from collections import defaultdict
+import math
 #import rule
 from . import rule
 #from yaapp import rule
@@ -742,7 +744,106 @@ def get_cleaned_json_from_excel(file_path):
     return df.to_json(orient='records', force_ascii=False)
 
 
+def generate_report(data):
+    # 按河段和岸别分组数据
+    river_sections = defaultdict(lambda: defaultdict(lambda: {'桩号范围': [], '长度': 0.0, '最大超高标准': 0.0}))
+    
+    # 初始化总长度和土方量
+    total_length = 0
+    total_earthwork = 0
+    
+    # 处理每条数据
+    for item in data:
+        print(item)
+        management = item['management']
+        anBie = item['anBie']
+        txtMemo1 = item['txtMemo1']
+        txtMemo2 = item['txtMemo2']
+        length = item['len']
+        overLevel = item['overLevel']
+        
+        # 更新河段和岸别的信息
+        section = river_sections[management][anBie]
+        section['桩号范围'].extend([txtMemo1, txtMemo2])  # 分别添加起点和终点
+        section['长度'] += length
+        section['最大超高标准'] = max(section['最大超高标准'], overLevel)
+        
+        # 更新总长度和土方量
+        total_length += length
+        total_earthwork += math.ceil(overLevel) * length * 2  # 子堤高按超高标准取整，宽2米
+    
+    # 生成每个河段的报告内容
+    section_reports = []
+    for management, banks in river_sections.items():
+        left_bank = banks.get('左岸', {'桩号范围': [], '长度': 0})
+        right_bank = banks.get('右岸', {'桩号范围': [], '长度': 0})
+        
+        # 获取左岸的最小和最大桩号
+        left_min, left_max = get_min_max_stake(left_bank['桩号范围'])
+        
+        # 获取右岸的最小和最大桩号
+        right_min, right_max = get_min_max_stake(right_bank['桩号范围'])
+        
+        # 格式化左岸桩号范围
+        left_range = f"{left_min}-{left_max}" if left_min and left_max else "无"
+        
+        # 格式化右岸桩号范围
+        right_range = f"{right_min}-{right_max}" if right_min and right_max else "无"
+        
+        # 计算当前河段的总长度
+        section_length = left_bank['长度'] + right_bank['长度']
+        
+        # 确定子堤高度范围
+        max_over_level = max(
+            left_bank.get('最大超高标准', 0),
+            right_bank.get('最大超高标准', 0)
+        )
+        min_height = 1
+        max_height = max(2, math.ceil(max_over_level))  # 子堤高至少1米，最大不超过2米
+        
+        # 生成河段报告
+        section_report = f"{management}段左岸桩号{left_range}，右岸桩号{right_range}，共计{section_length:.2f}米堤防需要加筑子堤，子堤高{min_height}～{max_height}米"
+        section_reports.append(section_report)
+    
+    # 生成最终报告
+    if section_reports:
+        final_report = "，".join(section_reports)
+        final_report += f"，堤防宽度为2米，共需要土方量约{total_earthwork:.2f}方。"
+    else:
+        final_report = "当前暂无堤防淹没"
+    return final_report
+
+def get_min_max_stake(stakes):
+    """获取桩号列表中的最小值和最大值"""
+    if not stakes:
+        return None, None
+    
+    # 转换桩号为数值进行比较
+    def stake_to_value(stake):
+        parts = stake.split('+')
+        return int(parts[0]) * 1000 + int(parts[1])
+    
+    # 转换所有桩号为数值
+    values = [stake_to_value(s) for s in stakes]
+    
+    # 获取最小值和最大值
+    min_value = min(values)
+    max_value = max(values)
+    
+    # 转换回字符串格式
+    def value_to_stake(value):
+        return f"{value // 1000}+{value % 1000:03d}"
+    return value_to_stake(min_value), value_to_stake(max_value)
+
+
 if __name__ == "__main__":
+
+    # 示例数据
+    data = [{'entityCode': '00176', 'overLevel': 1.22, 'len': 1.27, 'txtMemo1': '21+500', 'management': '巩义市', 'entityName': '巩义市00176', 'anBie': '左岸', 'x': '112.95024148', 'y': '34.7843952863', 'txtMemo2': '22+500'}, {'entityCode': '00170', 'overLevel': 1.29, 'len': 1.08, 'txtMemo1': '20+500', 'management': '巩义市', 'entityName': '巩义市00170', 'anBie': '左岸', 'x': '112.948423097', 'y': '34.7749793274', 'txtMemo2': '21+500'}, {'entityCode': '00196', 'overLevel': 0.16, 'len': 0.83, 'txtMemo1': '32+500', 'management': '巩义市', 'entityName': '巩义市00196', 'anBie': '右岸', 'x': '113.060331864', 'y': '34.8073174702', 'txtMemo2': '33+000'}, {'entityCode': '00164', 'overLevel': 0.46, 'len': 0.48, 'txtMemo1': '18+500', 'management': '巩义市', 'entityName': '巩义市00164', 'anBie': '左岸', 'x': '112.944801548', 'y': '34.7555138897', 'txtMemo2': '19+000'}, {'entityCode': '00162', 'overLevel': 0.49, 'len': 0.99, 'txtMemo1': '17+500', 'management': '巩义市', 'entityName': '巩义市00162', 'anBie': '左岸', 'x': '112.943601198', 'y': '34.7490088699', 'txtMemo2': '18+500'}, {'entityCode': '00166', 'overLevel': 0.37, 'len': 1.01, 'txtMemo1': '19+000', 'management': '巩义市', 'entityName': '巩义市00166', 'anBie': '左岸', 'x': '112.946216617', 'y': '34.7620866522', 'txtMemo2': '20+000'}, {'entityCode': '00174', 'overLevel': 0.01, 'len': 1.22, 'txtMemo1': '24+500', 'management': '巩义市', 'entityName': '巩义 市00174', 'anBie': '右岸', 'x': '112.984236955', 'y': '34.7827074219', 'txtMemo2': '25+500'}]
+    # 生成报告
+    report = generate_report(data)
+    print(report)
+
     #skddjy("../../mainapp/media/ddfa/2025-02-08.xlsx")
     for file in os.listdir("data/yuan_data/4/ddfad"):
         file_path = f"data/yuan_data/4/ddfad/{file}"
@@ -766,8 +867,6 @@ if __name__ == "__main__":
     #     file_path = f"data/shj_ddfad/{file}"
     #     plot_save_html(file_path, 3)
     #     break
-
-
 
     # r = excel_to_dict("../../mainapp/media/ddfa/3/2025-02-08.xlsx")
     # #pprint.pprint(r)
