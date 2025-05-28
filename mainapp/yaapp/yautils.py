@@ -820,8 +820,11 @@ def get_min_max_stake(stakes):
     
     # 转换桩号为数值进行比较
     def stake_to_value(stake):
-        parts = stake.split('+')
-        return int(parts[0]) * 1000 + int(parts[1])
+        if '+' in stake:
+            parts = stake.split('+')
+            return int(parts[0]) * 1000 + int(parts[1])
+        else:
+            return 0  
     
     # 转换所有桩号为数值
     values = [stake_to_value(s) for s in stakes]
