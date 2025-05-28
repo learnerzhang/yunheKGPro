@@ -1359,7 +1359,7 @@ class PlanFactory:
         ylh_level = ylh_alert['level']
         ylh_desc = ylh_alert['result']
         dengjiList = []
-        dengjiList.append({"value": "《黄河防汛抗旱应急预案》", "level": dengjiType.get(hh_level, "")})
+        dengjiList.append({"value": "《黄河防汛抗旱应急预案(试行)》", "level": dengjiType.get(hh_level, "")})
         dengjiList.append({"value": "《河南省黄河流域伊洛河防洪预案》", "level": dengjiType.get(ylh_level, "")})
         dengjiList.append({"value": "《故县水库应急抢险预案》", "level": dengjiType.get(gx_level, "")})
         dengjiList.append({"value": "《2024陆浑水库防汛抢险应急预案》", "level": dengjiType.get(lh_level, "")})
